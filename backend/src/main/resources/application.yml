@@ -1,0 +1,67 @@
+spring:
+  application:
+    name: medlearn
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: duongkt.st.2005@gmail.com
+    password: 123taoladuong
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  profiles:
+    active: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/medlearn_db
+    username: medlearn
+    password: Medlearn@123
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      pool-name: MedlearnHikariPool
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      jdbc:
+        batch_size: 20
+        order_inserts: true
+        order_updates: true
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+# Springdoc OpenAPI (Swagger)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# Email configuration (cấp cao nhất, không lồng trong spring)
+email:
+  from: medlearn@example.com
+  verification:
+    expiry-hours: 24

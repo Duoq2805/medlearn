@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: medlearn-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: medlearn_db
+      POSTGRES_USER: medlearn
+      POSTGRES_PASSWORD: Medlearn@123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    container_name: medlearn-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/medlearn_db
+      SPRING_DATASOURCE_USERNAME: medlearn
+      SPRING_DATASOURCE_PASSWORD: Medlearn@123
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

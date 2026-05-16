@@ -1,0 +1,13 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/medlearn_db
+    username: medlearn
+    password: Medlearn@123
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    com.medlearn: INFO
+    org.hibernate.SQL: ERROR
