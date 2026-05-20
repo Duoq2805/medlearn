@@ -7,6 +7,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.net.InetAddress;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ public class AuditLog {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)  // NULLABLE for system actions
     private User user;
 
     @Enumerated(EnumType.STRING)
@@ -37,7 +38,6 @@ public class AuditLog {
     @Column(name = "entity_id", nullable = false)
     private Long entityId;
 
-    // JSONB columns — lưu dữ liệu cũ/mới để trace thay đổi
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "old_data", columnDefinition = "jsonb")
     private Map<String, Object> oldData;
@@ -49,7 +49,33 @@ public class AuditLog {
     @Column(columnDefinition = "TEXT")
     private String reason;
 
+    @Column(name = "ip_address")
+    private InetAddress ipAddress;
+
+    @Column(name = "user_agent")
+    private String userAgent;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
+
+    // Factory method for system actions (no user)
+    public static AuditLog systemAction(AuditAction action, String entityName, Long entityId) {
+        return AuditLog.builder()
+                .user(null)
+                .actionType(action)
+                .entityName(entityName)
+                .entityId(entityId)
+                .build();
+    }
+
+    // Factory method for user actions
+    public static AuditLog userAction(User user, AuditAction action, String entityName, Long entityId) {
+        return AuditLog.builder()
+                .user(user)
+                .actionType(action)
+                .entityName(entityName)
+                .entityId(entityId)
+                .build();
+    }
 }

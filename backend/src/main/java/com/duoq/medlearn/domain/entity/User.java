@@ -12,8 +12,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "\"user\"")
-@SQLRestriction("is_deleted = false")
+@Table(name = "users")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,7 +31,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "password_hash", nullable = false, length = 255)
+    @Column(nullable = false, name = "password_hash", length = 255)
     private String passwordHash;
 
     @Column(name = "full_name", length = 255)
@@ -44,9 +44,19 @@ public class User {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "user_status")
     @Builder.Default
     private UserStatus status = UserStatus.PENDING;
+
+    @Column(name = "provider", length = 50)
+    private String provider;
+
+    @Column(name = "provider_id", length = 255)
+    private String providerId;
+
+    @Column(name = "is_verified")
+    @Builder.Default
+    private Boolean isVerified = false;
 
     @Column(name = "last_login_at")
     private OffsetDateTime lastLoginAt;
@@ -59,9 +69,8 @@ public class User {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -71,4 +80,12 @@ public class User {
     )
     @Builder.Default
     private Set<Role> roles = new HashSet<>();
+
+    public boolean isActive() {
+        return this.status == UserStatus.ACTIVE && this.deletedAt == null;
+    }
+
+    public void activate() {
+        this.status = UserStatus.ACTIVE;
+    }
 }

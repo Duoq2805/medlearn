@@ -1,30 +1,47 @@
+version: '3.8'
+
 services:
   postgres:
-    image: postgres:16-alpine
-    container_name: medlearn-postgres
-    restart: unless-stopped
+    image: postgres:15-alpine
+    container_name: medlearn_postgres
     environment:
       POSTGRES_DB: medlearn_db
       POSTGRES_USER: medlearn
       POSTGRES_PASSWORD: Medlearn@123
+      PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medlearn -d medlearn_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medlearn_network
 
-  backend:
+  # Nếu bạn muốn chạy cả app trong docker (optional)
+  app:
     build: ./backend
-    container_name: medlearn-backend
-    restart: unless-stopped
+    container_name: medlearn_app
     ports:
       - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/medlearn_db
       SPRING_DATASOURCE_USERNAME: medlearn
       SPRING_DATASOURCE_PASSWORD: Medlearn@123
-    depends_on:
-      - postgres
+    networks:
+      - medlearn_network
 
 volumes:
   postgres_data:
+    driver: local
+
+networks:
+  medlearn_network:
+    driver: bridge

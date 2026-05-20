@@ -1,7 +1,6 @@
 package com.duoq.medlearn.repository;
 
 import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.enums.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,29 +11,28 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    // Tìm user theo username (không load roles)
     Optional<User> findByUsername(String username);
 
-    // Tìm user theo email (không load roles)
     Optional<User> findByEmail(String email);
 
-    // Kiểm tra username đã tồn tại chưa
     boolean existsByUsername(String username);
 
-    // Kiểm tra email đã tồn tại chưa
     boolean existsByEmail(String email);
 
-    // Tìm user theo username, chỉ lấy chưa xóa
-    Optional<User> findByUsernameAndIsDeletedFalse(String username);
+    Optional<User> findByProviderAndProviderId(String provider, String providerId);
 
-    // Tìm user theo id, chỉ lấy chưa xóa
-    Optional<User> findByIdAndIsDeletedFalse(Long id);
+    @Query("SELECT u FROM User u WHERE u.email = :email AND u.provider = :provider")
+    Optional<User> findByEmailAndProvider(@Param("email") String email, @Param("provider") String provider);
 
-    // Tìm user theo id, kèm theo roles (dùng cho phân quyền)
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id AND u.isDeleted = false")
+    Optional<User> findByUsernameAndDeletedAtIsNull(String username);
+
+    Optional<User> findByEmailAndDeletedAtIsNull(String email);
+
+    Optional<User> findByIdAndDeletedAtIsNull(Long id);
+
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.id = :id AND u.deletedAt IS NULL")
     Optional<User> findByIdWithRoles(@Param("id") Long id);
 
-    // Tìm user theo username, kèm theo roles (dùng cho phân quyền)
-    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username AND u.isDeleted = false")
+    @Query("SELECT u FROM User u LEFT JOIN FETCH u.roles WHERE u.username = :username AND u.deletedAt IS NULL")
     Optional<User> findByUsernameWithRoles(@Param("username") String username);
 }

@@ -12,40 +12,39 @@ import java.util.Optional;
 @Repository
 public interface DiseaseSectionRepository extends JpaRepository<DiseaseSection, Long> {
 
-    // Lấy sections của một version, sắp xếp theo thứ tự, chỉ lấy chưa xóa
-    List<DiseaseSection> findAllByDiseaseVersionIdAndIsDeletedFalseOrderByOrderIndexAsc(Long diseaseVersionId);
+    // Lấy sections của một version, sắp xếp theo thứ tự
+    List<DiseaseSection> findAllByDiseaseVersionIdAndDeletedAtIsNullOrderByOrderIndexAsc(Long diseaseVersionId);
 
     // Lấy tất cả sections của một version (kể cả đã xóa, dùng khi clone)
     List<DiseaseSection> findAllByDiseaseVersionId(Long diseaseVersionId);
 
-    // =============================================
-    // Dùng cho Symptom Checker
-    // =============================================
-
-    /**
-     * Lấy mô tả ngắn của disease (section 'definition')
-     * Trả về Optional để xử lý trường hợp không có description
-     */
+    // Lấy mô tả ngắn của disease
     @Query("""
-        SELECT ds.content
-        FROM DiseaseSection ds
-        JOIN ds.diseaseVersion dv
-        JOIN dv.disease d
-        WHERE d.id = :diseaseId
-          AND dv.isCurrent = true
-          AND dv.isDeleted = false
-          AND ds.sectionType.name = 'definition'
-          AND ds.isDeleted = false
-        """)
-    Optional<String> findShortDescriptionByDiseaseId(@Param("diseaseId") Long diseaseId);
+    SELECT ds.content
+    FROM DiseaseSection ds
+    JOIN ds.diseaseVersion dv
+    JOIN dv.disease d
+    WHERE d.id = :diseaseId
+      AND dv.id = (
+          SELECT d.currentVersion.id
+          FROM Disease d
+          WHERE d.id = :diseaseId
+      )
+      AND dv.deletedAt IS NULL
+      AND ds.sectionType.name = 'definition'
+      AND ds.deletedAt IS NULL
+    """)
+    Optional<String> findShortDescriptionByDiseaseId(
+            @Param("diseaseId") Long diseaseId
+    );
 
-    // Bonus: Lấy toàn bộ nội dung của disease để hiển thị chi tiết
+    // Lấy toàn bộ nội dung của disease để hiển thị chi tiết
     @Query("""
         SELECT ds
         FROM DiseaseSection ds
         JOIN FETCH ds.sectionType st
         WHERE ds.diseaseVersion.id = :versionId
-          AND ds.isDeleted = false
+          AND ds.deletedAt IS NULL
         ORDER BY ds.orderIndex ASC
         """)
     List<DiseaseSection> findAllByVersionIdWithType(@Param("versionId") Long versionId);

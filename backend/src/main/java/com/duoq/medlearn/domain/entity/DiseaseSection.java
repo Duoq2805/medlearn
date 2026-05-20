@@ -10,7 +10,7 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "disease_section")
-@SQLRestriction("is_deleted = false")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -48,7 +48,6 @@ public class DiseaseSection {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
 }

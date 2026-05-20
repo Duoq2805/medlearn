@@ -1,7 +1,8 @@
 package com.duoq.medlearn.dto;
 
-import com.duoq.medlearn.domain.enums.DiseaseStatus;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.time.OffsetDateTime;
 
 @Data
@@ -10,6 +11,5 @@ public class DiseaseSummaryDTO {
     private Long id;
     private String name;
     private String slug;
-    private DiseaseStatus status;
     private OffsetDateTime updatedAt;
 }

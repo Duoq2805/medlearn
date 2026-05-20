@@ -1,17 +1,19 @@
 package com.duoq.medlearn.domain.entity;
 
-import com.duoq.medlearn.domain.enums.DiseaseStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.NaturalId;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.OffsetDateTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "disease")
-@SQLRestriction("is_deleted = false")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,23 +25,24 @@ public class Disease {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, unique = true, length = 255)
     private String name;
 
     @NaturalId
     @Column(nullable = false, unique = true, length = 255)
     private String slug;
 
-    // Circular FK: disease → disease_version
-    // Dùng Long thay vì @ManyToOne để tránh circular loading issue
-    // Được update thủ công trong service sau khi approve version
-    @Column(name = "current_version_id")
-    private Long currentVersionId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "current_version_id")
+    private DiseaseVersion currentVersion;
+
+    @OneToMany(mappedBy = "disease", cascade = CascadeType.ALL)
     @Builder.Default
-    private DiseaseStatus status = DiseaseStatus.DRAFT;
+    private Set<DiseaseVersion> versions = new LinkedHashSet<>();
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -49,12 +52,19 @@ public class Disease {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
 
     @Version
-    @Column(name = "version", nullable = false)
+    @Column(nullable = false)
     @Builder.Default
     private Integer version = 0;
+
+    public boolean hasCurrentVersion() {
+        return currentVersion != null;
+    }
+
+    public void setCurrentVersion(DiseaseVersion version) {
+        this.currentVersion = version;
+    }
 }

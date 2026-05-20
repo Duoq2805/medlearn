@@ -16,13 +16,25 @@ import java.util.Optional;
 public interface DiseaseVersionRepository extends JpaRepository<DiseaseVersion, Long> {
 
     // Tìm version hiện tại đang active của 1 disease
-    Optional<DiseaseVersion> findByDiseaseIdAndIsCurrentTrueAndIsDeletedFalse(Long diseaseId);
+    @Query("""
+    SELECT dv
+    FROM DiseaseVersion dv
+    WHERE dv.id = (
+        SELECT d.currentVersion.id
+        FROM Disease d
+        WHERE d.id = :diseaseId
+    )
+    AND dv.deletedAt IS NULL
+""")
+    Optional<DiseaseVersion> findCurrentVersionByDiseaseId(
+            @Param("diseaseId") Long diseaseId
+    );
 
     // Tìm version theo status (dùng cho moderation queue)
-    Page<DiseaseVersion> findAllByStatusAndIsDeletedFalse(VersionStatus status, Pageable pageable);
+    Page<DiseaseVersion> findAllByStatusAndDeletedAtIsNull(VersionStatus status, Pageable pageable);
 
     // Lấy toàn bộ version của 1 disease (history)
-    List<DiseaseVersion> findAllByDiseaseIdAndIsDeletedFalseOrderByVersionNumberDesc(Long diseaseId);
+    List<DiseaseVersion> findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(Long diseaseId);
 
     // Lấy version mới nhất của disease để tính version_number tiếp theo
     @Query("SELECT MAX(dv.versionNumber) FROM DiseaseVersion dv WHERE dv.disease.id = :diseaseId")
@@ -32,5 +44,5 @@ public interface DiseaseVersionRepository extends JpaRepository<DiseaseVersion, 
     Optional<DiseaseVersion> findByIdAndCreatedByIdAndStatus(Long id, Long createdById, VersionStatus status);
 
     // Lấy danh sách draft của contributor
-    List<DiseaseVersion> findAllByCreatedByIdAndStatusAndIsDeletedFalse(Long createdById, VersionStatus status);
+    List<DiseaseVersion> findAllByCreatedByIdAndStatusAndDeletedAtIsNull(Long createdById, VersionStatus status);
 }

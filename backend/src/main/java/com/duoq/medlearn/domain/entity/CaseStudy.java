@@ -1,7 +1,7 @@
 package com.duoq.medlearn.domain.entity;
 
 import com.duoq.medlearn.domain.enums.CaseDifficulty;
-import com.duoq.medlearn.domain.enums.DiseaseStatus;
+import com.duoq.medlearn.domain.enums.ContentStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "case_study")
-@SQLRestriction("is_deleted = false")
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -46,6 +46,29 @@ public class CaseStudy {
     @Column(name = "learning_notes", columnDefinition = "TEXT")
     private String learningNotes;
 
+    @Column(name = "patient_age")
+    private Integer patientAge;
+
+    @Column(name = "patient_gender", length = 20)
+    private String patientGender;
+
+    @Column(name = "chief_complaint", columnDefinition = "TEXT")
+    private String chiefComplaint;
+
+    @Column(name = "case_question", columnDefinition = "TEXT")
+    private String caseQuestion;
+
+    @Column(name = "explanation", columnDefinition = "TEXT")
+    private String explanation;
+
+    @Column(name = "view_count")
+    @Builder.Default
+    private Long viewCount = 0L;
+
+    @Column(name = "is_featured")
+    @Builder.Default
+    private Boolean isFeatured = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
@@ -53,7 +76,7 @@ public class CaseStudy {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private DiseaseStatus status = DiseaseStatus.DRAFT;
+    private ContentStatus status = ContentStatus.DRAFT;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -63,9 +86,8 @@ public class CaseStudy {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
 
     @ManyToMany
     @JoinTable(
@@ -75,4 +97,25 @@ public class CaseStudy {
     )
     @Builder.Default
     private Set<Symptom> symptoms = new HashSet<>();
+
+    // Helper methods
+    public boolean isPublic() {
+        return this.status == ContentStatus.APPROVED;
+    }
+
+    public boolean isEditable() {
+        return this.status == ContentStatus.DRAFT;
+    }
+
+    public void approve() {
+        this.status = ContentStatus.APPROVED;
+    }
+
+    public void archive() {
+        this.status = ContentStatus.ARCHIVED;
+    }
+
+    public void incrementViewCount() {
+        this.viewCount++;
+    }
 }

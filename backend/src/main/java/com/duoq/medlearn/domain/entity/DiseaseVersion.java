@@ -8,11 +8,20 @@ import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.OffsetDateTime;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Entity
-@Table(name = "disease_version")
-@SQLRestriction("is_deleted = false")
+@Table(
+        name = "disease_version",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        columnNames = {"disease_id", "version_number"}
+                )
+        }
+)
+@SQLRestriction("deleted_at IS NULL")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -36,27 +45,22 @@ public class DiseaseVersion {
     private User createdBy;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     @Builder.Default
     private VersionStatus status = VersionStatus.DRAFT;
 
-    @Column(name = "review_note", columnDefinition = "TEXT")
-    private String reviewNote;
+    @Column(name = "moderation_note", columnDefinition = "TEXT")
+    private String moderationNote;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "approved_by")
-    private User approvedBy;
+    @JoinColumn(name = "reviewed_by")
+    private User reviewedBy;
 
-    @Column(name = "approved_at")
-    private OffsetDateTime approvedAt;
+    @Column(name = "reviewed_at")
+    private OffsetDateTime reviewedAt;
 
-    @Column(name = "is_current", nullable = false)
-    @Builder.Default
-    private Boolean isCurrent = false;
-
-    @Column(name = "is_deleted", nullable = false)
-    @Builder.Default
-    private Boolean isDeleted = false;
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
@@ -66,17 +70,54 @@ public class DiseaseVersion {
     @Column(name = "updated_at")
     private OffsetDateTime updatedAt;
 
-    @OneToMany(mappedBy = "diseaseVersion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "diseaseVersion",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @OrderBy("orderIndex ASC")
     @Builder.Default
-    private Set<DiseaseSection> sections = new LinkedHashSet<>();  // LinkedHashSet giữ thứ tự
+    private Set<DiseaseSection> sections = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "diseaseVersion", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(
+            mappedBy = "diseaseVersion",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
     @Builder.Default
     private Set<DiseaseVersionSymptom> symptoms = new HashSet<>();
 
     @Version
-    @Column(name = "version", nullable = false)
+    @Column(nullable = false)
     @Builder.Default
     private Integer version = 0;
+
+    public boolean isApproved() {
+        return this.status == VersionStatus.APPROVED;
+    }
+
+    public boolean isDraft() {
+        return this.status == VersionStatus.DRAFT;
+    }
+
+    public boolean isPending() {
+        return this.status == VersionStatus.PENDING_REVIEW;
+    }
+
+    public void approve(User reviewer) {
+        this.status = VersionStatus.APPROVED;
+        this.reviewedBy = reviewer;
+        this.reviewedAt = OffsetDateTime.now();
+    }
+
+    public void reject(User reviewer, String reason) {
+        this.status = VersionStatus.REJECTED;
+        this.reviewedBy = reviewer;
+        this.reviewedAt = OffsetDateTime.now();
+        this.moderationNote = reason;
+    }
+
+    public void submitForReview() {
+        this.status = VersionStatus.PENDING_REVIEW;
+    }
 }

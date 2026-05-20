@@ -1,0 +1,35 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/medlearn_db
+    username: medlearn
+    password: Medlearn@123
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+jwt:
+  secret: 1if6e0DWXP9angeAJj2oB3nwEvxmAApXpNEpsGoVfKdHv7k1fVY2GJL4kyuL1qxrmzK0a6Kr55meKeBXiY7wmTicmzxThlIEDpOi5N2W35R7c9LEqO4yDZYrVmhqMgl8KCPPCCSPJD1O6qpbYqyeIOCNCpRaGQ9fU5yl7yC8poZcqK0nYPM3lJbmYxp2ERPDIdYlAJmimu3zf3Wrt81shQt9mNs9NzgoM9LZSXWuAtgGVctu5zma3O2rA9UTSzuuVHnLagWon5vSJ12CSUBRe7WLDOEzMExAigRxySMTvoZVxaGER0PSJPgCqIlzHq7zpeNvgy7BGg35SXDUpj6Q9mrzzoseve2HNQhrAb4t
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+app:
+  url: http://localhost:8080
+
+email:
+  verification:
+    expiry-hours: 24

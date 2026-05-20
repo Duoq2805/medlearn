@@ -1,10 +1,10 @@
 package com.duoq.medlearn.repository;
 
 import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.domain.enums.DiseaseStatus;
 import com.duoq.medlearn.dto.DiseaseSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,28 +12,52 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface DiseaseRepository extends BaseRepository<Disease, Long> {
+public interface DiseaseRepository extends JpaRepository<Disease, Long> {
 
-    // Kiểm tra tên đã tồn tại chưa
     boolean existsByName(String name);
 
-    // Lấy danh sách disease đã approved, hỗ trợ search theo tên (case-insensitive)
+    boolean existsByNameAndIdNot(String name, Long id);
+
+    Optional<Disease> findByName(String name);
+
+    Optional<Disease> findBySlug(String slug);
+
+    @Query("SELECT d FROM Disease d LEFT JOIN FETCH d.category WHERE d.slug = :slug AND d.deletedAt IS NULL")
+    Optional<Disease> findBySlugWithCategory(@Param("slug") String slug);
+
+    Page<Disease> findAllByDeletedAtIsNull(Pageable pageable);
+
+    Page<Disease> findAllByCategoryIdAndDeletedAtIsNull(Long categoryId, Pageable pageable);
+
     @Query("""
         SELECT new com.duoq.medlearn.dto.DiseaseSummaryDTO(
-            d.id, d.name, d.slug, d.status, d.updatedAt
+            d.id, d.name, d.slug, d.updatedAt
         )
         FROM Disease d 
-        WHERE d.isDeleted = false 
-          AND d.status = :status
+        WHERE d.deletedAt IS NULL 
           AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
         """)
-    Page<DiseaseSummaryDTO> findSummaryByStatusAndNameContaining(
-            @Param("status") DiseaseStatus status,
+    Page<DiseaseSummaryDTO> findSummaryByNameContaining(
             @Param("name") String name,
             Pageable pageable
     );
 
-    // Lấy toàn bộ disease chưa bị xóa (dành cho admin/reviewer)
-    Page<Disease> findAllByIsDeletedFalse(Pageable pageable);
+    @Query("""
+    SELECT DISTINCT new com.duoq.medlearn.dto.DiseaseSummaryDTO(
+        d.id, d.name, d.slug, d.updatedAt
+    )
+    FROM Disease d
+    JOIN d.currentVersion dv
+    WHERE d.deletedAt IS NULL
+      AND dv.status = 'APPROVED'
+      AND dv.deletedAt IS NULL
+      AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:categoryId IS NULL OR d.category.id = :categoryId)
+    """)
+    Page<DiseaseSummaryDTO> findApprovedSummaryByNameContaining(
+            @Param("name") String name,
+            @Param("categoryId") Long categoryId,
+            Pageable pageable
+    );
 
 }
