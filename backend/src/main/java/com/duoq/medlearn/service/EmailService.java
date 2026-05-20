@@ -28,12 +28,12 @@ public class EmailService {
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom(fromEmail);
             message.setTo(to);
-            message.setSubject("MedLearn - Verify Your Email");
+            message.setSubject("Medvora - Verify Your Email");
             message.setText("Hello " + username + ",\n\n" +
                     "Please verify your email by clicking the link below:\n\n" +
                     verificationUrl + "\n\n" +
                     "This link will expire in 24 hours.\n\n" +
-                    "Best regards,\nMedLearn Team");
+                    "Best regards,\nMedvora Team");
             mailSender.send(message);
             log.info("Verification email sent to: {}", to);
         } catch (Exception e) {
