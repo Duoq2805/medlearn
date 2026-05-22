@@ -1,4 +1,4 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
@@ -23,7 +23,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class CustomOAuth2UserServiceImpl extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;

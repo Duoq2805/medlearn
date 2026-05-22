@@ -5,7 +5,7 @@ import com.duoq.medlearn.dto.request.RefreshTokenRequest;
 import com.duoq.medlearn.dto.request.RegisterRequest;
 import com.duoq.medlearn.dto.response.AuthResponse;
 import com.duoq.medlearn.dto.response.MessageResponse;
-import com.duoq.medlearn.security.CustomUserDetails;
+import com.duoq.medlearn.dto.response.UserDTO;
 import com.duoq.medlearn.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<CustomUserDetails> getMe() {
+    public ResponseEntity<UserDTO> getMe() {
         return ResponseEntity.ok(authService.getCurrentUser());
     }
 
@@ -45,11 +45,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<MessageResponse> logout(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String refreshToken = authHeader.substring(7);
-            authService.logout(refreshToken);
-        }
+    public ResponseEntity<MessageResponse> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request.getRefreshToken());
         return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }
 }

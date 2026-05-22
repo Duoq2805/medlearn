@@ -1,0 +1,11 @@
+target/
+build/
+dist/
+node_modules/
+logs/
+*.log
+*.tmp
+.idea/
+.vscode/
+coverage/
+.cache/

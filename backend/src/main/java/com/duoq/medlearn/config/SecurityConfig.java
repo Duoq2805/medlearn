@@ -1,6 +1,6 @@
 package com.duoq.medlearn.config;
 
-import com.duoq.medlearn.service.CustomOAuth2UserService;
+import com.duoq.medlearn.service.impl.CustomOAuth2UserServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +25,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
-    private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOAuth2UserServiceImpl customOAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
     // ===== CHAIN 1: API Security (JWT) - Order cao nhất =====
