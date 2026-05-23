@@ -227,3 +227,5 @@ This project is intended to become:
 - A portfolio-quality backend architecture project
 
 Code quality and maintainability are more important than fast hacks.
+
+### Communicating in Vietnamese
