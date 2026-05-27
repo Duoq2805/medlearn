@@ -1,7 +1,13 @@
-package com.duoq.medlearn.config;
+package com.duoq.medlearn.security;
 
+import com.duoq.medlearn.exception.InvalidTokenException;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -28,7 +34,16 @@ public class JwtService {
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), Jwts.SIG.HS256)  // ← Thêm algorithm
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    public String generateTokenFromEmail(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSigningKey(), Jwts.SIG.HS256)
                 .compact();
     }
 
@@ -39,6 +54,25 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getSubject();
+    }
+
+    /**
+     * Extracts email with typed exception mapping — use in filter for clear logging.
+     */
+    public String extractEmailSafely(String token) {
+        try {
+            return extractEmail(token);
+        } catch (ExpiredJwtException e) {
+            throw new InvalidTokenException("JWT token expired");
+        } catch (MalformedJwtException e) {
+            throw new InvalidTokenException("JWT token malformed");
+        } catch (UnsupportedJwtException e) {
+            throw new InvalidTokenException("JWT token unsupported");
+        } catch (SignatureException e) {
+            throw new InvalidTokenException("JWT signature invalid");
+        } catch (JwtException e) {
+            throw new InvalidTokenException("JWT token invalid");
+        }
     }
 
     public boolean validateToken(String token, UserDetails userDetails) {
@@ -57,14 +91,5 @@ public class JwtService {
                 .parseSignedClaims(token)
                 .getPayload()
                 .getExpiration();
-    }
-
-    public String generateTokenFromEmail(String email) {
-        return Jwts.builder()
-                .subject(email)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), Jwts.SIG.HS256)
-                .compact();
     }
 }

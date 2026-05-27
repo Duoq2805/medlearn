@@ -3,9 +3,7 @@ package com.duoq.medlearn.service.impl;
 import com.duoq.medlearn.dto.response.AiStreamChunkResponse;
 import com.duoq.medlearn.dto.response.NotificationEventResponse;
 import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.service.RealtimeChannels;
-import com.duoq.medlearn.service.RealtimeNotificationService;
-import com.duoq.medlearn.service.RealtimePublisher;
+import com.duoq.medlearn.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,7 +19,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class RealtimeNotificationServiceImpl implements RealtimeNotificationService, RealtimePublisher {
+public class NotificationServiceImpl implements NotificationService {
 
     private static final long SSE_TIMEOUT = 30L * 60L * 1000L;
 
@@ -32,12 +30,12 @@ public class RealtimeNotificationServiceImpl implements RealtimeNotificationServ
 
     @Override
     public SseEmitter subscribeNotifications() {
-        return subscribe(RealtimeChannels.NOTIFICATION, "notification-connected");
+        return subscribe(NotificationService.CHANNEL_NOTIFICATION, "notification-connected");
     }
 
     @Override
     public SseEmitter subscribeAiStream() {
-        return subscribe(RealtimeChannels.AI_STREAM, "ai-stream-connected");
+        return subscribe(NotificationService.CHANNEL_AI_STREAM, "ai-stream-connected");
     }
 
     @Override
@@ -49,7 +47,7 @@ public class RealtimeNotificationServiceImpl implements RealtimeNotificationServ
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        publishToUser(RealtimeChannels.NOTIFICATION, userId, "notification", payload);
+        publishToUser(NotificationService.CHANNEL_NOTIFICATION, userId, "notification", payload);
     }
 
     @Override
@@ -60,7 +58,7 @@ public class RealtimeNotificationServiceImpl implements RealtimeNotificationServ
                 .createdAt(OffsetDateTime.now())
                 .build();
 
-        publishToUser(RealtimeChannels.AI_STREAM, userId, "ai-stream", payload);
+        publishToUser(NotificationService.CHANNEL_AI_STREAM, userId, "ai-stream", payload);
     }
 
     @Override
@@ -127,10 +125,10 @@ public class RealtimeNotificationServiceImpl implements RealtimeNotificationServ
     }
 
     private Map<Long, CopyOnWriteArrayList<SseEmitter>> getStoreByChannel(String channel) {
-        if (RealtimeChannels.NOTIFICATION.equals(channel)) {
+        if (NotificationService.CHANNEL_NOTIFICATION.equals(channel)) {
             return notificationEmitters;
         }
-        if (RealtimeChannels.AI_STREAM.equals(channel)) {
+        if (NotificationService.CHANNEL_AI_STREAM.equals(channel)) {
             return aiEmitters;
         }
         throw new IllegalArgumentException("Unsupported realtime channel: " + channel);

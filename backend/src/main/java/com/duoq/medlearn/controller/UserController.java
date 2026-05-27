@@ -4,6 +4,7 @@ import com.duoq.medlearn.dto.request.RoleRequest;
 import com.duoq.medlearn.dto.request.UpdateProfileRequest;
 import com.duoq.medlearn.dto.response.ApiResponse;
 import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.service.AdminUserService;
 import com.duoq.medlearn.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
+    private final AdminUserService adminUserService;
 
     // ==================== USER PROFILE ====================
 
@@ -36,40 +38,40 @@ public class UserController {
     @GetMapping("/api/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<UserDTO>>> getAllUsers(Pageable pageable) {
-        return ResponseEntity.ok(ApiResponse.success(userService.getAllUsers(pageable)));
+        return ResponseEntity.ok(ApiResponse.success(adminUserService.getAllUsers(pageable)));
     }
 
     @GetMapping("/api/admin/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(userService.getUserById(id)));
+        return ResponseEntity.ok(ApiResponse.success(adminUserService.getUserById(id)));
     }
 
     @PatchMapping("/api/admin/users/{id}/deactivate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deactivateUser(@PathVariable Long id) {
-        userService.deactivateUser(id);
+        adminUserService.deactivateUser(id);
         return ResponseEntity.ok(ApiResponse.success("User deactivated", null));
     }
 
     @PatchMapping("/api/admin/users/{id}/activate")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> activateUser(@PathVariable Long id) {
-        userService.activateUser(id);
+        adminUserService.activateUser(id);
         return ResponseEntity.ok(ApiResponse.success("User activated", null));
     }
 
     @PatchMapping("/api/admin/users/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> assignRole(@PathVariable Long id, @Valid @RequestBody RoleRequest request) {
-        userService.assignRole(id, request.getRoleName());
+        adminUserService.assignRole(id, request.getRoleName());
         return ResponseEntity.ok(ApiResponse.success("Role assigned", null));
     }
 
     @DeleteMapping("/api/admin/users/{id}/roles")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Void>> removeRole(@PathVariable Long id, @Valid @RequestBody RoleRequest request) {
-        userService.removeRole(id, request.getRoleName());
+        adminUserService.removeRole(id, request.getRoleName());
         return ResponseEntity.ok(ApiResponse.success("Role removed", null));
     }
 }

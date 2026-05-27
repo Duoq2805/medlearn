@@ -1,8 +1,11 @@
 package com.duoq.medlearn.controller;
 
+import com.duoq.medlearn.dto.request.ForgotPasswordRequest;
 import com.duoq.medlearn.dto.request.LoginRequest;
 import com.duoq.medlearn.dto.request.RefreshTokenRequest;
 import com.duoq.medlearn.dto.request.RegisterRequest;
+import com.duoq.medlearn.dto.request.ResendVerificationRequest;
+import com.duoq.medlearn.dto.request.ResetPasswordRequest;
 import com.duoq.medlearn.dto.response.ApiResponse;
 import com.duoq.medlearn.dto.response.AuthResponse;
 import com.duoq.medlearn.dto.response.UserDTO;
@@ -34,6 +37,24 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Login successful", authService.login(request)));
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<ApiResponse<Void>> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        String msg = authService.resendVerification(request).getMessage();
+        return ResponseEntity.ok(ApiResponse.success(msg, null));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        String msg = authService.forgotPassword(request).getMessage();
+        return ResponseEntity.ok(ApiResponse.success(msg, null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        String msg = authService.resetPassword(request).getMessage();
+        return ResponseEntity.ok(ApiResponse.success(msg, null));
     }
 
     @GetMapping("/me")

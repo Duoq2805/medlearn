@@ -1,13 +1,17 @@
 package com.duoq.medlearn.service.impl;
 
-import com.duoq.medlearn.config.JwtService;
+import com.duoq.medlearn.security.JwtService;
+import com.duoq.medlearn.domain.entity.PasswordResetToken;
 import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.entity.UserSession;
 import com.duoq.medlearn.domain.entity.VerificationToken;
 import com.duoq.medlearn.mapper.UserMapper;
+import com.duoq.medlearn.dto.request.ForgotPasswordRequest;
 import com.duoq.medlearn.dto.request.LoginRequest;
 import com.duoq.medlearn.dto.request.RegisterRequest;
+import com.duoq.medlearn.dto.request.ResendVerificationRequest;
+import com.duoq.medlearn.dto.request.ResetPasswordRequest;
 import com.duoq.medlearn.dto.response.AuthResponse;
 import com.duoq.medlearn.dto.response.MessageResponse;
 import com.duoq.medlearn.dto.response.UserDTO;
@@ -16,18 +20,22 @@ import com.duoq.medlearn.exception.EmailAlreadyExistsException;
 import com.duoq.medlearn.exception.EmailNotVerifiedException;
 import com.duoq.medlearn.exception.InvalidCredentialsException;
 import com.duoq.medlearn.exception.InvalidTokenException;
+import com.duoq.medlearn.exception.RateLimitExceededException;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.exception.TokenReusedException;
 import com.duoq.medlearn.exception.UsernameAlreadyExistsException;
+import com.duoq.medlearn.repository.PasswordResetTokenRepository;
 import com.duoq.medlearn.repository.RoleRepository;
 import com.duoq.medlearn.repository.UserRepository;
 import com.duoq.medlearn.repository.UserSessionRepository;
 import com.duoq.medlearn.repository.VerificationTokenRepository;
 import com.duoq.medlearn.security.CustomUserDetails;
 import com.duoq.medlearn.service.AuthService;
+import com.duoq.medlearn.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +47,7 @@ import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -48,17 +57,37 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final VerificationTokenRepository tokenRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final UserSessionRepository sessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
-    private final EmailServiceImpl emailService;
+    private final EmailService emailService;
     private final UserMapper userMapper;
+
+    @Value("${auth.rate-limit.max-attempts:5}")
+    private int maxAttempts;
+
+    @Value("${auth.rate-limit.block-duration-minutes:15}")
+    private int blockDurationMinutes;
+
+    private final ConcurrentHashMap<String, AttemptRecord> attempts = new ConcurrentHashMap<>();
+    private static class AttemptRecord {
+        int count;
+        OffsetDateTime blockedUntil;
+        AttemptRecord() {
+            this.count = 0;
+        }
+    }
+
 
     @Value("${email.verification.expiry-hours:24}")
     private int expiryHours;
 
-    @Value("${jwt.refresh-expiration:604800000}")  // 7 days
+    @Value("${jwt.refresh-expiration:604800000}")
     private Long refreshExpiration;
+
+    @Value("${jwt.password-reset-expiry-hours:1}")
+    private int passwordResetExpiryHours;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -129,6 +158,11 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
+        String key = request.getUsernameOrEmail().trim().toLowerCase();
+        if (isLoginBlocked(key)) {
+            throw new RateLimitExceededException("Too many failed login attempts. Please try again later.");
+        }
+
         String invalidHash = "$2a$10$7EqJtq98hPqEX7fNZaFWoOHi6qVQ8Q8Q8Q8Q8Q8Q8Q8Q8Q8Q8Q8Q.";
         User user = userRepository.findByEmail(request.getUsernameOrEmail())
                 .orElseGet(() -> userRepository.findByUsername(request.getUsernameOrEmail()).orElse(null));
@@ -136,6 +170,7 @@ public class AuthServiceImpl implements AuthService {
         String hashToCheck = user != null ? user.getPasswordHash() : invalidHash;
         boolean passwordValid = passwordEncoder.matches(request.getPassword(), hashToCheck);
         if (user == null || !passwordValid) {
+            recordLoginFailure(key);
             throw new InvalidCredentialsException();
         }
 
@@ -147,18 +182,17 @@ public class AuthServiceImpl implements AuthService {
             throw new AccountDeactivatedException();
         }
 
+        recordLoginSuccess(key);
+
         user.setLastLoginAt(OffsetDateTime.now());
         userRepository.save(user);
 
-        // Revoke old sessions
         sessionRepository.revokeAllUserSessions(user.getId(), OffsetDateTime.now());
 
-        // Generate tokens
         CustomUserDetails userDetails = new CustomUserDetails(user);
         String accessToken = jwtService.generateToken(userDetails);
         String refreshToken = generateRefreshToken();
 
-        // Save refresh token session - SỬA DÒNG NÀY
         UserSession session = UserSession.builder()
                 .user(user)
                 .refreshToken(refreshToken)
@@ -246,5 +280,134 @@ public class AuthServiceImpl implements AuthService {
         byte[] bytes = new byte[32];
         secureRandom.nextBytes(bytes);
         return "refresh_" + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+    }
+
+    // RESEND EMAIL VERIFICATION
+    @Override
+    @Transactional
+    public MessageResponse resendVerification(ResendVerificationRequest request) {
+        String successMsg = "If that email is registered and unverified, a new verification link has been sent.";
+
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        if (user == null || user.getIsVerified()) {
+            return new MessageResponse(successMsg);
+        }
+
+        // Mark old active token as used (audit trail with resentAt)
+        tokenRepository.findByUserAndUsedAtIsNull(user)
+                .ifPresent(old -> {
+                    old.setResentAt(OffsetDateTime.now());
+                    old.setUsedAt(OffsetDateTime.now());
+                    tokenRepository.save(old);
+                });
+
+        // Create new token
+        String newToken = generateToken();
+        VerificationToken vt = VerificationToken.builder()
+                .token(newToken)
+                .user(user)
+                .expiryDate(OffsetDateTime.now().plusHours(expiryHours))
+                .build();
+        tokenRepository.save(vt);
+
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), newToken);
+        log.info("Verification email resent to: {}", user.getEmail());
+
+        return new MessageResponse(successMsg);
+    }
+
+    // FORGOT PASSWORD
+    @Override
+    @Transactional
+    public MessageResponse forgotPassword(ForgotPasswordRequest request) {
+        String successMsg = "If that email is registered, a password reset link has been sent.";
+
+        User user = userRepository.findByEmail(request.getEmail()).orElse(null);
+        if (user == null) {
+            return new MessageResponse(successMsg);
+        }
+
+        // Revoke existing unused tokens
+        passwordResetTokenRepository.revokeAllUserTokens(user.getId());
+
+        String token = generateToken();
+        PasswordResetToken prt = PasswordResetToken.builder()
+                .token(token)
+                .user(user)
+                .expiryDate(OffsetDateTime.now().plusHours(passwordResetExpiryHours))
+                .build();
+        passwordResetTokenRepository.save(prt);
+
+        emailService.sendPasswordResetEmail(user.getEmail(), user.getUsername(), token);
+        log.info("Password reset email sent to: {}", user.getEmail());
+
+        return new MessageResponse(successMsg);
+    }
+
+    // RESET PASSWORD
+    @Override
+    @Transactional
+    public MessageResponse resetPassword(ResetPasswordRequest request) {
+        PasswordResetToken prt = passwordResetTokenRepository.findByToken(request.getToken())
+                .orElseThrow(() -> new InvalidTokenException("Invalid or expired password reset token"));
+
+        if (!prt.isValid()) {
+            throw new InvalidTokenException("Invalid or expired password reset token");
+        }
+
+        User user = prt.getUser();
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.markAsUsed(request.getToken(), OffsetDateTime.now());
+
+        // Revoke all sessions for security
+        sessionRepository.revokeAllUserSessions(user.getId(), OffsetDateTime.now());
+
+        log.info("Password reset for user: {}", user.getEmail());
+        return new MessageResponse("Password has been reset successfully. Please log in with your new password.");
+    }
+
+    // --- Login attempt rate-limiting (inlined from LoginAttemptService) ---
+
+    private void recordLoginFailure(String key) {
+        AttemptRecord record = attempts.computeIfAbsent(key, k -> new AttemptRecord());
+        record.count++;
+        if (record.count >= maxAttempts) {
+            record.blockedUntil = OffsetDateTime.now().plusMinutes(blockDurationMinutes);
+            log.warn("Account/key [{}] blocked until {}", key, record.blockedUntil);
+        }
+    }
+
+    private void recordLoginSuccess(String key) {
+        attempts.remove(key);
+    }
+
+    private boolean isLoginBlocked(String key) {
+        AttemptRecord record = attempts.get(key);
+        if (record == null || record.blockedUntil == null) {
+            return false;
+        }
+        if (OffsetDateTime.now().isAfter(record.blockedUntil)) {
+            attempts.remove(key);
+            return false;
+        }
+        return true;
+    }
+
+    @Scheduled(fixedRate = 3_600_000)
+    public void cleanupExpiredLoginAttemptEntries() {
+        OffsetDateTime now = OffsetDateTime.now();
+        int removed = 0;
+        for (var entry : attempts.entrySet()) {
+            AttemptRecord record = entry.getValue();
+            if (record.blockedUntil != null && now.isAfter(record.blockedUntil)) {
+                attempts.remove(entry.getKey());
+                removed++;
+            }
+        }
+        if (removed > 0) {
+            log.debug("AuthService login-attempt cleanup: removed {} expired entries", removed);
+        }
     }
 }

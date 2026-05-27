@@ -4,7 +4,8 @@ package com.duoq.medlearn.service.impl;
 import com.duoq.medlearn.dto.response.SymptomMatchResult;
 import com.duoq.medlearn.repository.DiseaseSectionRepository;
 import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
-import lombok.*;
+import com.duoq.medlearn.service.SymptomCheckerService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,11 +14,12 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SymptomCheckerServiceImpl {
+public class SymptomCheckerServiceImpl implements SymptomCheckerService {
 
     private final DiseaseVersionSymptomRepository repository;
     private final DiseaseSectionRepository sectionRepository;
 
+    @Override
     public List<SymptomMatchResult> checkSymptoms(List<Long> symptomIds, int limit) {
         if (symptomIds == null || symptomIds.isEmpty()) {
             return Collections.emptyList();
