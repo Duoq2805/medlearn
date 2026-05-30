@@ -2,13 +2,16 @@ package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.UserStatus;
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.UserMapper;
 import com.duoq.medlearn.repository.RoleRepository;
 import com.duoq.medlearn.repository.UserRepository;
+import com.duoq.medlearn.security.CurrentUserResolver;
 import com.duoq.medlearn.service.AdminUserService;
+import com.duoq.medlearn.service.AuditService;
 import com.duoq.medlearn.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -29,6 +33,8 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
+    private final AuditService auditService;
+    private final CurrentUserResolver currentUserResolver;
 
     @Override
     public Page<UserDTO> getAllUsers(Pageable pageable) {
@@ -50,6 +56,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setDeletedAt(OffsetDateTime.now());
         userRepository.save(user);
+        auditService.log(resolveAdmin(), AuditAction.ACCOUNT_DEACTIVATED,
+                "User", id, Map.of("targetUserId", id));
         notificationService.publishToUser(
                 NotificationService.CHANNEL_NOTIFICATION,
                 id,
@@ -72,6 +80,8 @@ public class AdminUserServiceImpl implements AdminUserService {
         user.setDeletedAt(null);
         user.setStatus(Boolean.TRUE.equals(user.getIsVerified()) ? UserStatus.ACTIVE : UserStatus.PENDING);
         userRepository.save(user);
+        auditService.log(resolveAdmin(), AuditAction.ACCOUNT_ACTIVATED,
+                "User", id, Map.of("targetUserId", id, "newStatus", user.getStatus().name()));
         notificationService.publishToUser(
                 NotificationService.CHANNEL_NOTIFICATION,
                 id,
@@ -95,6 +105,9 @@ public class AdminUserServiceImpl implements AdminUserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
         user.getRoles().add(role);
         userRepository.save(user);
+        auditService.log(resolveAdmin(), AuditAction.ROLE_ASSIGNED,
+                "User", userId,
+                Map.of("targetUserId", userId, "roleName", roleName));
         notificationService.publishToUser(
                 NotificationService.CHANNEL_NOTIFICATION,
                 userId,
@@ -119,6 +132,9 @@ public class AdminUserServiceImpl implements AdminUserService {
             throw new ResourceNotFoundException("User does not have role: " + roleName);
         }
         userRepository.save(user);
+        auditService.log(resolveAdmin(), AuditAction.ROLE_REMOVED,
+                "User", userId,
+                Map.of("targetUserId", userId, "roleName", roleName));
         notificationService.publishToUser(
                 NotificationService.CHANNEL_NOTIFICATION,
                 userId,
@@ -131,5 +147,11 @@ public class AdminUserServiceImpl implements AdminUserService {
                 )
         );
         log.info("Role [{}] removed from user [{}]", roleName, userId);
+    }
+
+    private User resolveAdmin() {
+        Long adminId = currentUserResolver.resolveCurrentUserId();
+        return userRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
     }
 }

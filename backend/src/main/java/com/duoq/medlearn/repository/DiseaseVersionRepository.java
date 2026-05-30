@@ -5,6 +5,7 @@ import com.duoq.medlearn.domain.enums.VersionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -45,4 +46,20 @@ public interface DiseaseVersionRepository extends JpaRepository<DiseaseVersion, 
 
     // Lấy danh sách draft của contributor
     List<DiseaseVersion> findAllByCreatedByIdAndStatusAndDeletedAtIsNull(Long createdById, VersionStatus status);
+
+    boolean existsByDiseaseIdAndCreatedByIdAndDeletedAtIsNull(Long diseaseId, Long createdById);
+
+    @Modifying
+    @Query("""
+        UPDATE DiseaseVersion dv
+        SET dv.status = com.duoq.medlearn.domain.enums.VersionStatus.ARCHIVED
+        WHERE dv.disease.id = :diseaseId
+          AND dv.status = com.duoq.medlearn.domain.enums.VersionStatus.APPROVED
+          AND (:excludeVersionId IS NULL OR dv.id <> :excludeVersionId)
+          AND dv.deletedAt IS NULL
+        """)
+    int archiveApprovedVersionsExcept(
+            @Param("diseaseId") Long diseaseId,
+            @Param("excludeVersionId") Long excludeVersionId
+    );
 }

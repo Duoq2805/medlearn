@@ -1,6 +1,6 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

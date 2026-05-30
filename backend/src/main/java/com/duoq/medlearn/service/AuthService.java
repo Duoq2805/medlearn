@@ -7,7 +7,7 @@ import com.duoq.medlearn.dto.request.ResendVerificationRequest;
 import com.duoq.medlearn.dto.request.ResetPasswordRequest;
 import com.duoq.medlearn.dto.response.AuthResponse;
 import com.duoq.medlearn.dto.response.MessageResponse;
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 
 public interface AuthService {
     MessageResponse register(RegisterRequest request);

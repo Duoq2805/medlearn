@@ -3,7 +3,7 @@ package com.duoq.medlearn.controller;
 import com.duoq.medlearn.dto.request.RoleRequest;
 import com.duoq.medlearn.dto.request.UpdateProfileRequest;
 import com.duoq.medlearn.dto.response.ApiResponse;
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 import com.duoq.medlearn.service.AdminUserService;
 import com.duoq.medlearn.service.UserService;
 import jakarta.validation.Valid;

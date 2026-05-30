@@ -24,8 +24,8 @@ public class UserSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "refresh_token", nullable = false, unique = true, columnDefinition = "TEXT")
-    private String refreshToken;
+    @Column(name = "refresh_token_hash", nullable = false, unique = true, columnDefinition = "TEXT")
+    private String refreshTokenHash;
 
     @Column(name = "expires_at", nullable = false)
     private OffsetDateTime expiresAt;

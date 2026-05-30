@@ -4,7 +4,7 @@ import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.entity.VerificationToken;
 import com.duoq.medlearn.domain.enums.UserStatus;
 import com.duoq.medlearn.dto.request.UpdateProfileRequest;
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 import com.duoq.medlearn.exception.EmailAlreadyExistsException;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.exception.UsernameAlreadyExistsException;

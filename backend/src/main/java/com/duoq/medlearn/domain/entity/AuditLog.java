@@ -35,7 +35,7 @@ public class AuditLog {
     @Column(name = "entity_name", nullable = false, length = 100)
     private String entityName;
 
-    @Column(name = "entity_id", nullable = false)
+    @Column(name = "entity_id")
     private Long entityId;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -59,23 +59,4 @@ public class AuditLog {
     @Column(name = "created_at", updatable = false)
     private OffsetDateTime createdAt;
 
-    // Factory method for system actions (no user)
-    public static AuditLog systemAction(AuditAction action, String entityName, Long entityId) {
-        return AuditLog.builder()
-                .user(null)
-                .actionType(action)
-                .entityName(entityName)
-                .entityId(entityId)
-                .build();
-    }
-
-    // Factory method for user actions
-    public static AuditLog userAction(User user, AuditAction action, String entityName, Long entityId) {
-        return AuditLog.builder()
-                .user(user)
-                .actionType(action)
-                .entityName(entityName)
-                .entityId(entityId)
-                .build();
-    }
 }

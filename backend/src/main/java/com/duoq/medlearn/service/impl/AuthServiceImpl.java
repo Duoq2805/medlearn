@@ -14,7 +14,7 @@ import com.duoq.medlearn.dto.request.ResendVerificationRequest;
 import com.duoq.medlearn.dto.request.ResetPasswordRequest;
 import com.duoq.medlearn.dto.response.AuthResponse;
 import com.duoq.medlearn.dto.response.MessageResponse;
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 import com.duoq.medlearn.exception.AccountDeactivatedException;
 import com.duoq.medlearn.exception.EmailAlreadyExistsException;
 import com.duoq.medlearn.exception.EmailNotVerifiedException;
@@ -30,8 +30,10 @@ import com.duoq.medlearn.repository.UserRepository;
 import com.duoq.medlearn.repository.UserSessionRepository;
 import com.duoq.medlearn.repository.VerificationTokenRepository;
 import com.duoq.medlearn.security.CustomUserDetails;
+import com.duoq.medlearn.service.AuditService;
 import com.duoq.medlearn.service.AuthService;
 import com.duoq.medlearn.service.EmailService;
+import com.duoq.medlearn.service.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +48,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Base64;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -61,6 +64,31 @@ public class AuthServiceImpl implements AuthService {
     private final UserSessionRepository sessionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuditService auditService;
+    private final UserSessionService userSessionService;
+
+    // For refresh token hashing
+    private static final int REFRESH_TOKEN_HASH_ITERATIONS = 10;
+    private static final int REFRESH_TOKEN_HASH_SALT_LENGTH = 16;
+    private static final int REFRESH_TOKEN_HASH_LENGTH = 64;
+
+    private String hashRefreshToken(String refreshToken) {
+        // In a real-world scenario, use a strong hashing library like BCrypt or Argon2.
+        // For simplicity here, we'll use a basic salted SHA-256, but this is NOT recommended for production.
+        // This implementation is illustrative. Replace with a proper, secure hashing mechanism.
+        SecureRandom saltRandom = new SecureRandom();
+        byte[] salt = new byte[REFRESH_TOKEN_HASH_SALT_LENGTH];
+        saltRandom.nextBytes(salt);
+
+        // NOTE: BCryptPasswordEncoder is already available and should be used.
+        // The following is a placeholder and should be replaced with passwordEncoder.encode(refreshToken).
+        return passwordEncoder.encode(refreshToken); // Using BCryptPasswordEncoder
+    }
+
+    private boolean matchesHashedRefreshToken(String refreshToken, String refreshTokenHash) {
+        // Using BCryptPasswordEncoder for comparison
+        return passwordEncoder.matches(refreshToken, refreshTokenHash);
+    }
     private final EmailService emailService;
     private final UserMapper userMapper;
 
@@ -195,10 +223,13 @@ public class AuthServiceImpl implements AuthService {
 
         UserSession session = UserSession.builder()
                 .user(user)
-                .refreshToken(refreshToken)
+                .refreshTokenHash(hashRefreshToken(refreshToken))
                 .expiresAt(OffsetDateTime.ofInstant(Instant.now().plusMillis(refreshExpiration), ZoneOffset.UTC))
                 .build();
         sessionRepository.save(session);
+
+        auditService.log(user, com.duoq.medlearn.domain.enums.AuditAction.LOGIN_SUCCESS,
+                "User", user.getId(), Map.of("email", user.getEmail()));
 
         return userMapper.toAuthResponse(user, accessToken, refreshToken, "Bearer", 86400000L);
     }
@@ -207,14 +238,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse refreshToken(String refreshToken) {
-        UserSession session = sessionRepository.findByRefreshToken(refreshToken)
+        UserSession session = sessionRepository.findByRefreshTokenHash(hashRefreshToken(refreshToken))
                 .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
 
         User user = session.getUser();
 
         if (session.getRevokedAt() != null) {
-            sessionRepository.revokeAllUserSessions(user.getId(), OffsetDateTime.now());
+            userSessionService.revokeAllSessionsImmediately(user.getId());
             log.warn("Token reuse detected for user: {}, revoking all sessions", user.getEmail());
+            auditService.logSystem(com.duoq.medlearn.domain.enums.AuditAction.TOKEN_REUSE_DETECTED,
+                    "UserSession", session.getId(),
+                    Map.of("userId", user.getId(), "email", user.getEmail()));
             throw new TokenReusedException();
         }
 
@@ -237,7 +271,7 @@ public class AuthServiceImpl implements AuthService {
         // Create new session
         UserSession newSession = UserSession.builder()
                 .user(user)
-                .refreshToken(newRefreshToken)
+                .refreshTokenHash(hashRefreshToken(newRefreshToken))
                 .expiresAt(OffsetDateTime.ofInstant(Instant.now().plusMillis(refreshExpiration), ZoneOffset.UTC))
                 .build();
         sessionRepository.save(newSession);
@@ -249,7 +283,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String refreshToken) {
-        sessionRepository.findByRefreshToken(refreshToken)
+        sessionRepository.findByRefreshTokenHash(hashRefreshToken(refreshToken))
                 .ifPresent(session -> {
                     session.setRevokedAt(OffsetDateTime.now());
                     sessionRepository.save(session);
@@ -293,11 +327,10 @@ public class AuthServiceImpl implements AuthService {
             return new MessageResponse(successMsg);
         }
 
-        // Mark old active token as used (audit trail with resentAt)
+        // Mark old active token as resent (audit trail)
         tokenRepository.findByUserAndUsedAtIsNull(user)
                 .ifPresent(old -> {
                     old.setResentAt(OffsetDateTime.now());
-                    old.setUsedAt(OffsetDateTime.now());
                     tokenRepository.save(old);
                 });
 
@@ -364,6 +397,9 @@ public class AuthServiceImpl implements AuthService {
         // Revoke all sessions for security
         sessionRepository.revokeAllUserSessions(user.getId(), OffsetDateTime.now());
 
+        auditService.log(user, com.duoq.medlearn.domain.enums.AuditAction.PASSWORD_RESET_COMPLETED,
+                "User", user.getId(), Map.of("email", user.getEmail()));
+
         log.info("Password reset for user: {}", user.getEmail());
         return new MessageResponse("Password has been reset successfully. Please log in with your new password.");
     }
@@ -376,6 +412,10 @@ public class AuthServiceImpl implements AuthService {
         if (record.count >= maxAttempts) {
             record.blockedUntil = OffsetDateTime.now().plusMinutes(blockDurationMinutes);
             log.warn("Account/key [{}] blocked until {}", key, record.blockedUntil);
+            auditService.logSystem(com.duoq.medlearn.domain.enums.AuditAction.LOGIN_BLOCKED,
+                    "User", null,
+                    Map.of("attemptKey", key, "attemptCount", record.count,
+                           "blockedUntil", record.blockedUntil.toString()));
         }
     }
 

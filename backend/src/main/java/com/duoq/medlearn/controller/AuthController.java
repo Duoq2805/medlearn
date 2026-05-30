@@ -8,7 +8,7 @@ import com.duoq.medlearn.dto.request.ResendVerificationRequest;
 import com.duoq.medlearn.dto.request.ResetPasswordRequest;
 import com.duoq.medlearn.dto.response.ApiResponse;
 import com.duoq.medlearn.dto.response.AuthResponse;
-import com.duoq.medlearn.dto.response.UserDTO;
+import com.duoq.medlearn.dto.UserDTO;
 import com.duoq.medlearn.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

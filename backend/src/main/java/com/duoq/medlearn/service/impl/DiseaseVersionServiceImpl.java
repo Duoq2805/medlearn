@@ -1,0 +1,362 @@
+package com.duoq.medlearn.service.impl;
+
+import com.duoq.medlearn.domain.entity.Disease;
+import com.duoq.medlearn.domain.entity.DiseaseSection;
+import com.duoq.medlearn.domain.entity.DiseaseVersion;
+import com.duoq.medlearn.domain.entity.DiseaseVersionSymptom;
+import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.domain.entity.Role;
+import com.duoq.medlearn.domain.enums.AuditAction;
+import com.duoq.medlearn.domain.enums.VersionStatus;
+import com.duoq.medlearn.dto.request.CreateDiseaseVersionRequest;
+import com.duoq.medlearn.dto.request.ModerationRequest;
+import com.duoq.medlearn.dto.request.UpdateDiseaseVersionRequest;
+import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.exception.ResourceNotFoundException;
+import com.duoq.medlearn.repository.*;
+import com.duoq.medlearn.mapper.DiseaseMapper;
+import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.service.AuditService;
+import com.duoq.medlearn.service.DiseaseVersionService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+public class DiseaseVersionServiceImpl implements DiseaseVersionService {
+
+    private final DiseaseVersionRepository diseaseVersionRepository;
+    private final DiseaseRepository diseaseRepository;
+    private final UserRepository userRepository;
+    private final CurrentUserResolver currentUserResolver;
+    private final DiseaseMapper diseaseMapper;
+    private final DiseaseSectionRepository diseaseSectionRepository;
+    private final DiseaseVersionSymptomRepository diseaseVersionSymptomRepository;
+    private final AuditService auditService;
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO createDraftVersion(Long diseaseId, CreateDiseaseVersionRequest request) {
+        Disease disease = diseaseRepository.findById(diseaseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
+        User currentUser = findCurrentUser();
+
+        DiseaseVersion version = DiseaseVersion.builder()
+                .disease(disease)
+                .createdBy(currentUser)
+                .versionNumber(generateNextVersionNumber(diseaseId))
+                .status(VersionStatus.DRAFT)
+                .moderationNote(request != null ? request.getNote() : null)
+                .build();
+
+        return diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+    }
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO cloneApprovedVersion(Long diseaseId) {
+        DiseaseVersion approved = diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Current approved version not found"));
+
+        if (approved.getStatus() != VersionStatus.APPROVED) {
+            throw new IllegalStateException("Current version is not approved");
+        }
+
+        Disease disease = approved.getDisease();
+        User currentUser = findCurrentUser();
+
+        DiseaseVersion clone = DiseaseVersion.builder()
+                .disease(disease)
+                .createdBy(currentUser)
+                .versionNumber(generateNextVersionNumber(diseaseId))
+                .status(VersionStatus.DRAFT)
+                .moderationNote(approved.getModerationNote())
+                .build();
+
+        clone = diseaseVersionRepository.save(clone);
+
+        cloneSections(approved, clone);
+        cloneSymptoms(approved, clone);
+
+        return diseaseMapper.toDiseaseVersionDTO(clone);
+    }
+
+    @Override
+    public DiseaseVersionDTO getVersionById(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        return diseaseMapper.toDiseaseVersionDTO(version);
+    }
+
+    @Override
+    public List<DiseaseVersionDTO> getDiseaseVersions(Long diseaseId) {
+        return diseaseVersionRepository.findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(diseaseId)
+                .stream()
+                .map(diseaseMapper::toDiseaseVersionDTO)
+                .toList();
+    }
+
+    @Override
+    public DiseaseVersionDTO getCurrentApprovedVersion(Long diseaseId) {
+        DiseaseVersion version = diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
+                .orElseThrow(() -> new ResourceNotFoundException("Current approved version not found"));
+        return diseaseMapper.toDiseaseVersionDTO(version);
+    }
+
+    @Override
+    public DiseaseVersionDTO getLatestDraftVersion(Long diseaseId) {
+        return diseaseVersionRepository.findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(diseaseId)
+                .stream()
+                .filter(v -> v.getStatus() == VersionStatus.DRAFT)
+                .findFirst()
+                .map(diseaseMapper::toDiseaseVersionDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Draft version not found"));
+    }
+
+    @Override
+    public Page<DiseaseVersionDTO> getPendingReviewVersions(Pageable pageable) {
+        return diseaseVersionRepository.findAllByStatusAndDeletedAtIsNull(VersionStatus.PENDING_REVIEW, pageable)
+                .map(diseaseMapper::toDiseaseVersionDTO);
+    }
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO updateDraftVersion(Long versionId, UpdateDiseaseVersionRequest request) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        if (version.getStatus() != VersionStatus.DRAFT) {
+            throw new IllegalStateException("Only draft version can be updated");
+        }
+
+        validateVersionOwnership(versionId);
+        version.setModerationNote(request.getModerationNote());
+
+        return diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+    }
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO submitForReview(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        validateWorkflowTransition(version.getStatus(), VersionStatus.PENDING_REVIEW);
+        validateVersionOwnership(versionId);
+
+        version.submitForReview();
+        DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        auditService.log(findCurrentUser(), AuditAction.VERSION_SUBMITTED,
+                "DiseaseVersion", versionId,
+                Map.of("diseaseId", version.getDisease().getId(),
+                       "versionNumber", version.getVersionNumber()));
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO approveVersion(Long versionId, ModerationRequest request) {
+        validateReviewerPermission();
+
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        validateWorkflowTransition(version.getStatus(), VersionStatus.APPROVED);
+
+        User reviewer = findCurrentUser();
+        if (version.getCreatedBy() != null && version.getCreatedBy().getId().equals(reviewer.getId())) {
+            throw new IllegalStateException("Reviewer cannot approve own version");
+        }
+
+        Disease disease = diseaseRepository.findByIdForUpdate(version.getDisease().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
+
+        diseaseVersionRepository.archiveApprovedVersionsExcept(disease.getId(), versionId);
+
+        version.approve(reviewer);
+        if (request != null && request.getNote() != null) {
+            version.setModerationNote(request.getNote());
+        }
+
+        disease.setCurrentVersion(version);
+        diseaseRepository.save(disease);
+
+        DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        auditService.log(reviewer, AuditAction.VERSION_APPROVED,
+                "DiseaseVersion", versionId,
+                Map.of("diseaseId", disease.getId(),
+                       "versionNumber", version.getVersionNumber(),
+                       "reviewerId", reviewer.getId()),
+                request != null ? request.getNote() : null);
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO rejectVersion(Long versionId, ModerationRequest request) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        validateReviewerPermission();
+        validateWorkflowTransition(version.getStatus(), VersionStatus.REJECTED);
+
+        User reviewer = findCurrentUser();
+        String note = request != null ? request.getNote() : null;
+        version.reject(reviewer, note);
+
+        DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        auditService.log(reviewer, AuditAction.VERSION_REJECTED,
+                "DiseaseVersion", versionId,
+                Map.of("diseaseId", version.getDisease().getId(),
+                       "versionNumber", version.getVersionNumber(),
+                       "reviewerId", reviewer.getId()),
+                note);
+        return result;
+    }
+
+    @Override
+    @Transactional
+    public DiseaseVersionDTO archiveVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        validateReviewerPermission();
+        validateWorkflowTransition(version.getStatus(), VersionStatus.ARCHIVED);
+        version.setStatus(VersionStatus.ARCHIVED);
+        return diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+    }
+
+    @Override
+    public void validateWorkflowTransition(VersionStatus currentStatus, VersionStatus targetStatus) {
+        if (!currentStatus.canTransitionTo(targetStatus)) {
+            throw new IllegalStateException("Invalid workflow transition: " + currentStatus + " -> " + targetStatus);
+        }
+    }
+
+    @Override
+    public boolean canEditVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        return version.getStatus() == VersionStatus.DRAFT;
+    }
+
+    @Override
+    public boolean isApprovedVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        return version.getStatus() == VersionStatus.APPROVED;
+    }
+
+    @Override
+    public boolean isPendingReview(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        return version.getStatus() == VersionStatus.PENDING_REVIEW;
+    }
+
+    @Override
+    public void validateVersionOwnership(Long versionId) {
+        Long currentUserId = currentUserResolver.resolveCurrentUserId();
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        User currentUser = findCurrentUser();
+        boolean privileged = currentUser.getRoles().stream()
+                .map(Role::getName)
+                .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
+        if (privileged) {
+            return;
+        }
+
+        if (!version.getCreatedBy().getId().equals(currentUserId)) {
+            throw new IllegalStateException("Current user is not owner of this version");
+        }
+    }
+
+    @Override
+    public void validateReviewerPermission() {
+        User currentUser = findCurrentUser();
+        boolean allowed = currentUser.getRoles().stream().map(Role::getName)
+                .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
+        if (!allowed) {
+            throw new IllegalStateException("Reviewer/Admin permission required");
+        }
+    }
+
+    @Override
+    public Integer generateNextVersionNumber(Long diseaseId) {
+        return diseaseVersionRepository.findMaxVersionNumberByDiseaseId(diseaseId)
+                .map(max -> max + 1)
+                .orElse(1);
+    }
+
+    @Override
+    @Transactional
+    public void deactivatePreviousApprovedVersion(Long diseaseId) {
+        diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
+                .ifPresent(version -> {
+                    if (version.getStatus() == VersionStatus.APPROVED) {
+                        version.setStatus(VersionStatus.ARCHIVED);
+                        diseaseVersionRepository.save(version);
+                    }
+                });
+    }
+
+    @Override
+    @Transactional
+    public void softDeleteVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        version.setDeletedAt(OffsetDateTime.now());
+        diseaseVersionRepository.save(version);
+    }
+
+    @Override
+    @Transactional
+    public void restoreVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        version.setDeletedAt(null);
+        diseaseVersionRepository.save(version);
+    }
+
+    private User findCurrentUser() {
+        Long userId = currentUserResolver.resolveCurrentUserId();
+        return userRepository.findByIdWithRoles(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    }
+
+    private void cloneSections(DiseaseVersion source, DiseaseVersion target) {
+        List<DiseaseSection> sourceSections = diseaseSectionRepository.findAllByDiseaseVersionIdAndDeletedAtIsNullOrderByOrderIndexAsc(source.getId());
+        for (DiseaseSection sourceSection : sourceSections) {
+            DiseaseSection clonedSection = DiseaseSection.builder()
+                    .diseaseVersion(target)
+                    .sectionType(sourceSection.getSectionType())
+                    .title(sourceSection.getTitle())
+                    .content(sourceSection.getContent())
+                    .orderIndex(sourceSection.getOrderIndex())
+                    .build();
+            diseaseSectionRepository.save(clonedSection);
+        }
+    }
+
+    private void cloneSymptoms(DiseaseVersion source, DiseaseVersion target) {
+        List<DiseaseVersionSymptom> sourceSymptoms = diseaseVersionSymptomRepository.findAllByDiseaseVersionId(source.getId());
+        for (DiseaseVersionSymptom sourceSymptom : sourceSymptoms) {
+            DiseaseVersionSymptom clonedSymptom = DiseaseVersionSymptom.builder()
+                    .diseaseVersion(target)
+                    .symptom(sourceSymptom.getSymptom())
+                    .weightScore(sourceSymptom.getWeightScore())
+                    .build();
+            diseaseVersionSymptomRepository.save(clonedSymptom);
+        }
+    }
+
+}
