@@ -66,29 +66,6 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuditService auditService;
     private final UserSessionService userSessionService;
-
-    // For refresh token hashing
-    private static final int REFRESH_TOKEN_HASH_ITERATIONS = 10;
-    private static final int REFRESH_TOKEN_HASH_SALT_LENGTH = 16;
-    private static final int REFRESH_TOKEN_HASH_LENGTH = 64;
-
-    private String hashRefreshToken(String refreshToken) {
-        // In a real-world scenario, use a strong hashing library like BCrypt or Argon2.
-        // For simplicity here, we'll use a basic salted SHA-256, but this is NOT recommended for production.
-        // This implementation is illustrative. Replace with a proper, secure hashing mechanism.
-        SecureRandom saltRandom = new SecureRandom();
-        byte[] salt = new byte[REFRESH_TOKEN_HASH_SALT_LENGTH];
-        saltRandom.nextBytes(salt);
-
-        // NOTE: BCryptPasswordEncoder is already available and should be used.
-        // The following is a placeholder and should be replaced with passwordEncoder.encode(refreshToken).
-        return passwordEncoder.encode(refreshToken); // Using BCryptPasswordEncoder
-    }
-
-    private boolean matchesHashedRefreshToken(String refreshToken, String refreshTokenHash) {
-        // Using BCryptPasswordEncoder for comparison
-        return passwordEncoder.matches(refreshToken, refreshTokenHash);
-    }
     private final EmailService emailService;
     private final UserMapper userMapper;
 
@@ -223,7 +200,7 @@ public class AuthServiceImpl implements AuthService {
 
         UserSession session = UserSession.builder()
                 .user(user)
-                .refreshTokenHash(hashRefreshToken(refreshToken))
+                .refreshToken(refreshToken)
                 .expiresAt(OffsetDateTime.ofInstant(Instant.now().plusMillis(refreshExpiration), ZoneOffset.UTC))
                 .build();
         sessionRepository.save(session);
@@ -238,7 +215,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse refreshToken(String refreshToken) {
-        UserSession session = sessionRepository.findByRefreshTokenHash(hashRefreshToken(refreshToken))
+        UserSession session = sessionRepository.findByRefreshToken(refreshToken)
                 .orElseThrow(() -> new InvalidTokenException("Invalid refresh token"));
 
         User user = session.getUser();
@@ -271,7 +248,7 @@ public class AuthServiceImpl implements AuthService {
         // Create new session
         UserSession newSession = UserSession.builder()
                 .user(user)
-                .refreshTokenHash(hashRefreshToken(newRefreshToken))
+                .refreshToken(newRefreshToken)
                 .expiresAt(OffsetDateTime.ofInstant(Instant.now().plusMillis(refreshExpiration), ZoneOffset.UTC))
                 .build();
         sessionRepository.save(newSession);
@@ -283,7 +260,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void logout(String refreshToken) {
-        sessionRepository.findByRefreshTokenHash(hashRefreshToken(refreshToken))
+        sessionRepository.findByRefreshToken(refreshToken)
                 .ifPresent(session -> {
                     session.setRevokedAt(OffsetDateTime.now());
                     sessionRepository.save(session);

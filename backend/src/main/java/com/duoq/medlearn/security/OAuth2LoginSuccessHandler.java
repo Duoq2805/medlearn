@@ -50,7 +50,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         UserSession session = UserSession.builder()
                 .user(user)
-                .refreshTokenHash(generateRefreshToken())
+                .refreshToken(refreshToken)
                 .expiresAt(OffsetDateTime.ofInstant(Instant.now().plusMillis(refreshExpiration), ZoneOffset.UTC))
                 .build();
         sessionRepository.save(session);
