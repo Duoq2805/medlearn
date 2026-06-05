@@ -8,7 +8,16 @@
       "Bash(git commit *)",
       "Bash(git push *)",
       "Bash(git checkout *)",
-      "Bash(git merge *)"
+      "Bash(git merge *)",
+      "Bash(git rm *)",
+      "Bash(mvnw compile *)",
+      "Bash(Get-ChildItem -Path . -Recurse -Filter \"*Auth*\" -Type f)",
+      "Bash(Select-Object -First 20)",
+      "Bash(git config *)",
+      "Bash(git restore *)",
+      "Bash(./mvnw clean *)",
+      "Bash(./mvnw spring-boot:run *)",
+      "Bash(./mvnw compile *)"
     ]
   }
 }

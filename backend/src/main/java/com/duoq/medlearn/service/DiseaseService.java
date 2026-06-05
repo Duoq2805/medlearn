@@ -48,14 +48,4 @@ public interface DiseaseService {
     void assignCategory(Long diseaseId, Long categoryId);
 
     void removeCategory(Long diseaseId);
-
-    boolean existsByName(String name);
-
-    boolean existsBySlug(String slug);
-
-    void validateDiseaseAccess(Long diseaseId);
-
-    void validateDiseaseOwnership(Long diseaseId);
-
-    void updateCurrentVersion(Long diseaseId, Long versionId);
 }

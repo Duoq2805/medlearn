@@ -336,18 +336,19 @@ public class DiseaseServiceImpl implements DiseaseService {
         diseaseRepository.save(disease);
     }
 
-    @Override
-    public boolean existsByName(String name) {
+    // ===================================
+    // HELPER METHODS
+    // ===================================
+
+    private boolean existsByName(String name) {
         return diseaseRepository.existsByName(name);
     }
 
-    @Override
-    public boolean existsBySlug(String slug) {
+    private boolean existsBySlug(String slug) {
         return diseaseRepository.findBySlug(slug).isPresent();
     }
 
-    @Override
-    public void validateDiseaseAccess(Long diseaseId) {
+    private void validateDiseaseAccess(Long diseaseId) {
         if (!diseaseRepository.existsById(diseaseId)) {
             throw new ResourceNotFoundException("Disease not found");
         }
@@ -368,8 +369,7 @@ public class DiseaseServiceImpl implements DiseaseService {
      * @throws ResourceNotFoundException nếu disease không tồn tại
      * @throws IllegalStateException nếu user không phải owner
      */
-    @Override
-    public void validateDiseaseOwnership(Long diseaseId) {
+    private void validateDiseaseOwnership(Long diseaseId) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
@@ -388,30 +388,8 @@ public class DiseaseServiceImpl implements DiseaseService {
         }
     }
 
-    /**
-     * Cập nhật current version cho disease.
-     *
-     * Thường được gọi sau khi reviewer approve version mới.
-     *
-     * Workflow:
-     * Pending Review
-     *      ↓
-     * Approved
-     *      ↓
-     * Update current_version_id
-     *
-     * Validation:
-     * - Version phải thuộc đúng disease
-     *
-     * @param diseaseId id disease
-     * @param versionId id version cần set current
-     *
-     * @throws ResourceNotFoundException nếu disease/version không tồn tại
-     * @throws IllegalStateException nếu version không thuộc disease
-     */
-    @Override
     @Transactional
-    public void updateCurrentVersion(Long diseaseId, Long versionId) {
+    private void updateCurrentVersion(Long diseaseId, Long versionId) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
@@ -429,8 +407,6 @@ public class DiseaseServiceImpl implements DiseaseService {
         disease.setCurrentVersion(version);
         diseaseRepository.save(disease);
     }
-
-    // Helper methods
 
     /**
      * Build full disease detail response.

@@ -58,7 +58,7 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
     @Override
     @Transactional
     public DiseaseVersionDTO rollback(Long diseaseId, Long targetVersionId) {
-        diseaseVersionService.validateReviewerPermission();
+        validateReviewerPermission();
 
         Disease disease = diseaseRepository.findByIdForUpdate(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
@@ -77,7 +77,7 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
         DiseaseVersion snapshot = DiseaseVersion.builder()
                 .disease(disease)
                 .createdBy(targetVersion.getCreatedBy() != null ? targetVersion.getCreatedBy() : reviewer)
-                .versionNumber(diseaseVersionService.generateNextVersionNumber(diseaseId))
+                .versionNumber(generateNextVersionNumber(diseaseId))
                 .status(VersionStatus.APPROVED)
                 .moderationNote(targetVersion.getModerationNote())
                 .reviewedBy(reviewer)
@@ -105,7 +105,33 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
 
     @Override
     public void validateTransition(VersionStatus from, VersionStatus to) {
-        diseaseVersionService.validateWorkflowTransition(from, to);
+        validateWorkflowTransition(from, to);
+    }
+
+    // ===================================
+    // HELPER METHODS
+    // ===================================
+
+    private void validateReviewerPermission() {
+        User currentUser = findCurrentUser();
+        boolean allowed = currentUser.getRoles().stream()
+                .map(role -> role.getName())
+                .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
+        if (!allowed) {
+            throw new IllegalStateException("Reviewer/Admin permission required");
+        }
+    }
+
+    private Integer generateNextVersionNumber(Long diseaseId) {
+        return diseaseVersionRepository.findMaxVersionNumberByDiseaseId(diseaseId)
+                .map(max -> max + 1)
+                .orElse(1);
+    }
+
+    private void validateWorkflowTransition(VersionStatus currentStatus, VersionStatus targetStatus) {
+        if (!currentStatus.canTransitionTo(targetStatus)) {
+            throw new IllegalStateException("Invalid workflow transition: " + currentStatus + " -> " + targetStatus);
+        }
     }
 
     private User findCurrentUser() {

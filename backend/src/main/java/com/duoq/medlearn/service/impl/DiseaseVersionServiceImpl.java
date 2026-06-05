@@ -234,35 +234,52 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     @Override
-    public void validateWorkflowTransition(VersionStatus currentStatus, VersionStatus targetStatus) {
+    @Transactional
+    public void softDeleteVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        version.setDeletedAt(OffsetDateTime.now());
+        diseaseVersionRepository.save(version);
+    }
+
+    @Override
+    @Transactional
+    public void restoreVersion(Long versionId) {
+        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+        version.setDeletedAt(null);
+        diseaseVersionRepository.save(version);
+    }
+
+    // ===================================
+    // HELPER METHODS
+    // ===================================
+
+    private void validateWorkflowTransition(VersionStatus currentStatus, VersionStatus targetStatus) {
         if (!currentStatus.canTransitionTo(targetStatus)) {
             throw new IllegalStateException("Invalid workflow transition: " + currentStatus + " -> " + targetStatus);
         }
     }
 
-    @Override
-    public boolean canEditVersion(Long versionId) {
+    private boolean canEditVersion(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
         return version.getStatus() == VersionStatus.DRAFT;
     }
 
-    @Override
-    public boolean isApprovedVersion(Long versionId) {
+    private boolean isApprovedVersion(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
         return version.getStatus() == VersionStatus.APPROVED;
     }
 
-    @Override
-    public boolean isPendingReview(Long versionId) {
+    private boolean isPendingReview(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
         return version.getStatus() == VersionStatus.PENDING_REVIEW;
     }
 
-    @Override
-    public void validateVersionOwnership(Long versionId) {
+    private void validateVersionOwnership(Long versionId) {
         Long currentUserId = currentUserResolver.resolveCurrentUserId();
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
@@ -280,8 +297,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         }
     }
 
-    @Override
-    public void validateReviewerPermission() {
+    private void validateReviewerPermission() {
         User currentUser = findCurrentUser();
         boolean allowed = currentUser.getRoles().stream().map(Role::getName)
                 .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
@@ -290,16 +306,14 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         }
     }
 
-    @Override
-    public Integer generateNextVersionNumber(Long diseaseId) {
+    private Integer generateNextVersionNumber(Long diseaseId) {
         return diseaseVersionRepository.findMaxVersionNumberByDiseaseId(diseaseId)
                 .map(max -> max + 1)
                 .orElse(1);
     }
 
-    @Override
     @Transactional
-    public void deactivatePreviousApprovedVersion(Long diseaseId) {
+    private void deactivatePreviousApprovedVersion(Long diseaseId) {
         diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
                 .ifPresent(version -> {
                     if (version.getStatus() == VersionStatus.APPROVED) {
@@ -307,24 +321,6 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
                         diseaseVersionRepository.save(version);
                     }
                 });
-    }
-
-    @Override
-    @Transactional
-    public void softDeleteVersion(Long versionId) {
-        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
-        version.setDeletedAt(OffsetDateTime.now());
-        diseaseVersionRepository.save(version);
-    }
-
-    @Override
-    @Transactional
-    public void restoreVersion(Long versionId) {
-        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
-        version.setDeletedAt(null);
-        diseaseVersionRepository.save(version);
     }
 
     private User findCurrentUser() {

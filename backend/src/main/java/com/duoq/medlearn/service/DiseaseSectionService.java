@@ -61,27 +61,10 @@ public interface DiseaseSectionService {
     void softDeleteSectionsByVersion(Long versionId);
 
     // ================================
-    // VALIDATION
-    // ================================
-
-    void validateRequiredSections(Long versionId);
-
-    boolean existsSectionType(
-            Long versionId,
-            Long sectionTypeId
-    );
-
-    boolean isRequiredSection(String sectionType);
-
-    void validateSectionEditable(Long sectionId);
-
-    // ================================
     // CONTENT
     // ================================
 
     String renderMarkdownContent(Long sectionId);
-
-    String sanitizeHtmlContent(String content);
 
     // ================================
     // TEMPLATE

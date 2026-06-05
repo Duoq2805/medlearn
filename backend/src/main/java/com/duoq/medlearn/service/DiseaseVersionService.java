@@ -1,6 +1,5 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.dto.request.CreateDiseaseVersionRequest;
 import com.duoq.medlearn.dto.request.ModerationRequest;
 import com.duoq.medlearn.dto.request.UpdateDiseaseVersionRequest;
@@ -35,22 +34,6 @@ public interface DiseaseVersionService {
     DiseaseVersionDTO rejectVersion(Long versionId, ModerationRequest request);
 
     DiseaseVersionDTO archiveVersion(Long versionId);
-
-    void validateWorkflowTransition(VersionStatus currentStatus, VersionStatus targetStatus);
-
-    boolean canEditVersion(Long versionId);
-
-    boolean isApprovedVersion(Long versionId);
-
-    boolean isPendingReview(Long versionId);
-
-    void validateVersionOwnership(Long versionId);
-
-    void validateReviewerPermission();
-
-    Integer generateNextVersionNumber(Long diseaseId);
-
-    void deactivatePreviousApprovedVersion(Long diseaseId);
 
     void softDeleteVersion(Long versionId);
 

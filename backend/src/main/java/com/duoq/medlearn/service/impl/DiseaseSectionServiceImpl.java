@@ -156,52 +156,10 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
     }
 
     @Override
-    public void validateRequiredSections(Long versionId) {
-        List<String> required = List.of("definition", "symptoms", "treatment");
-        List<String> existing = diseaseSectionRepository.findAllByVersionIdWithType(versionId).stream()
-                .map(section -> section.getSectionType() != null ? section.getSectionType().getName() : null)
-                .filter(name -> name != null)
-                .toList();
-
-        boolean ok = required.stream().allMatch(req -> existing.stream().anyMatch(req::equalsIgnoreCase));
-        if (!ok) {
-            throw new IllegalStateException("Missing required sections");
-        }
-    }
-
-    @Override
-    public boolean existsSectionType(Long versionId, Long sectionTypeId) {
-        return diseaseSectionRepository.findAllByVersionIdWithType(versionId).stream()
-                .anyMatch(section -> section.getSectionType() != null
-                        && section.getSectionType().getId().longValue() == sectionTypeId.longValue());
-    }
-
-    @Override
-    public boolean isRequiredSection(String sectionType) {
-        return List.of("definition", "symptoms", "treatment").stream()
-                .anyMatch(required -> required.equalsIgnoreCase(sectionType));
-    }
-
-    @Override
-    public void validateSectionEditable(Long sectionId) {
-        DiseaseSection section = diseaseSectionRepository.findById(sectionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Disease section not found"));
-        validateVersionEditable(section.getDiseaseVersion());
-    }
-
-    @Override
     public String renderMarkdownContent(Long sectionId) {
         DiseaseSection section = diseaseSectionRepository.findById(sectionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease section not found"));
         return section.getContent() == null ? "" : section.getContent();
-    }
-
-    @Override
-    public String sanitizeHtmlContent(String content) {
-        if (content == null) {
-            return "";
-        }
-        return Jsoup.clean(content, Safelist.basic());
     }
 
     @Override
@@ -225,6 +183,47 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
                 SectionTemplateDTO.builder().sectionType("treatment").title("Treatment").template("Điều trị...").build(),
                 SectionTemplateDTO.builder().sectionType("prevention").title("Prevention").template("Phòng ngừa...").build()
         );
+    }
+
+    // ===================================
+    // HELPER METHODS
+    // ===================================
+
+    private void validateRequiredSections(Long versionId) {
+        List<String> required = List.of("definition", "symptoms", "treatment");
+        List<String> existing = diseaseSectionRepository.findAllByVersionIdWithType(versionId).stream()
+                .map(section -> section.getSectionType() != null ? section.getSectionType().getName() : null)
+                .filter(name -> name != null)
+                .toList();
+
+        boolean ok = required.stream().allMatch(req -> existing.stream().anyMatch(req::equalsIgnoreCase));
+        if (!ok) {
+            throw new IllegalStateException("Missing required sections");
+        }
+    }
+
+    private boolean existsSectionType(Long versionId, Long sectionTypeId) {
+        return diseaseSectionRepository.findAllByVersionIdWithType(versionId).stream()
+                .anyMatch(section -> section.getSectionType() != null
+                        && section.getSectionType().getId().longValue() == sectionTypeId.longValue());
+    }
+
+    private boolean isRequiredSection(String sectionType) {
+        return List.of("definition", "symptoms", "treatment").stream()
+                .anyMatch(required -> required.equalsIgnoreCase(sectionType));
+    }
+
+    private void validateSectionEditable(Long sectionId) {
+        DiseaseSection section = diseaseSectionRepository.findById(sectionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Disease section not found"));
+        validateVersionEditable(section.getDiseaseVersion());
+    }
+
+    private String sanitizeHtmlContent(String content) {
+        if (content == null) {
+            return "";
+        }
+        return Jsoup.clean(content, Safelist.basic());
     }
 
     private void validateVersionEditable(DiseaseVersion version) {
