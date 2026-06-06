@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Medvora Audit Log System Overview</title>
+<style>
+body{font-family:Segoe UI,Arial,sans-serif;background:#0f1115;color:#e5e7eb;line-height:1.7;margin:0}
+.sidebar{position:fixed;left:0;top:0;width:280px;height:100%;overflow:auto;background:#151922;padding:20px;border-right:1px solid #2d3748}
+.content{margin-left:300px;padding:40px;max-width:1200px}
+a{color:#9ae6b4;text-decoration:none}
+h1,h2,h3{color:#9ae6b4}
+.card{background:#1a202c;padding:20px;border-radius:12px;margin:16px 0;border:1px solid #2d3748}
+pre{background:#111827;padding:16px;border-radius:8px;overflow:auto}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #374151;padding:10px}
+th{background:#111827}
+.badge{padding:3px 8px;border-radius:10px;background:#22543d}
+</style>
+</head>
+<body>
+<div class="sidebar">
+<h2>Audit Log V1</h2>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#why">Why Audit</a></li>
+<li><a href="#arch">Architecture</a></li>
+<li><a href="#events">Event Matrix</a></li>
+<li><a href="#tx">Transaction Model</a></li>
+<li><a href="#token">Token Reuse Case</a></li>
+<li><a href="#security">Security Rules</a></li>
+<li><a href="#developer">Developer Guide</a></li>
+<li><a href="#ai">AI Bootstrap</a></li>
+</ul>
+</div>
+<div class="content">
+<h1 id="overview">🔍 Medvora Audit Log System Overview</h1>
+<div class="card">
+<p><b>Mục tiêu:</b> Single Source of Truth cho Audit Log V1.</p>
+<p>Dành cho developer mới, AI agent và chính tác giả quay lại dự án sau nhiều tháng.</p>
+</div>
+
+<h2 id="why">1. Vì sao Audit Log tồn tại?</h2>
+<div class="card">
+<p>Audit Log trả lời câu hỏi: <b>Ai làm gì, khi nào, tác động lên đối tượng nào?</b></p>
+<p>Không phải debug log. Không phải application log.</p>
+</div>
+
+<h2 id="arch">2. Architecture</h2>
+<pre>
+Business Action
+      ↓
+ AuditService
+      ↓
+ AuditServiceImpl
+      ↓
+ AuditLogRepository
+      ↓
+   audit_log
+</pre>
+
+<h2>3. Database Design</h2>
+<pre>
+audit_log
+├── id
+├── action
+├── actor_id
+├── actor_email
+├── entity_type
+├── entity_id
+├── old_data
+├── new_data
+└── created_at
+</pre>
+
+<h2 id="events">4. Event Matrix</h2>
+<table>
+<tr><th>Category</th><th>Event</th><th>Audit?</th></tr>
+<tr><td>Security</td><td>LOGIN_SUCCESS</td><td>✅</td></tr>
+<tr><td>Security</td><td>LOGIN_BLOCKED</td><td>✅</td></tr>
+<tr><td>Security</td><td>TOKEN_REUSE_DETECTED</td><td>✅</td></tr>
+<tr><td>Security</td><td>PASSWORD_RESET_COMPLETED</td><td>✅</td></tr>
+<tr><td>Admin</td><td>ACCOUNT_ACTIVATED</td><td>✅</td></tr>
+<tr><td>Admin</td><td>ACCOUNT_DEACTIVATED</td><td>✅</td></tr>
+<tr><td>Admin</td><td>ROLE_ASSIGNED</td><td>✅</td></tr>
+<tr><td>Admin</td><td>ROLE_REMOVED</td><td>✅</td></tr>
+<tr><td>Moderation</td><td>VERSION_SUBMITTED</td><td>✅</td></tr>
+<tr><td>Moderation</td><td>VERSION_APPROVED</td><td>✅</td></tr>
+<tr><td>Moderation</td><td>VERSION_REJECTED</td><td>✅</td></tr>
+<tr><td>Moderation</td><td>VERSION_ROLLBACK</td><td>✅</td></tr>
+<tr><td>Business</td><td>DISEASE_DELETED</td><td>✅</td></tr>
+<tr><td>Business</td><td>DISEASE_RESTORED</td><td>✅</td></tr>
+</table>
+
+<h2>5. Không Audit những gì?</h2>
+<div class="card">
+<ul>
+<li>Search APIs</li>
+<li>List APIs</li>
+<li>Read-only APIs</li>
+<li>Draft editing</li>
+<li>Section editing thường xuyên</li>
+</ul>
+<p>Lý do: Noise &gt; Value.</p>
+</div>
+
+<h2 id="tx">6. Transaction Model</h2>
+<pre>
+Business TX
+   ↓ suspend
+Audit TX (REQUIRES_NEW)
+   ↓ commit
+Resume Business TX
+</pre>
+<div class="card">
+<p>Audit là best-effort.</p>
+<p>Audit failure không được làm fail business operation.</p>
+</div>
+
+<h2 id="token">7. Case Study: TOKEN_REUSE_DETECTED</h2>
+<div class="card">
+<h3>Bug cũ</h3>
+<pre>
+TX-Business
+  revokeAllUserSessions()
+
+TX-Audit
+  commit audit
+
+throw TokenReusedException()
+
+=> Business rollback
+=> Audit tồn tại
+=> Revoke biến mất
+</pre>
+
+<h3>Fix</h3>
+<pre>
+AuthServiceImpl
+      ↓
+UserSessionService
+(REQUIRES_NEW)
+      ↓
+Commit Revoke
+
+AuditService
+(REQUIRES_NEW)
+      ↓
+Commit Audit
+
+throw exception
+</pre>
+
+<p><span class="badge">Kết quả</span> Security state và audit state nhất quán.</p>
+</div>
+
+<h2>8. Spring Self Invocation Trap</h2>
+<pre>
+❌ Sai
+
+@Transactional
+A() {
+   this.B();
+}
+
+@Transactional(REQUIRES_NEW)
+B()
+
+=> REQUIRES_NEW không hoạt động
+</pre>
+
+<pre>
+✅ Đúng
+
+A()
+ ↓
+UserSessionService
+ ↓
+Spring Proxy
+ ↓
+REQUIRES_NEW
+</pre>
+
+<h2 id="security">9. Security Rules</h2>
+<div class="card">
+<h3>Tuyệt đối không lưu</h3>
+<ul>
+<li>Password</li>
+<li>Password Hash</li>
+<li>JWT</li>
+<li>Refresh Token</li>
+<li>Verification Token</li>
+<li>Reset Token</li>
+</ul>
+</div>
+
+<h2>10. Architectural Decisions</h2>
+<div class="card">
+<ul>
+<li>Dùng REQUIRES_NEW cho Audit.</li>
+<li>Không dùng Kafka.</li>
+<li>Không dùng Event Bus.</li>
+<li>Không dùng AOP Audit.</li>
+<li>Không audit Read Operations.</li>
+</ul>
+</div>
+
+<h2>11. Common Mistakes</h2>
+<div class="card">
+<ul>
+<li>Audit tất cả API.</li>
+<li>Lưu JWT vào audit.</li>
+<li>Self invocation với REQUIRES_NEW.</li>
+<li>Biến Audit thành hệ thống analytics.</li>
+</ul>
+</div>
+
+<h2 id="developer">12. Developer Recovery Guide</h2>
+<ol>
+<li>Đọc AuditAction</li>
+<li>Đọc AuditLog Entity</li>
+<li>Đọc AuditService</li>
+<li>Đọc AuditServiceImpl</li>
+<li>Đọc UserSessionService</li>
+<li>Đọc AuthServiceImpl</li>
+<li>Đọc DiseaseWorkflowServiceImpl</li>
+</ol>
+
+<h2 id="ai">13. AI Bootstrap</h2>
+<pre>
+Audit Version: V1
+Status: Stable
+
+Architecture:
+AuditService
+ ↓
+AuditRepository
+ ↓
+audit_log
+
+Total Events: 14
+
+Known Fixed Bug:
+TOKEN_REUSE_DETECTED
+
+Do Not Break:
+- REQUIRES_NEW behavior
+- No password logging
+- No token logging
+- No read-operation audit
+</pre>
+
+<h2>14. Future Roadmap</h2>
+<div class="card">
+<ul>
+<li>Audit Search</li>
+<li>Audit Filter</li>
+<li>Audit Dashboard</li>
+<li>Export CSV/Excel</li>
+</ul>
+</div>
+
+</div>
+</body>
+</html>

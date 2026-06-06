@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medvora Disease Module - Single Source of Truth</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #0f1116;
+            color: #d7dde8;
+            line-height: 1.55;
+            padding: 24px;
+        }
+        .container {
+            max-width: 1380px;
+            margin: 0 auto;
+            background: #171a21;
+            border: 1px solid #2a3140;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 8px 30px rgba(0,0,0,.35);
+        }
+        h1 {
+            color: #78b7ff;
+            margin-bottom: 18px;
+            font-size: 2.15rem;
+            border-bottom: 3px solid #2f6fb3;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #78b7ff;
+            margin-top: 34px;
+            margin-bottom: 12px;
+            font-size: 1.55rem;
+            border-bottom: 2px solid #2a4f7c;
+            padding-bottom: 6px;
+        }
+        h3 {
+            color: #9fd0ff;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            font-size: 1.18rem;
+        }
+        h4 {
+            color: #ffd088;
+            margin-top: 14px;
+            margin-bottom: 6px;
+            font-size: 1rem;
+        }
+        p { margin: 8px 0; }
+        ul, ol { margin: 8px 0 8px 22px; }
+        li { margin-bottom: 5px; }
+        code {
+            background: #202632;
+            border: 1px solid #334055;
+            color: #ffcf8b;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-family: Consolas, "Courier New", monospace;
+        }
+        pre {
+            background: #11151d;
+            border: 1px solid #2c3750;
+            border-left: 4px solid #4b87d6;
+            color: #dfe9ff;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin: 8px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0 16px;
+            background: #131a24;
+        }
+        th, td {
+            border: 1px solid #2c3b51;
+            padding: 9px;
+            vertical-align: top;
+            text-align: left;
+        }
+        th {
+            background: #1d2737;
+            color: #9ec8ff;
+            font-weight: 700;
+        }
+        .box {
+            background: #121924;
+            border: 1px solid #2f3d54;
+            border-left: 4px solid #4d87d3;
+            border-radius: 7px;
+            padding: 12px;
+            margin: 10px 0;
+        }
+        .warn {
+            background: #271f16;
+            border-color: #644f2f;
+            border-left-color: #d9a343;
+        }
+        .danger {
+            background: #2a1a1e;
+            border-color: #6e3740;
+            border-left-color: #cf6679;
+        }
+        .ok {
+            background: #13231b;
+            border-color: #315a47;
+            border-left-color: #55c28a;
+        }
+        .toc {
+            background: #121924;
+            border: 1px solid #2d3c52;
+            border-radius: 7px;
+            padding: 14px;
+            margin: 12px 0 20px;
+        }
+        .toc a { color: #8dc2ff; text-decoration: none; }
+        .toc a:hover { text-decoration: underline; }
+        .meta {
+            color: #aeb8cb;
+            margin-bottom: 10px;
+            font-size: .95rem;
+        }
+        .mono { font-family: Consolas, "Courier New", monospace; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Disease Module - Technical Single Source of Truth</h1>
+    <p class="meta"><strong>Scope:</strong> <code>com.duoq.medlearn</code> disease domain (entity/service/repository/controller)</p>
+    <p class="meta"><strong>Verified from code:</strong> <code>DiseaseServiceImpl</code>, <code>DiseaseVersionServiceImpl</code>, <code>DiseaseSectionServiceImpl</code>, <code>DiseaseWorkflowServiceImpl</code>, related entities/repositories/controllers</p>
+    <p class="meta"><strong>Audience:</strong> developer onboarding, returning developer, future AI agent sessions</p>
+
+    <div class="toc">
+        <h3>Table of Contents</h3>
+        <ol>
+            <li><a href="#architecture-overview">Tổng quan kiến trúc Disease</a></li>
+            <li><a href="#domain-model">Domain Model chi tiết</a></li>
+            <li><a href="#entity-relationships">Entity Relationships</a></li>
+            <li><a href="#business-rules">Business Rules</a></li>
+            <li><a href="#version-lifecycle">Version Lifecycle</a></li>
+            <li><a href="#rbac-matrix">RBAC Matrix</a></li>
+            <li><a href="#workflow-diagrams">Workflow Diagrams (Mermaid)</a></li>
+            <li><a href="#service-deep-dive">Service Layer Deep Dive</a></li>
+            <li><a href="#method-inventory">Method Inventory</a></li>
+            <li><a href="#api-flow">API Flow Reference</a></li>
+            <li><a href="#repository-overview">Repository Layer Overview</a></li>
+            <li><a href="#dependency-graph">Dependency Graph</a></li>
+            <li><a href="#concurrency-consistency">Concurrency &amp; Consistency</a></li>
+            <li><a href="#security-rules">Security Rules</a></li>
+            <li><a href="#architectural-decisions">Architectural Decisions</a></li>
+            <li><a href="#technical-debt">Technical Debt</a></li>
+            <li><a href="#next-priorities">Next Priorities</a></li>
+            <li><a href="#developer-recovery">Developer Recovery Guide</a></li>
+            <li><a href="#ai-bootstrap">AI Session Bootstrap</a></li>
+        </ol>
+    </div>
+
+    <h2 id="architecture-overview">1) Tổng quan kiến trúc Disease</h2>
+    <div class="box">
+        <p><strong>Core philosophy:</strong> Disease content là versioned asset, không overwrite trực tiếp approved content.</p>
+        <ul>
+            <li><strong>Metadata layer:</strong> <code>Disease</code> (name, slug, category, pointer currentVersion).</li>
+            <li><strong>Content layer:</strong> <code>DiseaseVersion</code> + <code>DiseaseSection</code> + <code>DiseaseVersionSymptom</code>.</li>
+            <li><strong>Workflow layer:</strong> DRAFT → PENDING_REVIEW → APPROVED / REJECTED → ARCHIVED.</li>
+            <li><strong>Governance layer:</strong> role-based moderation (REVIEWER/ADMIN) + ownership checks.</li>
+            <li><strong>Persistence pattern:</strong> soft delete + optimistic lock; high-value transitions dùng pessimistic lock.</li>
+        </ul>
+    </div>
+    <div class="box ok">
+        <p><strong>Why design như vậy:</strong> đảm bảo traceability + moderation integrity + immutable public content, phù hợp platform học thuật (không clinical system).</p>
+    </div>
+
+    <h2 id="domain-model">2) Domain Model chi tiết</h2>
+    <h3>2.1 Disease</h3>
+    <pre>Entity: Disease
+Table: disease
+Key fields:
+- id (PK)
+- name (unique)
+- slug (unique, NaturalId)
+- category (ManyToOne)
+- currentVersion (OneToOne -> DiseaseVersion)
+- versions (OneToMany -> DiseaseVersion)
+- deletedAt (soft delete)
+- version (optimistic lock)</pre>
+    <ul>
+        <li><strong>Meaning:</strong> container metadata + con trỏ nội dung public hiện tại.</li>
+        <li><strong>Invariant:</strong> <code>currentVersion == null || currentVersion.status == APPROVED</code>.</li>
+    </ul>
+
+    <h3>2.2 DiseaseVersion</h3>
+    <pre>Entity: DiseaseVersion
+Table: disease_version
+Unique: (disease_id, version_number)
+Key fields:
+- disease (ManyToOne)
+- versionNumber (per disease sequence)
+- createdBy (ManyToOne User)
+- status (VersionStatus)
+- moderationNote
+- reviewedBy, reviewedAt
+- sections (OneToMany DiseaseSection, orphanRemoval)
+- symptoms (OneToMany DiseaseVersionSymptom, orphanRemoval)
+- deletedAt
+- version (optimistic lock)</pre>
+    <ul>
+        <li><strong>Meaning:</strong> snapshot nội dung theo vòng đời moderation.</li>
+        <li><strong>Invariant:</strong> approved content chỉ thay bằng version mới, không edit trực tiếp.</li>
+    </ul>
+
+    <h3>2.3 DiseaseSection</h3>
+    <pre>Entity: DiseaseSection
+Table: disease_section
+Key fields:
+- diseaseVersion (ManyToOne)
+- sectionType (ManyToOne SectionType)
+- title
+- content (TEXT, sanitized by service)
+- orderIndex
+- deletedAt</pre>
+    <ul>
+        <li><strong>Meaning:</strong> khối nội dung có thứ tự hiển thị trong 1 version.</li>
+        <li><strong>Invariant:</strong> edit chỉ khi version ở DRAFT.</li>
+    </ul>
+
+    <h3>2.4 DiseaseVersionSymptom</h3>
+    <pre>Entity: DiseaseVersionSymptom
+Table: disease_version_symptom
+Unique: (disease_version_id, symptom_id)
+Key fields:
+- diseaseVersion (ManyToOne)
+- symptom (ManyToOne)
+- weightScore (default 1.0)</pre>
+    <ul>
+        <li><strong>Meaning:</strong> mapping symptom cho version + scoring cho symptom checker.</li>
+    </ul>
+
+    <h2 id="entity-relationships">3) Entity Relationships</h2>
+    <pre class="mono">Disease 1 --- * DiseaseVersion
+Disease 1 --- 0..1 currentVersion (DiseaseVersion)
+DiseaseVersion 1 --- * DiseaseSection
+DiseaseVersion 1 --- * DiseaseVersionSymptom
+DiseaseVersionSymptom * --- 1 Symptom
+DiseaseSection * --- 1 SectionType
+Disease * --- 0..1 Category</pre>
+    <div class="box warn">
+        <p><strong>Important:</strong> <code>Disease.currentVersion</code> là denormalized pointer để đọc nhanh approved content; pointer phải được sync trong approve/rollback flow.</p>
+    </div>
+
+    <h2 id="business-rules">4) Business Rules</h2>
+    <table>
+        <tr><th>Rule</th><th>Enforced at</th><th>Why</th><th>Bug risk nếu phá</th></tr>
+        <tr><td>Disease name unique</td><td>DiseaseServiceImpl + DB unique</td><td>URL/search consistency</td><td>Duplicate identity, ambiguous management</td></tr>
+        <tr><td>Disease slug unique</td><td>DiseaseServiceImpl + DB unique</td><td>Stable public route</td><td>Wrong detail page mapping</td></tr>
+        <tr><td>Version number unique per disease</td><td>DB unique (disease_id, version_number)</td><td>History integrity</td><td>Race-created duplicate version</td></tr>
+        <tr><td>Edit section/version only in DRAFT</td><td>DiseaseSectionServiceImpl / DiseaseVersionServiceImpl</td><td>Approved immutability</td><td>Public content silently mutated</td></tr>
+        <tr><td>Only REVIEWER/ADMIN approve/reject/archive/rollback</td><td>Service validation</td><td>Moderation trust boundary</td><td>Contributor self-publish</td></tr>
+        <tr><td>Reviewer cannot approve own version</td><td>approveVersion()</td><td>Separation of duties</td><td>Bypass moderation</td></tr>
+        <tr><td>Only APPROVED can become currentVersion</td><td>updateCurrentVersion(), approveVersion()</td><td>Public quality gate</td><td>Draft leaked publicly</td></tr>
+        <tr><td>Soft delete default filtering</td><td>@SQLRestriction + repository predicates</td><td>Recoverability + audit trail</td><td>Deleted rows reappear unexpectedly (if query bypass)</td></tr>
+    </table>
+
+    <h2 id="version-lifecycle">5) Version Lifecycle</h2>
+    <h3>5.1 Effective lifecycle</h3>
+    <pre>DRAFT -> PENDING_REVIEW -> APPROVED -> ARCHIVED
+                         \-> REJECTED -> (DRAFT or ARCHIVED)</pre>
+    <p>Transitions theo <code>VersionStatus.canTransitionTo()</code>.</p>
+
+    <h3>5.2 Current version policy</h3>
+    <ul>
+        <li>Public reads dựa vào <code>Disease.currentVersion</code>.</li>
+        <li>Approve mới: archive old APPROVED versions + set pointer mới.</li>
+        <li>Rollback: tạo snapshot APPROVED mới từ target APPROVED cũ, không tái dùng row cũ.</li>
+    </ul>
+
+    <h2 id="rbac-matrix">6) RBAC Matrix</h2>
+    <table>
+        <tr><th>Action</th><th>USER (owner)</th><th>REVIEWER</th><th>ADMIN</th><th>Gate type</th></tr>
+        <tr><td>Create disease</td><td>✅</td><td>✅</td><td>✅</td><td>Controller PreAuthorize</td></tr>
+        <tr><td>Update disease metadata</td><td>✅ owner only</td><td>✅</td><td>✅</td><td>Service ownership check</td></tr>
+        <tr><td>Create/Update/Delete section in draft</td><td>✅ owner draft</td><td>✅</td><td>✅</td><td>Service validateVersionEditable</td></tr>
+        <tr><td>Submit draft for review</td><td>✅ owner</td><td>✅</td><td>✅</td><td>Service ownership + transition</td></tr>
+        <tr><td>Approve / Reject / Archive</td><td>❌</td><td>✅</td><td>✅</td><td>validateReviewerPermission()</td></tr>
+        <tr><td>Rollback approved snapshot</td><td>❌</td><td>✅</td><td>✅</td><td>validateReviewerPermission()</td></tr>
+        <tr><td>Restore disease</td><td>❌</td><td>✅</td><td>✅</td><td>Service role check</td></tr>
+    </table>
+
+    <h2 id="workflow-diagrams">7) Workflow Diagrams (Mermaid)</h2>
+    <h3>7.1 Create + first draft</h3>
+    <pre>```mermaid
+flowchart TD
+    A[POST /api/diseases] --> B[validate name/slug]
+    B --> C[save Disease]
+    C --> D[createDraftVersion]
+    D --> E[DiseaseVersion status=DRAFT]
+    E --> F[future section editing]
+```
+</pre>
+
+    <h3>7.2 Review + publish</h3>
+    <pre>```mermaid
+flowchart TD
+    A[DRAFT] -->|submitForReview| B[PENDING_REVIEW]
+    B -->|approveVersion by REVIEWER/ADMIN| C[lock Disease row]
+    C --> D[archive previous APPROVED]
+    D --> E[set version APPROVED]
+    E --> F[update Disease.currentVersion]
+    F --> G[Public reads new version]
+    B -->|rejectVersion| H[REJECTED]
+```
+</pre>
+
+    <h3>7.3 Rollback</h3>
+    <pre>```mermaid
+flowchart TD
+    A[Reviewer selects target APPROVED] --> B[lock Disease]
+    B --> C[create snapshot versionNumber+1 status=APPROVED]
+    C --> D[clone sections/symptoms]
+    D --> E[archive other APPROVED]
+    E --> F[set Disease.currentVersion=snapshot]
+```
+</pre>
+
+    <h2 id="service-deep-dive">8) Service Layer Deep Dive</h2>
+
+    <h3>8.1 DiseaseServiceImpl</h3>
+
+    <h4>createDisease(CreateDiseaseRequest)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> tạo Disease metadata + bootstrap draft version #1.</li>
+        <li><strong>Workflow:</strong> validate name/slug → resolve category → save disease → call <code>diseaseVersionService.createDraftVersion()</code>.</li>
+        <li><strong>Validation:</strong> duplicate name/slug; missing category.</li>
+        <li><strong>Permission:</strong> endpoint cho USER/REVIEWER/ADMIN.</li>
+        <li><strong>Exceptions:</strong> <code>IllegalStateException</code>, <code>ResourceNotFoundException</code>.</li>
+        <li><strong>Side effects:</strong> insert disease + insert version draft.</li>
+        <li><strong>Dependencies:</strong> DiseaseRepository, CategoryRepository, DiseaseVersionService, DiseaseMapper.</li>
+    </ul>
+
+    <h4>updateDiseaseMetadata(Long, UpdateDiseaseRequest)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> chỉnh metadata (name/slug/category), không đụng content.</li>
+        <li><strong>Workflow:</strong> load disease → ownership/privileged check → validate unique → save.</li>
+        <li><strong>Validation:</strong> uniqueness, category existence.</li>
+        <li><strong>Permission:</strong> owner hoặc REVIEWER/ADMIN.</li>
+        <li><strong>Exceptions:</strong> not found, duplicate, unauthorized owner.</li>
+        <li><strong>Side effects:</strong> update searchable identity fields.</li>
+        <li><strong>Dependencies:</strong> DiseaseRepository, DiseaseVersionRepository, UserRepository.</li>
+    </ul>
+
+    <h4>cloneCurrentVersion(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> mở nhánh chỉnh sửa mới từ approved hiện tại.</li>
+        <li><strong>Workflow:</strong> delegate <code>diseaseVersionService.cloneApprovedVersion</code>.</li>
+        <li><strong>Validation:</strong> approved current version must exist.</li>
+        <li><strong>Permission:</strong> endpoint role + ownership logic inside version service.</li>
+        <li><strong>Exceptions:</strong> current approved not found.</li>
+        <li><strong>Side effects:</strong> new DRAFT with deep-cloned sections/symptoms.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionService.</li>
+    </ul>
+
+    <h4>validateDiseaseOwnership(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> guard write operations against non-owner contributor.</li>
+        <li><strong>Workflow:</strong> privileged role bypass → otherwise check existence of any version created by current user.</li>
+        <li><strong>Validation:</strong> disease exists, user exists.</li>
+        <li><strong>Permission:</strong> contributor must be historical owner.</li>
+        <li><strong>Exceptions:</strong> not found, not owner.</li>
+        <li><strong>Side effects:</strong> none.</li>
+        <li><strong>Dependencies:</strong> DiseaseRepository, DiseaseVersionRepository, CurrentUserResolver, UserRepository.</li>
+    </ul>
+
+    <h3>8.2 DiseaseVersionServiceImpl</h3>
+
+    <h4>createDraftVersion(Long, CreateDiseaseVersionRequest)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> tạo draft rỗng (hoặc note) cho disease.</li>
+        <li><strong>Workflow:</strong> load disease + user → compute next version number → save DRAFT.</li>
+        <li><strong>Validation:</strong> disease exists.</li>
+        <li><strong>Permission:</strong> caller path kiểm soát qua controller/service flow.</li>
+        <li><strong>Exceptions:</strong> disease/user not found.</li>
+        <li><strong>Side effects:</strong> increments version lineage.</li>
+        <li><strong>Dependencies:</strong> DiseaseRepository, DiseaseVersionRepository, UserRepository.</li>
+    </ul>
+
+    <h4>cloneApprovedVersion(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> preserve immutable approved content while enabling edits.</li>
+        <li><strong>Workflow:</strong> load current approved → create new draft → clone sections → clone symptoms.</li>
+        <li><strong>Validation:</strong> current version exists and status APPROVED.</li>
+        <li><strong>Permission:</strong> called from authenticated write path.</li>
+        <li><strong>Exceptions:</strong> approved not found / invalid status.</li>
+        <li><strong>Side effects:</strong> many inserts in section/symptom tables.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionRepository, DiseaseSectionRepository, DiseaseVersionSymptomRepository.</li>
+    </ul>
+
+    <h4>submitForReview(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> chuyển draft sang moderation queue.</li>
+        <li><strong>Workflow:</strong> load version → validate transition DRAFT→PENDING_REVIEW → validate ownership → set status.</li>
+        <li><strong>Validation:</strong> transition + ownership.</li>
+        <li><strong>Permission:</strong> owner or privileged role.</li>
+        <li><strong>Exceptions:</strong> invalid transition / not owner.</li>
+        <li><strong>Side effects:</strong> status update.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionRepository, CurrentUserResolver, UserRepository.</li>
+    </ul>
+
+    <h4>approveVersion(Long, ModerationRequest)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> publish version atomically.</li>
+        <li><strong>Workflow:</strong> validate reviewer role → load version → validate transition → block self-approve → lock disease row → archive old approved → mark approved + review metadata → set currentVersion → save.</li>
+        <li><strong>Validation:</strong> role, transition, reviewer != creator.</li>
+        <li><strong>Permission:</strong> REVIEWER/ADMIN only.</li>
+        <li><strong>Exceptions:</strong> unauthorized, invalid transition, self-approve, not found.</li>
+        <li><strong>Side effects:</strong> changes multiple rows/statuses + pointer switch.</li>
+        <li><strong>Dependencies:</strong> DiseaseRepository.findByIdForUpdate(), DiseaseVersionRepository.archiveApprovedVersionsExcept().</li>
+    </ul>
+
+    <h4>rejectVersion(Long, ModerationRequest)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> moderation reject with reviewer trace.</li>
+        <li><strong>Workflow:</strong> validate reviewer role + transition → set REJECTED + note + reviewedAt/by.</li>
+        <li><strong>Validation:</strong> role + PENDING_REVIEW→REJECTED.</li>
+        <li><strong>Permission:</strong> REVIEWER/ADMIN only.</li>
+        <li><strong>Exceptions:</strong> unauthorized, invalid transition, not found.</li>
+        <li><strong>Side effects:</strong> version out of active edit flow unless transitioned back to draft later.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionRepository, UserRepository.</li>
+    </ul>
+
+    <h4>archiveVersion(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> manually archive non-active version.</li>
+        <li><strong>Workflow:</strong> validate reviewer role + transition → set ARCHIVED.</li>
+        <li><strong>Validation:</strong> canTransitionTo(ARCHIVED).</li>
+        <li><strong>Permission:</strong> REVIEWER/ADMIN only.</li>
+        <li><strong>Exceptions:</strong> unauthorized / invalid transition.</li>
+        <li><strong>Side effects:</strong> removes version from active lifecycle.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionRepository.</li>
+    </ul>
+
+    <h4>validateVersionOwnership(Long) / validateReviewerPermission()</h4>
+    <ul>
+        <li><strong>Purpose:</strong> centralized authorization checks.</li>
+        <li><strong>Workflow:</strong> role lookup from user roles; privileged bypass for ownership.</li>
+        <li><strong>Validation:</strong> current user exists with roles.</li>
+        <li><strong>Permission:</strong> enforce contributor-vs-moderator boundaries.</li>
+        <li><strong>Exceptions:</strong> unauthorized/not owner/user not found.</li>
+        <li><strong>Side effects:</strong> none.</li>
+        <li><strong>Dependencies:</strong> CurrentUserResolver + UserRepository.</li>
+    </ul>
+
+    <h4>generateNextVersionNumber(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> compute next sequence.</li>
+        <li><strong>Workflow:</strong> query max(versionNumber) then +1; fallback 1.</li>
+        <li><strong>Validation:</strong> none explicit.</li>
+        <li><strong>Permission:</strong> internal helper.</li>
+        <li><strong>Exceptions:</strong> none (DB failure excepted).</li>
+        <li><strong>Side effects:</strong> none itself.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionRepository.findMaxVersionNumberByDiseaseId().</li>
+    </ul>
+
+    <h3>8.3 DiseaseSectionServiceImpl</h3>
+
+    <h4>createSection / updateSection / deleteSection / reorderSections</h4>
+    <ul>
+        <li><strong>Purpose:</strong> mutate draft content blocks.</li>
+        <li><strong>Workflow:</strong> load version/section → validateVersionEditable(DRAFT + owner/privileged) → sanitize content → persist.</li>
+        <li><strong>Validation:</strong> version exists, section belongs to version, section type exists.</li>
+        <li><strong>Permission:</strong> owner contributor hoặc REVIEWER/ADMIN.</li>
+        <li><strong>Exceptions:</strong> not found, version not draft, section mismatch, not owner.</li>
+        <li><strong>Side effects:</strong> soft delete sets <code>deletedAt</code>; reorder impacts render order.</li>
+        <li><strong>Dependencies:</strong> DiseaseSectionRepository, DiseaseVersionRepository, SectionTypeRepository, UserRepository.</li>
+    </ul>
+
+    <h4>validateRequiredSections(Long)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> check required section types: definition/symptoms/treatment.</li>
+        <li><strong>Workflow:</strong> query section types in version → all required must exist.</li>
+        <li><strong>Validation:</strong> strict required-list.</li>
+        <li><strong>Permission:</strong> n/a (validation utility).</li>
+        <li><strong>Exceptions:</strong> throws if missing.</li>
+        <li><strong>Side effects:</strong> none.</li>
+        <li><strong>Dependencies:</strong> DiseaseSectionRepository.</li>
+    </ul>
+
+    <h4>sanitizeHtmlContent(String)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> prevent unsafe HTML persistence.</li>
+        <li><strong>Workflow:</strong> null→"" else <code>Jsoup.clean(..., Safelist.basic())</code>.</li>
+        <li><strong>Validation:</strong> whitelist sanitization.</li>
+        <li><strong>Permission:</strong> n/a.</li>
+        <li><strong>Exceptions:</strong> none expected.</li>
+        <li><strong>Side effects:</strong> strips unsupported tags/attrs; potential content loss if user expects richer HTML.</li>
+        <li><strong>Dependencies:</strong> Jsoup.</li>
+    </ul>
+
+    <h3>8.4 DiseaseWorkflowServiceImpl</h3>
+
+    <h4>submit/approve/reject wrappers</h4>
+    <ul>
+        <li><strong>Purpose:</strong> orchestration facade, delegates to DiseaseVersionService.</li>
+        <li><strong>Workflow:</strong> simple pass-through under transactional boundary.</li>
+        <li><strong>Validation/Permission:</strong> delegated.</li>
+        <li><strong>Exceptions:</strong> delegated.</li>
+        <li><strong>Side effects:</strong> same as delegated methods.</li>
+        <li><strong>Dependencies:</strong> DiseaseVersionService.</li>
+    </ul>
+
+    <h4>rollback(Long diseaseId, Long targetVersionId)</h4>
+    <ul>
+        <li><strong>Purpose:</strong> controlled rollback by snapshot (not pointer rewind).</li>
+        <li><strong>Workflow:</strong> reviewer check → lock disease row → validate target belongs + APPROVED → create new APPROVED snapshot with next version number → clone sections/symptoms → archive other approved → set currentVersion.</li>
+        <li><strong>Validation:</strong> target ownership, target status, role.</li>
+        <li><strong>Permission:</strong> REVIEWER/ADMIN only.</li>
+        <li><strong>Exceptions:</strong> disease/version not found; invalid target relation/status.</li>
+        <li><strong>Side effects:</strong> inserts new version + clones, archives previous approved, changes public pointer immediately.</li>
+        <li><strong>Dependencies:</strong> DiseaseRepository, DiseaseVersionRepository, DiseaseSectionRepository, DiseaseVersionSymptomRepository, CurrentUserResolver, UserRepository.</li>
+    </ul>
+
+    <h2 id="method-inventory">9) Method Inventory</h2>
+    <h3>DiseaseServiceImpl</h3>
+    <pre>createDisease
+createDiseaseDraft
+getDiseaseById
+getDiseaseBySlug
+getDiseaseCurrentVersion
+getApprovedDiseases
+searchDiseases
+updateDiseaseMetadata
+cloneCurrentVersion
+softDeleteDisease
+restoreDisease
+assignCategory
+removeCategory
+existsByName
+existsBySlug
+validateDiseaseAccess
+validateDiseaseOwnership
+updateCurrentVersion</pre>
+
+    <h3>DiseaseVersionServiceImpl</h3>
+    <pre>createDraftVersion
+cloneApprovedVersion
+getVersionById
+getDiseaseVersions
+getCurrentApprovedVersion
+getLatestDraftVersion
+getPendingReviewVersions
+updateDraftVersion
+submitForReview
+approveVersion
+rejectVersion
+archiveVersion
+validateWorkflowTransition
+canEditVersion
+isApprovedVersion
+isPendingReview
+validateVersionOwnership
+validateReviewerPermission
+generateNextVersionNumber
+deactivatePreviousApprovedVersion
+softDeleteVersion
+restoreVersion</pre>
+
+    <h3>DiseaseSectionServiceImpl</h3>
+    <pre>createSection
+createSections
+getSectionById
+getSectionsByVersion
+getSectionByType
+updateSection
+reorderSections
+deleteSection
+softDeleteSectionsByVersion
+validateRequiredSections
+existsSectionType
+isRequiredSection
+validateSectionEditable
+renderMarkdownContent
+sanitizeHtmlContent
+getAllSectionTypes
+getDefaultTemplates</pre>
+
+    <h3>DiseaseWorkflowServiceImpl</h3>
+    <pre>submit
+approve
+reject
+rollback
+validateTransition</pre>
+
+    <h2 id="api-flow">10) API Flow Reference</h2>
+    <h3>10.1 DiseaseController endpoints hiện có</h3>
+    <table>
+        <tr><th>Method</th><th>Path</th><th>Main service path</th><th>Auth</th></tr>
+        <tr><td>POST</td><td>/api/diseases</td><td>createDisease</td><td>USER/REVIEWER/ADMIN</td></tr>
+        <tr><td>POST</td><td>/api/diseases/draft</td><td>createDiseaseDraft</td><td>USER/REVIEWER/ADMIN</td></tr>
+        <tr><td>GET</td><td>/api/diseases/{id}</td><td>getDiseaseById</td><td>Public</td></tr>
+        <tr><td>GET</td><td>/api/diseases/slug/{slug}</td><td>getDiseaseBySlug</td><td>Public</td></tr>
+        <tr><td>GET</td><td>/api/diseases/{id}/current-version</td><td>getDiseaseCurrentVersion</td><td>Public</td></tr>
+        <tr><td>GET</td><td>/api/diseases/approved</td><td>getApprovedDiseases</td><td>Public</td></tr>
+        <tr><td>POST</td><td>/api/diseases/search</td><td>searchDiseases</td><td>Public</td></tr>
+        <tr><td>PUT</td><td>/api/diseases/{id}</td><td>updateDiseaseMetadata</td><td>USER/REVIEWER/ADMIN (+owner check)</td></tr>
+        <tr><td>POST</td><td>/api/diseases/{id}/clone-current-version</td><td>cloneCurrentVersion</td><td>USER/REVIEWER/ADMIN</td></tr>
+        <tr><td>DELETE</td><td>/api/diseases/{id}</td><td>softDeleteDisease</td><td>REVIEWER/ADMIN</td></tr>
+        <tr><td>PATCH</td><td>/api/diseases/{id}/restore</td><td>restoreDisease</td><td>REVIEWER/ADMIN</td></tr>
+        <tr><td>PATCH</td><td>/api/diseases/{id}/category/{categoryId}</td><td>assignCategory</td><td>REVIEWER/ADMIN</td></tr>
+        <tr><td>DELETE</td><td>/api/diseases/{id}/category</td><td>removeCategory</td><td>REVIEWER/ADMIN</td></tr>
+    </table>
+
+    <h3>10.2 Workflow API gap</h3>
+    <div class="box warn">
+        <p><strong>Observation:</strong> service layer có <code>submit/approve/reject/rollback</code> nhưng controller module disease hiện chưa expose endpoint tương ứng trong file đã kiểm tra. Nếu endpoint nằm module khác, cần cross-link; nếu chưa có, đây là delivery gap.</p>
+    </div>
+
+    <h2 id="repository-overview">11) Repository Layer Overview</h2>
+    <h3>DiseaseRepository</h3>
+    <ul>
+        <li><code>findByIdForUpdate()</code>: pessimistic write lock để serialize approve/rollback pointer update.</li>
+        <li><code>findBySlugWithCategory()</code>: fetch category cùng disease detail.</li>
+        <li><code>findApprovedSummaryByFilters()/findSummaryByApprovedFilters()</code>: list/search approved current versions only.</li>
+    </ul>
+
+    <h3>DiseaseVersionRepository</h3>
+    <ul>
+        <li><code>findCurrentVersionByDiseaseId()</code>: read qua <code>Disease.currentVersion</code> pointer.</li>
+        <li><code>findMaxVersionNumberByDiseaseId()</code>: sequence source cho version numbers.</li>
+        <li><code>archiveApprovedVersionsExcept()</code>: bulk state update để giữ single approved semantics.</li>
+    </ul>
+
+    <h3>DiseaseSectionRepository</h3>
+    <ul>
+        <li><code>findAllByDiseaseVersionIdAndDeletedAtIsNullOrderByOrderIndexAsc()</code>: canonical ordered read.</li>
+        <li><code>findAllByVersionIdWithType()</code>: fetch join sectionType tránh N+1 khi render detail.</li>
+    </ul>
+
+    <h3>DiseaseVersionSymptomRepository</h3>
+    <ul>
+        <li>CRUD + bulk operations for version symptom mapping.</li>
+        <li>Native query scoring (<code>findMatchingDiseasesRaw</code>) cho symptom checker.</li>
+        <li>Filtering current approved only để align public relevance.</li>
+    </ul>
+
+    <h2 id="dependency-graph">12) Dependency Graph</h2>
+    <pre>```mermaid
+graph TD
+    DC[DiseaseController] --> DS[DiseaseServiceImpl]
+    DS --> DR[DiseaseRepository]
+    DS --> DVR[DiseaseVersionRepository]
+    DS --> DSR[DiseaseSectionRepository]
+    DS --> CR[CategoryRepository]
+    DS --> DVS[DiseaseVersionServiceImpl]
+    DS --> CUR[CurrentUserResolver]
+    DS --> UR[UserRepository]
+    DS --> DM[DiseaseMapper]
+
+    DVS --> DVR
+    DVS --> DR
+    DVS --> DSR
+    DVS --> DVSR[DiseaseVersionSymptomRepository]
+    DVS --> CUR
+    DVS --> UR
+    DVS --> DM
+
+    DSS[DiseaseSectionServiceImpl] --> DSR
+    DSS --> DVR
+    DSS --> STR[SectionTypeRepository]
+    DSS --> CUR
+    DSS --> UR
+    DSS --> DM
+
+    DWF[DiseaseWorkflowServiceImpl] --> DVS
+    DWF --> DR
+    DWF --> DVR
+    DWF --> DSR
+    DWF --> DVSR
+    DWF --> CUR
+    DWF --> UR
+    DWF --> DM
+```
+</pre>
+
+    <h2 id="concurrency-consistency">13) Concurrency &amp; Consistency</h2>
+    <h3>13.1 Protections hiện có</h3>
+    <ul>
+        <li><strong>Optimistic lock:</strong> <code>@Version</code> ở <code>Disease</code>, <code>DiseaseVersion</code>.</li>
+        <li><strong>Pessimistic lock:</strong> <code>DiseaseRepository.findByIdForUpdate()</code> dùng trong approve + rollback.</li>
+        <li><strong>Uniqueness constraints:</strong> disease name/slug, version number per disease, symptom mapping unique.</li>
+        <li><strong>Transactional boundaries:</strong> state-transition methods annotated <code>@Transactional</code>.</li>
+    </ul>
+
+    <h3>13.2 Known race hotspots</h3>
+    <div class="box danger">
+        <ul>
+            <li><code>generateNextVersionNumber()</code> = max+1 không lock riêng; concurrent draft creation có thể đụng unique constraint.</li>
+            <li><code>createDisease()</code> checks exists before insert; race giữa requests vẫn có thể chạm DB unique violation.</li>
+            <li>Bulk archive query + pointer update phụ thuộc transaction integrity; split transaction sẽ tạo inconsistent public pointer.</li>
+        </ul>
+    </div>
+
+    <h3>13.3 Invariants bắt buộc giữ</h3>
+    <ol>
+        <li>Một disease tại một thời điểm chỉ có một version public qua <code>currentVersion</code>.</li>
+        <li>Content public phải từ version APPROVED.</li>
+        <li>Approved content không sửa in-place.</li>
+        <li>Reviewer không tự duyệt version tự tạo.</li>
+        <li>Section mutation chỉ diễn ra ở DRAFT version.</li>
+    </ol>
+
+    <h2 id="security-rules">14) Security Rules</h2>
+    <ul>
+        <li><strong>Entry guard:</strong> controller <code>@PreAuthorize</code> cho write operations.</li>
+        <li><strong>Domain guard:</strong> service-level ownership/role validation; không rely hoàn toàn vào controller.</li>
+        <li><strong>Trust source:</strong> user identity từ <code>CurrentUserResolver</code> + DB reload with roles.</li>
+        <li><strong>Moderation boundary:</strong> approve/reject/archive/rollback yêu cầu reviewer/admin.</li>
+        <li><strong>XSS mitigation:</strong> section content sanitize qua Jsoup safelist.</li>
+    </ul>
+    <div class="box warn">
+        <p><strong>Security caveat:</strong> detail/read endpoints public. Nếu cần content embargo theo role, phải thêm policy layer trước mapper response.</p>
+    </div>
+
+    <h2 id="architectural-decisions">15) Architectural Decisions</h2>
+    <table>
+        <tr><th>Decision</th><th>Why</th><th>Trade-off</th></tr>
+        <tr><td>Keep Disease as metadata + pointer</td><td>Fast read current approved content</td><td>Need strict pointer consistency</td></tr>
+        <tr><td>Versioned content lifecycle</td><td>Traceability + moderation quality</td><td>Higher complexity than direct CRUD</td></tr>
+        <tr><td>Rollback by snapshot creation</td><td>Immutable audit history</td><td>Data duplication</td></tr>
+        <tr><td>Soft delete defaults</td><td>Recoverability and audit context</td><td>Need careful query discipline</td></tr>
+        <tr><td>Pessimistic lock on publish flows</td><td>Prevent concurrent publish corruption</td><td>Potential contention under high write load</td></tr>
+        <tr><td>Service-level permission validation</td><td>Defense in depth beyond controller</td><td>Repeated role-check code</td></tr>
+    </table>
+
+    <h2 id="technical-debt">16) Technical Debt</h2>
+    <ol>
+        <li><strong>Required sections validation not enforced in submitForReview:</strong> method exists nhưng không được gọi trong workflow submit hiện tại.</li>
+        <li><strong>Duplicate query intent:</strong> <code>findApprovedSummaryByFilters</code> và <code>findSummaryByApprovedFilters</code> gần như trùng.</li>
+        <li><strong>Role strings hardcoded:</strong> "REVIEWER"/"ADMIN" lặp lại nhiều chỗ, dễ typo drift.</li>
+        <li><strong>Manual clone loops:</strong> section/symptom cloning duplicated giữa VersionService và WorkflowService.</li>
+        <li><strong>Potential N+1/transaction chatter:</strong> reorder/soft-delete sections save từng row.</li>
+        <li><strong>Controller coverage gap:</strong> workflow services chưa thấy exposed endpoint trong controller đã scan.</li>
+    </ol>
+
+    <h2 id="next-priorities">17) Next Priorities</h2>
+    <ol>
+        <li>Wire <code>validateRequiredSections()</code> vào <code>submitForReview()</code> trước khi mở rộng moderation UI.</li>
+        <li>Create dedicated workflow controller endpoints (submit/approve/reject/rollback) nếu chưa tồn tại.</li>
+        <li>Extract authorization helper/policy component để giảm lặp role checks.</li>
+        <li>Harden concurrent version-number generation (DB sequence/table lock/retry strategy).</li>
+        <li>Add integration tests cho invariants: single approved pointer, self-approval block, rollback snapshot behavior.</li>
+        <li>Unify duplicate approved-summary queries để giảm maintenance cost.</li>
+    </ol>
+
+    <h2 id="developer-recovery">18) Developer Recovery Guide</h2>
+    <h3>18.1 Nếu bạn quay lại sau nhiều tháng</h3>
+    <ol>
+        <li>Đọc section 4, 5, 13 trước: business invariants + lifecycle + concurrency.</li>
+        <li>Mở <code>DiseaseVersionServiceImpl.approveVersion()</code> và <code>DiseaseWorkflowServiceImpl.rollback()</code> trước mọi thay đổi workflow.</li>
+        <li>Kiểm tra mọi thay đổi có giữ invariant <code>currentVersion -> APPROVED</code> không.</li>
+        <li>Nếu sửa permission: update cả controller guard và service guard.</li>
+        <li>Nếu thêm field content: validate clone path (cloneApprovedVersion + rollback clone methods).</li>
+    </ol>
+
+    <h3>18.2 Quick bug triage map</h3>
+    <table>
+        <tr><th>Symptom</th><th>First place to inspect</th></tr>
+        <tr><td>Public disease hiển thị sai version</td><td>approveVersion(), rollback(), updateCurrentVersion(), currentVersion pointer</td></tr>
+        <tr><td>Contributor không edit được draft</td><td>validateVersionOwnership(), validateVersionEditable()</td></tr>
+        <tr><td>Review queue transition lỗi</td><td>VersionStatus.canTransitionTo(), submitForReview(), approve/reject methods</td></tr>
+        <tr><td>Section content mất format</td><td>sanitizeHtmlContent() + Jsoup Safelist.basic()</td></tr>
+        <tr><td>Duplicate versionNumber lỗi DB</td><td>generateNextVersionNumber() under concurrency</td></tr>
+    </table>
+
+    <h2 id="ai-bootstrap">19) AI Session Bootstrap</h2>
+    <div class="box">
+        <h3>19.1 Fast context load order for future AI sessions</h3>
+        <ol>
+            <li>Đọc mục 4 (Business Rules), 5 (Lifecycle), 13 (Concurrency), 16 (Tech Debt).</li>
+            <li>Code anchor bắt buộc:
+                <ul>
+                    <li><code>DiseaseVersionServiceImpl.approveVersion()</code></li>
+                    <li><code>DiseaseWorkflowServiceImpl.rollback()</code></li>
+                    <li><code>DiseaseSectionServiceImpl.validateVersionEditable()</code></li>
+                    <li><code>VersionStatus.canTransitionTo()</code></li>
+                </ul>
+            </li>
+            <li>Xác minh endpoint coverage trong controller trước khi chỉnh service-only behavior.</li>
+            <li>Khi đề xuất refactor, chứng minh không phá 5 invariants mục 13.3.</li>
+        </ol>
+    </div>
+
+    <div class="box danger">
+        <h3>19.2 Non-negotiable invariants checklist (AI must enforce)</h3>
+        <ul>
+            <li>Không cho publish ngoài APPROVED state machine.</li>
+            <li>Không cho direct edit approved version/sections.</li>
+            <li>Không cho reviewer approve chính version mình tạo.</li>
+            <li>Không để disease có nhiều approved active for public pointer.</li>
+            <li>Mọi thay đổi write-path phải qua ownership/role guard ở service.</li>
+        </ul>
+    </div>
+
+</div>
+</body>
+</html>
