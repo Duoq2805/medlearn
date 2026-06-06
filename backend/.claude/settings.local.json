@@ -17,7 +17,9 @@
       "Bash(git restore *)",
       "Bash(./mvnw clean *)",
       "Bash(./mvnw spring-boot:run *)",
-      "Bash(./mvnw compile *)"
+      "Bash(./mvnw compile *)",
+      "Bash(xargs grep -n \"getStatus\\(\\)\")",
+      "Bash(./mvnw test *)"
     ]
   }
 }

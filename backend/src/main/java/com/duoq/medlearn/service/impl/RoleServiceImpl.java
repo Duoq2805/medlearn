@@ -17,20 +17,20 @@ public class RoleServiceImpl implements RoleService {
     private final UserRepository userRepository;
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).ROLE_ASSIGN)")
     public Role getRoleByName(String name) {
         return null;
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).ROLE_ASSIGN)")
     @Transactional
     public void assignRole(Long userId, String roleName) {
 
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).ROLE_ASSIGN)")
     @Transactional
     public void removeRole(Long userId, String roleName) {
 

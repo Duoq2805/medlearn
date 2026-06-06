@@ -13,7 +13,9 @@ import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.service.AuditService;
+import com.duoq.medlearn.service.PermissionService;
 import com.duoq.medlearn.service.DiseaseWorkflowService;
 import com.duoq.medlearn.service.DiseaseVersionService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
     private final UserRepository userRepository;
     private final CurrentUserResolver currentUserResolver;
     private final AuditService auditService;
+    private final PermissionService permissionService;
 
     @Override
     @Transactional
@@ -113,12 +116,8 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
     // ===================================
 
     private void validateReviewerPermission() {
-        User currentUser = findCurrentUser();
-        boolean allowed = currentUser.getRoles().stream()
-                .map(role -> role.getName())
-                .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
-        if (!allowed) {
-            throw new IllegalStateException("Reviewer/Admin permission required");
+        if (!permissionService.hasPermission(PermissionCode.VERSION_REVIEW)) {
+            throw new IllegalStateException("VERSION_REVIEW permission required");
         }
     }
 

@@ -36,40 +36,40 @@ public class UserController {
     // ==================== ADMIN: USER MANAGEMENT ====================
 
     @GetMapping("/api/admin/users")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).USER_VIEW_ALL)")
     public ResponseEntity<ApiResponse<Page<UserDTO>>> getAllUsers(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(adminUserService.getAllUsers(pageable)));
     }
 
     @GetMapping("/api/admin/users/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).USER_VIEW_ALL)")
     public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(adminUserService.getUserById(id)));
     }
 
     @PatchMapping("/api/admin/users/{id}/deactivate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).USER_MANAGE)")
     public ResponseEntity<ApiResponse<Void>> deactivateUser(@PathVariable Long id) {
         adminUserService.deactivateUser(id);
         return ResponseEntity.ok(ApiResponse.success("User deactivated", null));
     }
 
     @PatchMapping("/api/admin/users/{id}/activate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).USER_MANAGE)")
     public ResponseEntity<ApiResponse<Void>> activateUser(@PathVariable Long id) {
         adminUserService.activateUser(id);
         return ResponseEntity.ok(ApiResponse.success("User activated", null));
     }
 
     @PatchMapping("/api/admin/users/{id}/roles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).ROLE_ASSIGN)")
     public ResponseEntity<ApiResponse<Void>> assignRole(@PathVariable Long id, @Valid @RequestBody RoleRequest request) {
         adminUserService.assignRole(id, request.getRoleName());
         return ResponseEntity.ok(ApiResponse.success("Role assigned", null));
     }
 
     @DeleteMapping("/api/admin/users/{id}/roles")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).ROLE_ASSIGN)")
     public ResponseEntity<ApiResponse<Void>> removeRole(@PathVariable Long id, @Valid @RequestBody RoleRequest request) {
         adminUserService.removeRole(id, request.getRoleName());
         return ResponseEntity.ok(ApiResponse.success("Role removed", null));

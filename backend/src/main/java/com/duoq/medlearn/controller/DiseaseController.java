@@ -28,13 +28,13 @@ public class DiseaseController {
     private final DiseaseService diseaseService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER','REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_WRITE)")
     public ResponseEntity<ApiResponse<DiseaseDTO>> createDisease(@Valid @RequestBody CreateDiseaseRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Disease created", diseaseService.createDisease(request)));
     }
 
     @PostMapping("/draft")
-    @PreAuthorize("hasAnyRole('USER','REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_WRITE)")
     public ResponseEntity<ApiResponse<DiseaseDTO>> createDiseaseDraft(@Valid @RequestBody CreateDiseaseDraftRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Disease draft created", diseaseService.createDiseaseDraft(request)));
     }
@@ -75,7 +75,7 @@ public class DiseaseController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('USER','REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_WRITE)")
     public ResponseEntity<ApiResponse<DiseaseDTO>> updateDiseaseMetadata(
             @PathVariable Long id,
             @Valid @RequestBody UpdateDiseaseRequest request
@@ -84,34 +84,34 @@ public class DiseaseController {
     }
 
     @PostMapping("/{id}/clone-current-version")
-    @PreAuthorize("hasAnyRole('USER','REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
     public ResponseEntity<ApiResponse<DiseaseVersionDTO>> cloneCurrentVersion(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success("Current version cloned", diseaseService.cloneCurrentVersion(id)));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_DELETE)")
     public ResponseEntity<ApiResponse<Void>> softDeleteDisease(@PathVariable Long id) {
         diseaseService.softDeleteDisease(id);
         return ResponseEntity.ok(ApiResponse.success("Disease soft deleted", null));
     }
 
     @PatchMapping("/{id}/restore")
-    @PreAuthorize("hasAnyRole('REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_RESTORE)")
     public ResponseEntity<ApiResponse<Void>> restoreDisease(@PathVariable Long id) {
         diseaseService.restoreDisease(id);
         return ResponseEntity.ok(ApiResponse.success("Disease restored", null));
     }
 
     @PatchMapping("/{id}/category/{categoryId}")
-    @PreAuthorize("hasAnyRole('REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_MANAGE)")
     public ResponseEntity<ApiResponse<Void>> assignCategory(@PathVariable Long id, @PathVariable Long categoryId) {
         diseaseService.assignCategory(id, categoryId);
         return ResponseEntity.ok(ApiResponse.success("Category assigned", null));
     }
 
     @DeleteMapping("/{id}/category")
-    @PreAuthorize("hasAnyRole('REVIEWER','ADMIN')")
+    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).DISEASE_MANAGE)")
     public ResponseEntity<ApiResponse<Void>> removeCategory(@PathVariable Long id) {
         diseaseService.removeCategory(id);
         return ResponseEntity.ok(ApiResponse.success("Category removed", null));

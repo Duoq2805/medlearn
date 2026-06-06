@@ -3,7 +3,6 @@ package com.duoq.medlearn.service.impl;
 import com.duoq.medlearn.domain.entity.Category;
 import com.duoq.medlearn.domain.entity.Disease;
 import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.VersionStatus;
@@ -23,7 +22,9 @@ import com.duoq.medlearn.repository.DiseaseSectionRepository;
 import com.duoq.medlearn.repository.DiseaseVersionRepository;
 import com.duoq.medlearn.repository.UserRepository;
 import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.service.AuditService;
+import com.duoq.medlearn.service.PermissionService;
 import com.duoq.medlearn.service.DiseaseService;
 import com.duoq.medlearn.service.DiseaseVersionService;
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     private final DiseaseVersionService diseaseVersionService;
     private final DiseaseMapper diseaseMapper;
     private final AuditService auditService;
+    private final PermissionService permissionService;
 
     /**
      * Tạo disease mới và khởi tạo draft version đầu tiên.
@@ -307,8 +309,8 @@ public class DiseaseServiceImpl implements DiseaseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
         User currentUser = findCurrentUserWithRoles();
-        if (!isReviewerOrAdmin(currentUser)) {
-            throw new IllegalStateException("Only REVIEWER or ADMIN can restore disease");
+        if (!permissionService.hasPermission(PermissionCode.DISEASE_RESTORE)) {
+            throw new IllegalStateException("DISEASE_RESTORE permission required");
         }
 
         disease.setDeletedAt(null);
@@ -374,7 +376,8 @@ public class DiseaseServiceImpl implements DiseaseService {
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
         User currentUser = findCurrentUserWithRoles();
-        if (isReviewerOrAdmin(currentUser)) {
+        // Check if user has DISEASE_MANAGE permission (can bypass ownership)
+        if (permissionService.hasPermission(PermissionCode.DISEASE_MANAGE)) {
             return;
         }
 
@@ -455,25 +458,6 @@ public class DiseaseServiceImpl implements DiseaseService {
         Long userId = currentUserResolver.resolveCurrentUserId();
         return userRepository.findByIdWithRoles(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
-
-    /**
-     * Kiểm tra user có role đặc quyền hay không.
-     *
-     * Các role đặc quyền:
-     * - REVIEWER
-     * - ADMIN
-     *
-     * Các role này có thể bypass
-     * ownership validation.
-     *
-     * @param user user hiện tại
-     * @return true nếu là reviewer/admin
-     */
-    private boolean isReviewerOrAdmin(User user) {
-        return user.getRoles().stream()
-                .map(Role::getName)
-                .anyMatch(role -> "REVIEWER".equals(role) || "ADMIN".equals(role));
     }
 
 }

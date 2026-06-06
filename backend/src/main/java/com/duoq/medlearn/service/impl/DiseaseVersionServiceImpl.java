@@ -5,7 +5,6 @@ import com.duoq.medlearn.domain.entity.DiseaseSection;
 import com.duoq.medlearn.domain.entity.DiseaseVersion;
 import com.duoq.medlearn.domain.entity.DiseaseVersionSymptom;
 import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.dto.request.CreateDiseaseVersionRequest;
@@ -16,7 +15,10 @@ import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.service.AuditService;
+import com.duoq.medlearn.service.PermissionService;
+import com.duoq.medlearn.service.DiseaseSectionService;
 import com.duoq.medlearn.service.DiseaseVersionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,6 +42,8 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     private final DiseaseSectionRepository diseaseSectionRepository;
     private final DiseaseVersionSymptomRepository diseaseVersionSymptomRepository;
     private final AuditService auditService;
+    private final DiseaseSectionService diseaseSectionService;
+    private final PermissionService permissionService;
 
     @Override
     @Transactional
@@ -150,6 +154,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
 
         validateWorkflowTransition(version.getStatus(), VersionStatus.PENDING_REVIEW);
         validateVersionOwnership(versionId);
+        diseaseSectionService.validateRequiredSections(versionId);
 
         version.submitForReview();
         DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
@@ -284,11 +289,8 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
 
-        User currentUser = findCurrentUser();
-        boolean privileged = currentUser.getRoles().stream()
-                .map(Role::getName)
-                .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
-        if (privileged) {
+        // Check if user has SECTION_EDIT_ANY permission (can bypass ownership)
+        if (permissionService.hasPermission(PermissionCode.SECTION_EDIT_ANY)) {
             return;
         }
 
@@ -298,11 +300,8 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     private void validateReviewerPermission() {
-        User currentUser = findCurrentUser();
-        boolean allowed = currentUser.getRoles().stream().map(Role::getName)
-                .anyMatch(role -> role.equals("REVIEWER") || role.equals("ADMIN"));
-        if (!allowed) {
-            throw new IllegalStateException("Reviewer/Admin permission required");
+        if (!permissionService.hasPermission(PermissionCode.VERSION_REVIEW)) {
+            throw new IllegalStateException("VERSION_REVIEW permission required");
         }
     }
 

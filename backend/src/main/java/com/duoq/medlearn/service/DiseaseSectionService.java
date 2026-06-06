@@ -61,6 +61,12 @@ public interface DiseaseSectionService {
     void softDeleteSectionsByVersion(Long versionId);
 
     // ================================
+    // VALIDATION
+    // ================================
+
+    void validateRequiredSections(Long versionId);
+
+    // ================================
     // CONTENT
     // ================================
 

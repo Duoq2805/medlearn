@@ -2,7 +2,6 @@ package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.entity.DiseaseSection;
 import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.SectionType;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.dto.request.CreateDiseaseSectionRequest;
@@ -18,7 +17,9 @@ import com.duoq.medlearn.repository.DiseaseVersionRepository;
 import com.duoq.medlearn.repository.SectionTypeRepository;
 import com.duoq.medlearn.repository.UserRepository;
 import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.service.DiseaseSectionService;
+import com.duoq.medlearn.service.PermissionService;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -38,6 +39,7 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
     private final UserRepository userRepository;
     private final CurrentUserResolver currentUserResolver;
     private final DiseaseMapper diseaseMapper;
+    private final PermissionService permissionService;
 
     @Override
     @Transactional
@@ -189,16 +191,25 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
     // HELPER METHODS
     // ===================================
 
-    private void validateRequiredSections(Long versionId) {
-        List<String> required = List.of("definition", "symptoms", "treatment");
+    @Override
+    public void validateRequiredSections(Long versionId) {
+        List<String> required = List.of("Definition", "Symptoms", "Treatment");
         List<String> existing = diseaseSectionRepository.findAllByVersionIdWithType(versionId).stream()
                 .map(section -> section.getSectionType() != null ? section.getSectionType().getName() : null)
                 .filter(name -> name != null)
                 .toList();
 
-        boolean ok = required.stream().allMatch(req -> existing.stream().anyMatch(req::equalsIgnoreCase));
-        if (!ok) {
-            throw new IllegalStateException("Missing required sections");
+        List<String> missing = required.stream()
+                .filter(req -> existing.stream().noneMatch(req::equalsIgnoreCase))
+                .toList();
+
+        if (!missing.isEmpty()) {
+            String details = missing.stream()
+                    .map(s -> "- " + s)
+                    .collect(java.util.stream.Collectors.joining("\n"));
+            throw new IllegalStateException(
+                    "Cannot submit version for review.\nMissing required sections:\n" + details
+            );
         }
     }
 
@@ -235,7 +246,8 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
         }
 
         User currentUser = findCurrentUserWithRoles();
-        if (isReviewerOrAdmin(currentUser)) {
+        // Check if user has SECTION_EDIT_ANY permission (can bypass ownership)
+        if (permissionService.hasPermission(PermissionCode.SECTION_EDIT_ANY)) {
             return;
         }
 
@@ -248,12 +260,6 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
         Long userId = currentUserResolver.resolveCurrentUserId();
         return userRepository.findByIdWithRoles(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    }
-
-    private boolean isReviewerOrAdmin(User user) {
-        return user.getRoles().stream()
-                .map(Role::getName)
-                .anyMatch(role -> "REVIEWER".equals(role) || "ADMIN".equals(role));
     }
 
 }

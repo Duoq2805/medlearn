@@ -46,7 +46,6 @@ public class SecurityConfig {
                                 "/api/auth/**",           // Auth endpoints: register, login, verify, refresh, logout
                                 "/api/public/**"          // Các public API khác (nếu có)
                         ).permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
