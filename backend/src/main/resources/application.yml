@@ -6,9 +6,9 @@ spring:
 
   # Database
   datasource:
-    url: jdbc:postgresql://localhost:5432/medlearn_db
-    username: medlearn
-    password: Medlearn@123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medlearn_db}
+    username: ${SPRING_DATASOURCE_USERNAME:medlearn}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   # JPA
@@ -29,10 +29,10 @@ spring:
 
   # Email
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: duongkt.st.2005@gmail.com
-    password: issv ueis kdqm fkwk
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -46,8 +46,8 @@ spring:
       client:
         registration:
           google:
-            client-id: 1056466740527-b4dqe4jjo5miauiuq5bi3rrd4tfdh56d.apps.googleusercontent.com
-            client-secret: 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
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
@@ -63,10 +63,10 @@ server:
 
 # JWT
 jwt:
-  secret: 1if6e0DWXP9angeAJj2oB3nwEvxmAApXpNEpsGoVfKdHv7k1fVY2GJL4kyuL1qxrmzK0a6Kr55meKeBXiY7wmTicmzxThlIEDpOi5N2W35R7c9LEqO4yDZYrVmhqMgl8KCPPCCSPJD1O6qpbYqyeIOCNCpRaGQ9fU5yl7yC8poZcqK0nYPM3lJbmYxp2ERPDIdYlAJmimu3zf3Wrt81shQt9mNs9NzgoM9LZSXWuAtgGVctu5zma3O2rA9UTSzuuVHnLagWon5vSJ12CSUBRe7WLDOEzMExAigRxySMTvoZVxaGER0PSJPgCqIlzHq7zpeNvgy7BGg35SXDUpj6Q9mrzzoseve2HNQhrAb4t
-  expiration: 86400000
-  refresh-expiration: 604800000
-  password-reset-expiry-hours: 1
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+  password-reset-expiry-hours: ${JWT_PASSWORD_RESET_EXPIRY_HOURS:1}
 
 auth:
   rate-limit:

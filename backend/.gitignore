@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Test output ###
+test-output.txt
+**/test-output/**
+**/test-results/**

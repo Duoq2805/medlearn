@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: medlearn_db
       POSTGRES_USER: medlearn
-      POSTGRES_PASSWORD: Medlearn@123
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:Medlearn@123}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "5433:5432"
@@ -34,7 +34,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/medlearn_db
       SPRING_DATASOURCE_USERNAME: medlearn
-      SPRING_DATASOURCE_PASSWORD: Medlearn@123
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:Medlearn@123}
     networks:
       - medlearn_network
 

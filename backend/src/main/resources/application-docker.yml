@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://postgres:5432/medlearn_db
-    username: medlearn
-    password: Medlearn@123
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/medlearn_db}
+    username: ${SPRING_DATASOURCE_USERNAME:medlearn}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,9 +23,9 @@ server:
   port: 8080
 
 jwt:
-  secret: 1if6e0DWXP9angeAJj2oB3nwEvxmAApXpNEpsGoVfKdHv7k1fVY2GJL4kyuL1qxrmzK0a6Kr55meKeBXiY7wmTicmzxThlIEDpOi5N2W35R7c9LEqO4yDZYrVmhqMgl8KCPPCCSPJD1O6qpbYqyeIOCNCpRaGQ9fU5yl7yC8poZcqK0nYPM3lJbmYxp2ERPDIdYlAJmimu3zf3Wrt81shQt9mNs9NzgoM9LZSXWuAtgGVctu5zma3O2rA9UTSzuuVHnLagWon5vSJ12CSUBRe7WLDOEzMExAigRxySMTvoZVxaGER0PSJPgCqIlzHq7zpeNvgy7BGg35SXDUpj6Q9mrzzoseve2HNQhrAb4t
-  expiration: 86400000
-  refresh-expiration: 604800000
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
 app:
   url: http://localhost:8080

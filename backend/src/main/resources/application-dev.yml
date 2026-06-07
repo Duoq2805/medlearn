@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/medlearn_db
-    username: medlearn
-    password: Medlearn@123    # Phải khớp với docker-compose
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medlearn_db}
+    username: ${SPRING_DATASOURCE_USERNAME:medlearn}
+    password: ${SPRING_DATASOURCE_PASSWORD}
 
   jpa:
     show-sql: true
