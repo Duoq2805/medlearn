@@ -36,3 +36,6 @@ build/
 test-output.txt
 **/test-output/**
 **/test-results/**
+
+### Project documentation (not for commit) ###
+Medvora/
