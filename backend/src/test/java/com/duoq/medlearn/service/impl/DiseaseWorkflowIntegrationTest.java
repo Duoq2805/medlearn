@@ -7,9 +7,11 @@ import com.duoq.medlearn.domain.dto.version.ModerationRequest;
 import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.service.AuditService;
 import com.duoq.medlearn.service.DiseaseSectionService;
 import com.duoq.medlearn.service.DiseaseVersionService;
 import com.duoq.medlearn.service.DiseaseWorkflowService;
+import com.duoq.medlearn.service.PermissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -56,6 +59,12 @@ class DiseaseWorkflowIntegrationTest {
 
     @MockBean
     private CurrentUserResolver currentUserResolver;
+
+    @MockBean
+    private AuditService auditService;
+
+    @MockBean
+    private PermissionService permissionService;
 
     private Disease testDisease;
     private User contributor;
@@ -144,6 +153,9 @@ class DiseaseWorkflowIntegrationTest {
 
         testDisease.setCurrentVersion(draftVersion);
         diseaseRepository.save(testDisease);
+
+        // Grant all permissions for test
+        when(permissionService.hasPermission(any())).thenReturn(true);
     }
 
     @Test
