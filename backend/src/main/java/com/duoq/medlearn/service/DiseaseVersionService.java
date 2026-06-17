@@ -1,9 +1,9 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.dto.request.CreateDiseaseVersionRequest;
-import com.duoq.medlearn.dto.request.ModerationRequest;
-import com.duoq.medlearn.dto.request.UpdateDiseaseVersionRequest;
-import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.CreateDiseaseVersionRequest;
+import com.duoq.medlearn.domain.dto.version.ModerationRequest;
+import com.duoq.medlearn.domain.dto.version.UpdateDiseaseVersionRequest;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

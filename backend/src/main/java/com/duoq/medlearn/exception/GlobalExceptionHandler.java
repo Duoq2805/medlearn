@@ -1,6 +1,6 @@
 package com.duoq.medlearn.exception;
 
-import com.duoq.medlearn.dto.response.ApiResponse;
+import com.duoq.medlearn.domain.dto.common.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

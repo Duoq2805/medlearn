@@ -2,7 +2,7 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/medlearn_db}
     username: ${SPRING_DATASOURCE_USERNAME:medlearn}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    password: ${SPRING_DATASOURCE_PASSWORD:docker_db_password}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -23,7 +23,7 @@ server:
   port: 8080
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: ${JWT_SECRET:docker_jwt_secret}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 

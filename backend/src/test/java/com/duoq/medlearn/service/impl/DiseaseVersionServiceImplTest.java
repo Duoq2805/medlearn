@@ -4,7 +4,7 @@ import com.duoq.medlearn.domain.entity.Disease;
 import com.duoq.medlearn.domain.entity.DiseaseVersion;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.VersionStatus;
-import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.repository.DiseaseRepository;

@@ -1,14 +1,14 @@
 package com.duoq.medlearn.controller;
 
-import com.duoq.medlearn.dto.DiseaseSummaryDTO;
-import com.duoq.medlearn.dto.request.CreateDiseaseDraftRequest;
-import com.duoq.medlearn.dto.request.CreateDiseaseRequest;
-import com.duoq.medlearn.dto.request.DiseaseSearchRequest;
-import com.duoq.medlearn.dto.request.UpdateDiseaseRequest;
-import com.duoq.medlearn.dto.response.ApiResponse;
-import com.duoq.medlearn.dto.response.DiseaseDTO;
-import com.duoq.medlearn.dto.response.DiseaseDetailDTO;
-import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO;
+import com.duoq.medlearn.domain.dto.disease.CreateDiseaseDraftRequest;
+import com.duoq.medlearn.domain.dto.disease.CreateDiseaseRequest;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSearchRequest;
+import com.duoq.medlearn.domain.dto.disease.UpdateDiseaseRequest;
+import com.duoq.medlearn.domain.dto.common.ApiResponse;
+import com.duoq.medlearn.domain.dto.disease.DiseaseDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseDetailDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import com.duoq.medlearn.service.DiseaseService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -7,7 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.net.InetAddress;
 import java.time.OffsetDateTime;
 import java.util.Map;
 
@@ -39,18 +38,18 @@ public class AuditLog {
     private Long entityId;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "old_data", columnDefinition = "jsonb")
+    @Column(name = "old_data", columnDefinition = "VARCHAR(2000)")
     private Map<String, Object> oldData;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "new_data", columnDefinition = "jsonb")
+    @Column(name = "new_data", columnDefinition = "VARCHAR(2000)")
     private Map<String, Object> newData;
 
     @Column(columnDefinition = "TEXT")
     private String reason;
 
-    @Column(name = "ip_address")
-    private InetAddress ipAddress;
+    @Column(name = "ip_address", length = 45)  // IPv6 max length
+    private String ipAddress;
 
     @Column(name = "user_agent")
     private String userAgent;

@@ -3,9 +3,9 @@ package com.duoq.medlearn.mapper;
 import com.duoq.medlearn.domain.entity.Disease;
 import com.duoq.medlearn.domain.entity.DiseaseSection;
 import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.dto.response.DiseaseDTO;
-import com.duoq.medlearn.dto.response.DiseaseSectionDTO;
-import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseDTO;
+import com.duoq.medlearn.domain.dto.section.DiseaseSectionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

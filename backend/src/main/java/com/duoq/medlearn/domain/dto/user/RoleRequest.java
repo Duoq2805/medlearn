@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.request;
+package com.duoq.medlearn.domain.dto.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

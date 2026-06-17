@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto;
+package com.duoq.medlearn.domain.dto.user;
 
 import lombok.Builder;
 import lombok.Data;

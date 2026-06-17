@@ -1,8 +1,8 @@
 package com.duoq.medlearn.service;
 
 import com.duoq.medlearn.domain.enums.VersionStatus;
-import com.duoq.medlearn.dto.request.ModerationRequest;
-import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.ModerationRequest;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 
 public interface DiseaseWorkflowService {
 

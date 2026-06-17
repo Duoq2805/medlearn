@@ -1,7 +1,7 @@
 package com.duoq.medlearn.service.impl;
 
 
-import com.duoq.medlearn.dto.response.SymptomMatchResult;
+import com.duoq.medlearn.domain.dto.ai.SymptomMatchResult;
 import com.duoq.medlearn.repository.DiseaseSectionRepository;
 import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
 import com.duoq.medlearn.service.SymptomCheckerService;

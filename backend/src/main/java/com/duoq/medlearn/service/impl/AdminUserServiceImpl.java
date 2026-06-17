@@ -4,7 +4,7 @@ import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.UserStatus;
-import com.duoq.medlearn.dto.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserDTO;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.UserMapper;
 import com.duoq.medlearn.repository.RoleRepository;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Map;
 
 @Service

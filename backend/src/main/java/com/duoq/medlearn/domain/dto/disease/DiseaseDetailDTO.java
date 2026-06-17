@@ -1,5 +1,7 @@
-package com.duoq.medlearn.domain.dto.response;
+package com.duoq.medlearn.domain.dto.disease;
 
+import com.duoq.medlearn.domain.dto.section.DiseaseSectionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import lombok.Builder;
 import lombok.Data;
 

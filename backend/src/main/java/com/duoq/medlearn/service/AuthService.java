@@ -1,13 +1,13 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.dto.request.ForgotPasswordRequest;
-import com.duoq.medlearn.dto.request.LoginRequest;
-import com.duoq.medlearn.dto.request.RegisterRequest;
-import com.duoq.medlearn.dto.request.ResendVerificationRequest;
-import com.duoq.medlearn.dto.request.ResetPasswordRequest;
-import com.duoq.medlearn.dto.response.AuthResponse;
-import com.duoq.medlearn.dto.response.MessageResponse;
-import com.duoq.medlearn.dto.UserDTO;
+import com.duoq.medlearn.domain.dto.auth.ForgotPasswordRequest;
+import com.duoq.medlearn.domain.dto.auth.LoginRequest;
+import com.duoq.medlearn.domain.dto.auth.RegisterRequest;
+import com.duoq.medlearn.domain.dto.auth.ResendVerificationRequest;
+import com.duoq.medlearn.domain.dto.auth.ResetPasswordRequest;
+import com.duoq.medlearn.domain.dto.auth.AuthResponse;
+import com.duoq.medlearn.domain.dto.auth.MessageResponse;
+import com.duoq.medlearn.domain.dto.user.UserDTO;
 
 public interface AuthService {
     MessageResponse register(RegisterRequest request);

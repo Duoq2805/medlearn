@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.request;
+package com.duoq.medlearn.domain.dto.disease;
 
 import com.duoq.medlearn.domain.enums.DiseaseStatus;
 import lombok.Data;

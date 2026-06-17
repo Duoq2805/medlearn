@@ -44,7 +44,7 @@ public class User {
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "user_status")
+    @Column(nullable = false, columnDefinition = "VARCHAR(50)")
     @Builder.Default
     private UserStatus status = UserStatus.PENDING;
 

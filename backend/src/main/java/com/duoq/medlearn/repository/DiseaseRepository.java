@@ -1,7 +1,7 @@
 package com.duoq.medlearn.repository;
 
 import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.dto.DiseaseSummaryDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -36,11 +36,11 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     Page<Disease> findAllByCategoryIdAndDeletedAtIsNull(Long categoryId, Pageable pageable);
 
     @Query("""
-        SELECT new com.duoq.medlearn.dto.DiseaseSummaryDTO(
+        SELECT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
             d.id, d.name, d.slug, d.updatedAt
         )
-        FROM Disease d 
-        WHERE d.deletedAt IS NULL 
+        FROM Disease d
+        WHERE d.deletedAt IS NULL
           AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
         """)
     Page<DiseaseSummaryDTO> findSummaryByNameContaining(
@@ -49,7 +49,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     );
 
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.dto.DiseaseSummaryDTO(
+    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d
@@ -70,7 +70,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     );
 
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.dto.DiseaseSummaryDTO(
+    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d

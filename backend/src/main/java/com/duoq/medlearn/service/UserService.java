@@ -1,7 +1,7 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.dto.request.UpdateProfileRequest;
-import com.duoq.medlearn.dto.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UpdateProfileRequest;
+import com.duoq.medlearn.domain.dto.user.UserDTO;
 
 public interface UserService {
 

@@ -2,9 +2,9 @@ package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.entity.*;
 import com.duoq.medlearn.domain.enums.VersionStatus;
-import com.duoq.medlearn.dto.request.CreateDiseaseSectionRequest;
-import com.duoq.medlearn.dto.request.ModerationRequest;
-import com.duoq.medlearn.dto.response.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
+import com.duoq.medlearn.domain.dto.version.ModerationRequest;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.security.CurrentUserResolver;
 import com.duoq.medlearn.service.DiseaseSectionService;
@@ -85,7 +85,9 @@ class DiseaseWorkflowIntegrationTest {
 
         // Create users
         contributor = new User();
+        contributor.setUsername("contributor");
         contributor.setEmail("contributor@example.com");
+        contributor.setPasswordHash("$2a$10$dummy_hash_for_testing_purposes_only"); // Required non-null
         contributor.setFullName("Test Contributor");
         Set<Role> contributorRoles = new HashSet<>();
         contributorRoles.add(contributorRole);
@@ -93,7 +95,9 @@ class DiseaseWorkflowIntegrationTest {
         contributor = userRepository.save(contributor);
 
         reviewer = new User();
+        reviewer.setUsername("reviewer");
         reviewer.setEmail("reviewer@example.com");
+        reviewer.setPasswordHash("$2a$10$dummy_hash_for_testing_purposes_only"); // Required non-null
         reviewer.setFullName("Test Reviewer");
         Set<Role> reviewerRoles = new HashSet<>();
         reviewerRoles.add(reviewerRole);

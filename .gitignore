@@ -141,3 +141,8 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# MedLearn - thư mục/tooling không muốn commit
+.claude/
+**/.claude/
+backend/Medvora/

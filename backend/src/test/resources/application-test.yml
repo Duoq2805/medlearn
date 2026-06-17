@@ -1,0 +1,54 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:testdb}
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+  flyway:
+    enabled: false
+
+  mail:
+    username: "test@example.com"
+    password: "test"
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: "test-client-id"
+            client-secret: "test-client-secret"
+            scope:
+              - email
+              - profile
+
+server:
+  port: 8080
+
+jwt:
+  secret: "ThisIsADefaultTestSecretKeyForLocalTestingOnly-256bits"
+  expiration: 3600000 # 1 hour
+  refresh-expiration: 604800000 # 7 days
+  password-reset-expiry-hours: 1
+
+app:
+  url: http://localhost:8080
+
+logging:
+  level:
+    org.springframework: WARN
+    org.hibernate: WARN
+    org.hibernate.tool.schema: DEBUG
+    org.hibernate.SQL: DEBUG
+    com.medlearn: DEBUG

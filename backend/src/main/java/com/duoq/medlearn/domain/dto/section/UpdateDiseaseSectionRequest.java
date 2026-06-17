@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.request;
+package com.duoq.medlearn.domain.dto.section;
 
 import jakarta.validation.constraints.Size;
 import lombok.Data;

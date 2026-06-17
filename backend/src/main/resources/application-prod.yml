@@ -2,12 +2,29 @@ spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medlearn_db}
     username: ${SPRING_DATASOURCE_USERNAME:medlearn}
-    password: ${SPRING_DATASOURCE_PASSWORD}
+    password: ${SPRING_DATASOURCE_PASSWORD:prod_db_password}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
 logging:
   level:
     com.medlearn: INFO
     org.hibernate.SQL: ERROR
+
+jwt:
+  secret: ${JWT_SECRET:prod_jwt_secret}
+  expiration: ${JWT_EXPIRATION:300000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+app:
+  url: https://medlearn.example.com
+
+email:
+  verification:
+    expiry-hours: 1

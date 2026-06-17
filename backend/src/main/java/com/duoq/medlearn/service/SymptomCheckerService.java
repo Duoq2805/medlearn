@@ -1,6 +1,6 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.dto.response.SymptomMatchResult;
+import com.duoq.medlearn.domain.dto.ai.SymptomMatchResult;
 
 import java.util.List;
 
