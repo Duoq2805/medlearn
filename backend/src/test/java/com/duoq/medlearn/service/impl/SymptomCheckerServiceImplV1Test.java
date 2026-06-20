@@ -8,7 +8,6 @@ import com.duoq.medlearn.repository.SymptomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -34,35 +33,24 @@ class SymptomCheckerServiceImplV1Test {
         userSymptomIds = Arrays.asList(1L, 2L);
     }
 
-    @Test
-    void analyze_shouldReturnEmpty_whenInputIsNull() {
+    @Test void analyze_shouldReturnEmpty_whenInputIsNull() {
         assertThat(service.analyze(null)).isEmpty();
     }
 
-    @Test
-    void analyze_shouldReturnEmpty_whenInputIsEmpty() {
+    @Test void analyze_shouldReturnEmpty_whenInputIsEmpty() {
         assertThat(service.analyze(Collections.emptyList())).isEmpty();
     }
 
-    // ============ EXACT MATCH ============
-
-    @Test
-    void analyze_shouldReturnExactMatch() {
-        List<Object[]> raw = new ArrayList<>();
-        raw.add(row(1L, "Flu", 2L, 2));
+    @Test void analyze_shouldReturnExactMatch() {
+        List<Long> diseaseIds = Arrays.asList(1L);
+        List<Object[]> raw = new ArrayList<>(); raw.add(row(1L, "Flu", 2L, 2));
         when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100)).thenReturn(raw);
-
-        List<Object[]> counts = new ArrayList<>();
-        counts.add(countRow(1L, 2L));
-        when(dvsRepository.findTotalSymptomCountBatch(Arrays.asList(1L))).thenReturn(counts);
-
-        List<Object[]> mappings = new ArrayList<>();
-        mappings.add(mappingRow(1L, 1L));
-        mappings.add(mappingRow(1L, 2L));
-        when(dvsRepository.findDiseaseSymptomMappings(Arrays.asList(1L))).thenReturn(mappings);
-
-        when(symptomRepository.findAllByIdIn(userSymptomIds))
-                .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough")));
+        List<Object[]> counts = new ArrayList<>(); counts.add(countRow(1L, 2L));
+        when(dvsRepository.findTotalSymptomCountBatch(diseaseIds)).thenReturn(counts);
+        List<Object[]> mappings = new ArrayList<>(); mappings.add(mappingRow(1L, 1L)); mappings.add(mappingRow(1L, 2L));
+        when(dvsRepository.findDiseaseSymptomMappings(diseaseIds)).thenReturn(mappings);
+        // Both user symptoms AND all disease symptoms need name resolution
+        when(symptomRepository.findAllByIdIn(anyList())).thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough")));
 
         List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
 
@@ -74,114 +62,82 @@ class SymptomCheckerServiceImplV1Test {
         assertThat(results.get(0).getExplanation()).isEqualTo("Matched 2 of 2 known symptoms");
     }
 
-    // ============ PARTIAL MATCH ============
-
-    @Test
-    void analyze_shouldReturnPartialMatch() {
-        List<Object[]> raw = new ArrayList<>();
-        raw.add(row(1L, "Flu", 1L, 1));
+    @Test void analyze_shouldReturnPartialMatch() {
+        List<Long> diseaseIds = Arrays.asList(1L);
+        List<Object[]> raw = new ArrayList<>(); raw.add(row(1L, "Flu", 1L, 1));
         when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100)).thenReturn(raw);
-
-        List<Object[]> counts = new ArrayList<>();
-        counts.add(countRow(1L, 4L));
-        when(dvsRepository.findTotalSymptomCountBatch(Arrays.asList(1L))).thenReturn(counts);
-
+        List<Object[]> counts = new ArrayList<>(); counts.add(countRow(1L, 4L));
+        when(dvsRepository.findTotalSymptomCountBatch(diseaseIds)).thenReturn(counts);
         List<Object[]> mappings = new ArrayList<>();
-        mappings.add(mappingRow(1L, 1L));
-        mappings.add(mappingRow(1L, 3L));
-        mappings.add(mappingRow(1L, 4L));
-        mappings.add(mappingRow(1L, 5L));
-        when(dvsRepository.findDiseaseSymptomMappings(Arrays.asList(1L))).thenReturn(mappings);
-
-        when(symptomRepository.findAllByIdIn(userSymptomIds))
-                .thenReturn(Arrays.asList(symptom(1L, "Fever")));
-        when(symptomRepository.findById(3L)).thenReturn(Optional.of(symptom(3L, "Fatigue")));
-        when(symptomRepository.findById(4L)).thenReturn(Optional.of(symptom(4L, "Headache")));
-        when(symptomRepository.findById(5L)).thenReturn(Optional.of(symptom(5L, "Chills")));
+        mappings.add(mappingRow(1L, 1L)); mappings.add(mappingRow(1L, 3L));
+        mappings.add(mappingRow(1L, 4L)); mappings.add(mappingRow(1L, 5L));
+        when(dvsRepository.findDiseaseSymptomMappings(diseaseIds)).thenReturn(mappings);
+        // All symptoms: user ones + disease-only ones
+        when(symptomRepository.findAllByIdIn(anyList()))
+                .thenReturn(Arrays.asList(
+                        symptom(1L, "Fever"),
+                        symptom(3L, "Fatigue"),
+                        symptom(4L, "Headache"),
+                        symptom(5L, "Chills")
+                ));
 
         List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getMatchScore()).isEqualTo(25.0);
         assertThat(results.get(0).getMatchedSymptoms()).hasSize(1);
+        assertThat(results.get(0).getMatchedSymptoms().get(0).getName()).isEqualTo("Fever");
         assertThat(results.get(0).getMissingSymptoms()).hasSize(3);
         assertThat(results.get(0).getExplanation()).isEqualTo("Matched 1 of 4 known symptoms");
     }
 
-    // ============ NO MATCH ============
-
-    @Test
-    void analyze_shouldReturnEmpty_whenNoMatch() {
-        when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100))
-                .thenReturn(new ArrayList<>());
+    @Test void analyze_shouldReturnEmpty_whenNoMatch() {
+        when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100)).thenReturn(new ArrayList<>());
         assertThat(service.analyze(userSymptomIds)).isEmpty();
     }
 
-    // ============ THRESHOLD FILTER ============
-
-    @Test
-    void analyze_shouldFilterBelowThreshold() {
-        List<Object[]> raw = new ArrayList<>();
-        raw.add(row(1L, "Low Match", 1L, 1));
+    @Test void analyze_shouldFilterBelowThreshold() {
+        List<Long> diseaseIds = Arrays.asList(1L);
+        List<Object[]> raw = new ArrayList<>(); raw.add(row(1L, "Low Match", 1L, 1));
         when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100)).thenReturn(raw);
-
-        List<Object[]> counts = new ArrayList<>();
-        counts.add(countRow(1L, 6L));
-        when(dvsRepository.findTotalSymptomCountBatch(Arrays.asList(1L))).thenReturn(counts);
-
+        List<Object[]> counts = new ArrayList<>(); counts.add(countRow(1L, 6L));
+        when(dvsRepository.findTotalSymptomCountBatch(diseaseIds)).thenReturn(counts);
         List<Object[]> mappings = new ArrayList<>();
-        for (long i = 1; i <= 6; i++) {
-            mappings.add(mappingRow(1L, i));
-        }
-        when(dvsRepository.findDiseaseSymptomMappings(Arrays.asList(1L))).thenReturn(mappings);
-        when(symptomRepository.findAllByIdIn(userSymptomIds))
-                .thenReturn(Arrays.asList(symptom(1L, "Fever")));
+        for (long i = 1; i <= 6; i++) mappings.add(mappingRow(1L, i));
+        when(dvsRepository.findDiseaseSymptomMappings(diseaseIds)).thenReturn(mappings);
+        when(symptomRepository.findAllByIdIn(anyList()))
+                .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough"),
+                        symptom(3L, "F3"), symptom(4L, "F4"), symptom(5L, "F5"), symptom(6L, "F6")));
 
         List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
         assertThat(results).isEmpty();
     }
 
-    // ============ SORTING ============
-
-    @Test
-    void analyze_shouldSortByScoreDescending() {
-        List<Object[]> raw = new ArrayList<>();
-        raw.add(row(1L, "Disease A", 1L, 1));
-        raw.add(row(2L, "Disease B", 2L, 2));
+    @Test void analyze_shouldSortByScoreDescending() {
+        List<Long> diseaseIds = Arrays.asList(1L, 2L);
+        List<Object[]> raw = new ArrayList<>(); raw.add(row(1L, "Disease A", 1L, 1)); raw.add(row(2L, "Disease B", 2L, 2));
         when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100)).thenReturn(raw);
-
-        List<Object[]> counts = new ArrayList<>();
-        counts.add(countRow(1L, 2L));
-        counts.add(countRow(2L, 2L));
-        when(dvsRepository.findTotalSymptomCountBatch(Arrays.asList(1L, 2L))).thenReturn(counts);
-
+        List<Object[]> counts = new ArrayList<>(); counts.add(countRow(1L, 2L)); counts.add(countRow(2L, 2L));
+        when(dvsRepository.findTotalSymptomCountBatch(diseaseIds)).thenReturn(counts);
         List<Object[]> mappings = new ArrayList<>();
-        mappings.add(mappingRow(1L, 1L));
-        mappings.add(mappingRow(1L, 3L));
-        mappings.add(mappingRow(2L, 1L));
-        mappings.add(mappingRow(2L, 2L));
-        when(dvsRepository.findDiseaseSymptomMappings(Arrays.asList(1L, 2L))).thenReturn(mappings);
-
-        when(symptomRepository.findAllByIdIn(userSymptomIds))
-                .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough")));
+        mappings.add(mappingRow(1L, 1L)); mappings.add(mappingRow(1L, 3L));
+        mappings.add(mappingRow(2L, 1L)); mappings.add(mappingRow(2L, 2L));
+        when(dvsRepository.findDiseaseSymptomMappings(diseaseIds)).thenReturn(mappings);
+        when(symptomRepository.findAllByIdIn(anyList()))
+                .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough"), symptom(3L, "Fatigue")));
 
         List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
 
         assertThat(results).hasSize(2);
-        assertThat(results.get(0).getDiseaseName()).isEqualTo("Disease B"); // 2/2 = 100%
-        assertThat(results.get(1).getDiseaseName()).isEqualTo("Disease A"); // 1/2 = 50%
+        assertThat(results.get(0).getDiseaseName()).isEqualTo("Disease B");
+        assertThat(results.get(1).getDiseaseName()).isEqualTo("Disease A");
+        assertThat(results.get(0).getMatchScore()).isGreaterThan(results.get(1).getMatchScore());
     }
 
-    // ============ LIMIT ============
-
-    @Test
-    void analyze_shouldLimitToTop10() {
+    @Test void analyze_shouldLimitToTop10() {
         List<Object[]> raw = new ArrayList<>();
         List<Long> ids = new ArrayList<>();
-        for (long i = 1; i <= 15; i++) {
-            raw.add(row(i, "Disease " + i, (long) i, 1));
-            ids.add(i);
-        }
+        for (long i = 1; i <= 15; i++) { raw.add(row(i, "Disease " + i, (long) i, 1)); ids.add(i); }
         when(dvsRepository.findMatchingDiseasesRaw(userSymptomIds, 100)).thenReturn(raw);
 
         List<Object[]> counts = new ArrayList<>();
@@ -189,38 +145,30 @@ class SymptomCheckerServiceImplV1Test {
         when(dvsRepository.findTotalSymptomCountBatch(anyList())).thenReturn(counts);
 
         List<Object[]> mappings = new ArrayList<>();
-        for (Long id : ids) {
-            mappings.add(mappingRow(id, 1L));
-            mappings.add(mappingRow(id, id + 100L));
-        }
+        for (Long id : ids) { mappings.add(mappingRow(id, 1L)); mappings.add(mappingRow(id, id + 100L)); }
         when(dvsRepository.findDiseaseSymptomMappings(anyList())).thenReturn(mappings);
 
-        when(symptomRepository.findAllByIdIn(userSymptomIds))
-                .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough")));
+        // Mock findAllByIdIn to return all symptoms
+        List<Symptom> allSymptoms = new ArrayList<>();
+        allSymptoms.add(symptom(1L, "Fever"));
+        allSymptoms.add(symptom(2L, "Cough"));
+        for (Long id : ids) { allSymptoms.add(symptom(id + 100L, "DiseaseSymptom" + id)); }
+        when(symptomRepository.findAllByIdIn(anyList())).thenReturn(allSymptoms);
 
         List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
         assertThat(results).hasSize(10);
     }
 
-    // ============ HELPERS ============
-
     private Object[] row(Long diseaseId, String name, Long totalWeight, int matchCount) {
         return new Object[]{diseaseId, name, "slug-" + diseaseId, matchCount, (double) totalWeight};
     }
-
     private Object[] countRow(Long diseaseId, Long totalCount) {
         return new Object[]{diseaseId, totalCount};
     }
-
     private Object[] mappingRow(Long diseaseId, Long symptomId) {
         return new Object[]{diseaseId, symptomId};
     }
-
     private Symptom symptom(Long id, String name) {
-        Symptom s = new Symptom();
-        s.setId(id);
-        s.setName(name);
-        s.setSlug(name.toLowerCase());
-        return s;
+        Symptom s = new Symptom(); s.setId(id); s.setName(name); s.setSlug(name.toLowerCase()); return s;
     }
 }

@@ -88,13 +88,22 @@ public class SymptomCheckerServiceImplV1 implements SymptomCheckerServiceV1 {
         // 4. Build a lookup set of user symptom IDs
         Set<Long> userSymptomIds = new HashSet<>(symptomIds);
 
-        // 5. Map symptom IDs → symptom names (1 query, batch)
-        Map<Long, String> symptomNameMap = symptomRepository.findAllByIdIn(symptomIds)
-                .stream()
-                .collect(Collectors.toMap(
-                        com.duoq.medlearn.domain.entity.Symptom::getId,
-                        com.duoq.medlearn.domain.entity.Symptom::getName
-                ));
+        // 5. Batch fetch ALL symptom names across candidate diseases (1 query, no N+1)
+        Set<Long> allDiseaseSymptomIds = new HashSet<>();
+        for (List<Long> ids : diseaseSymptomMap.values()) {
+            allDiseaseSymptomIds.addAll(ids);
+        }
+        Map<Long, String> allSymptomNameMap;
+        if (!allDiseaseSymptomIds.isEmpty()) {
+            allSymptomNameMap = symptomRepository.findAllByIdIn(new ArrayList<>(allDiseaseSymptomIds))
+                    .stream()
+                    .collect(Collectors.toMap(
+                            com.duoq.medlearn.domain.entity.Symptom::getId,
+                            com.duoq.medlearn.domain.entity.Symptom::getName
+                    ));
+        } else {
+            allSymptomNameMap = Collections.emptyMap();
+        }
 
         // 6. Compute score per disease, apply threshold, build results
         List<ResultEntry> entries = new ArrayList<>();
@@ -116,21 +125,20 @@ public class SymptomCheckerServiceImplV1 implements SymptomCheckerServiceV1 {
             }
 
             // Build matched and missing symptom lists
-            List<Long> allDiseaseSymptomIds = diseaseSymptomMap.get(diseaseId);
-            if (allDiseaseSymptomIds == null) {
+            List<Long> diseaseSymptomList = diseaseSymptomMap.get(diseaseId);
+            if (diseaseSymptomList == null) {
                 continue;
             }
 
             // Use Set for O(1) membership test
             Set<Long> matchedSet = new HashSet<>();
-            List<SymptomInfo> matchedSymptoms = new ArrayList<>();
+            List<SymptomInfo> matchedSymptoms = new ArrayList<>(diseaseSymptomList.size());
             List<SymptomInfo> missingSymptoms = new ArrayList<>();
 
-            for (Long symptomId : allDiseaseSymptomIds) {
-                String name = symptomNameMap.get(symptomId);
+            for (Long symptomId : diseaseSymptomList) {
+                String name = allSymptomNameMap.get(symptomId);
                 if (name == null) {
-                    // Fallback for disease symptoms not in user input — fetch name if needed
-                    // This is rare, so we fetch on-demand
+                    missingSymptoms.add(new SymptomInfo(symptomId, "Unknown symptom"));
                     continue;
                 }
                 if (userSymptomIds.contains(symptomId)) {
@@ -140,10 +148,9 @@ public class SymptomCheckerServiceImplV1 implements SymptomCheckerServiceV1 {
             }
 
             // Missing symptoms: all disease symptoms not matched
-            for (Long diseaseSymptomId : allDiseaseSymptomIds) {
+            for (Long diseaseSymptomId : diseaseSymptomList) {
                 if (!matchedSet.contains(diseaseSymptomId)) {
-                    // Fetch name for missing symptoms — these are disease symptoms user doesn't have
-                    String name = findSymptomNameCached(diseaseSymptomId, symptomNameMap, symptomRepository);
+                    String name = allSymptomNameMap.getOrDefault(diseaseSymptomId, "Unknown symptom");
                     missingSymptoms.add(new SymptomInfo(diseaseSymptomId, name));
                 }
             }
@@ -175,19 +182,6 @@ public class SymptomCheckerServiceImplV1 implements SymptomCheckerServiceV1 {
                         .explanation(e.explanation)
                         .build())
                 .toList();
-    }
-
-    /**
-     * Resolve symptom name, first from pre-fetched user symptoms, then from DB cache.
-     */
-    private String findSymptomNameCached(Long symptomId,
-                                          Map<Long, String> nameCache,
-                                          SymptomRepository repo) {
-        String cached = nameCache.get(symptomId);
-        if (cached != null) return cached;
-        return repo.findById(symptomId)
-                .map(com.duoq.medlearn.domain.entity.Symptom::getName)
-                .orElse("Unknown symptom");
     }
 
     private record ResultEntry(
