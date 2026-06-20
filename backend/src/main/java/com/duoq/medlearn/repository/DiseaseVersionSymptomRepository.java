@@ -116,4 +116,53 @@ public interface DiseaseVersionSymptomRepository extends JpaRepository<DiseaseVe
     Double getAverageWeightScoreForVersion(@Param("versionId") Long versionId);
 
     long countByDiseaseVersionId(Long diseaseVersionId);
+
+    // ===== SYMPTOM CHECKER V1 =====
+
+    @Query("""
+    SELECT COUNT(dvs)
+    FROM DiseaseVersionSymptom dvs
+    WHERE dvs.diseaseVersion.id = (
+        SELECT d.currentVersion.id
+        FROM Disease d
+        WHERE d.id = :diseaseId
+          AND d.currentVersion IS NOT NULL
+    )
+    """)
+    Long findTotalSymptomCountByDiseaseId(@Param("diseaseId") Long diseaseId);
+
+    @Query("""
+    SELECT dvs.symptom.id
+    FROM DiseaseVersionSymptom dvs
+    WHERE dvs.diseaseVersion.id = (
+        SELECT d.currentVersion.id
+        FROM Disease d
+        WHERE d.id = :diseaseId
+          AND d.currentVersion IS NOT NULL
+    )
+    """)
+    List<Long> findAllSymptomIdsByDiseaseId(@Param("diseaseId") Long diseaseId);
+
+    // Batch fetch: total symptom count for multiple diseases at once
+    @Query("""
+    SELECT d.id as diseaseId, COUNT(dvs) as totalCount
+    FROM Disease d
+    JOIN DiseaseVersionSymptom dvs ON dvs.diseaseVersion.id = d.currentVersion.id
+    WHERE d.id IN :diseaseIds
+      AND d.currentVersion IS NOT NULL
+      AND d.deletedAt IS NULL
+    GROUP BY d.id
+    """)
+    List<Object[]> findTotalSymptomCountBatch(@Param("diseaseIds") List<Long> diseaseIds);
+
+    // Batch fetch: all disease-to-symptom mappings for multiple diseases
+    @Query("""
+    SELECT d.id as diseaseId, dvs.symptom.id as symptomId
+    FROM Disease d
+    JOIN DiseaseVersionSymptom dvs ON dvs.diseaseVersion.id = d.currentVersion.id
+    WHERE d.id IN :diseaseIds
+      AND d.currentVersion IS NOT NULL
+      AND d.deletedAt IS NULL
+    """)
+    List<Object[]> findDiseaseSymptomMappings(@Param("diseaseIds") List<Long> diseaseIds);
 }
