@@ -11,8 +11,9 @@ public enum VersionStatus {
         if (targetStatus == null) {
             return false;
         }
+        // Remove same-state transition allowance
         if (this == targetStatus) {
-            return true;
+            return false;
         }
 
         return switch (this) {

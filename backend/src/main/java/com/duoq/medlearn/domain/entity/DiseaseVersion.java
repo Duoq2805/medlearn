@@ -33,6 +33,11 @@ public class DiseaseVersion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer version = 0;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "disease_id", nullable = false)
     private Disease disease;
@@ -86,11 +91,6 @@ public class DiseaseVersion {
     )
     @Builder.Default
     private Set<DiseaseVersionSymptom> symptoms = new HashSet<>();
-
-    @Version
-    @Column(nullable = false)
-    @Builder.Default
-    private Integer version = 0;
 
     public boolean isApproved() {
         return this.status == VersionStatus.APPROVED;

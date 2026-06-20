@@ -152,6 +152,11 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
 
+        // Idempotency check: Prevent duplicate submits
+        if (version.getStatus() == VersionStatus.PENDING_REVIEW) {
+            throw new IllegalStateException("Version is already pending review.");
+        }
+
         validateWorkflowTransition(version.getStatus(), VersionStatus.PENDING_REVIEW);
         validateVersionOwnership(versionId);
         diseaseSectionService.validateRequiredSections(versionId);
@@ -243,6 +248,12 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     public void softDeleteVersion(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        // Prevent deletion of approved versions to protect public API contract
+        if (version.getStatus() == VersionStatus.APPROVED) {
+            throw new IllegalStateException("Cannot delete approved version. Archive instead.");
+        }
+
         version.setDeletedAt(OffsetDateTime.now());
         diseaseVersionRepository.save(version);
     }
@@ -253,6 +264,12 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         // Use findByIdIgnoreDeletedAt to bypass @SQLRestriction for soft-deleted entities
         DiseaseVersion version = diseaseVersionRepository.findByIdIgnoreDeletedAt(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
+
+        // Prevent re-restoring a non-deleted version
+        if (version.getDeletedAt() == null) {
+            throw new IllegalStateException("Version is not currently deleted.");
+        }
+
         version.setDeletedAt(null);
         diseaseVersionRepository.save(version);
     }
