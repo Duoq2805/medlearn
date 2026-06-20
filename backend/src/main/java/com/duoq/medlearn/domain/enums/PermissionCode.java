@@ -12,10 +12,13 @@ public enum PermissionCode {
     DISEASE_MANAGE,
 
     // Version domain
+    VERSION_READ,
     VERSION_WRITE,
     VERSION_SUBMIT,
     VERSION_REVIEW,
     VERSION_ARCHIVE,
+    VERSION_DELETE,
+    VERSION_RESTORE,
 
     // Section domain
     SECTION_WRITE,

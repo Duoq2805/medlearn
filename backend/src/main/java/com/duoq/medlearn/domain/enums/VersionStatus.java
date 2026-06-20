@@ -16,9 +16,9 @@ public enum VersionStatus {
         }
 
         return switch (this) {
-            case DRAFT -> targetStatus == PENDING_REVIEW || targetStatus == ARCHIVED;
+            case DRAFT -> targetStatus == PENDING_REVIEW;
             case PENDING_REVIEW -> targetStatus == APPROVED || targetStatus == REJECTED;
-            case REJECTED -> targetStatus == DRAFT || targetStatus == ARCHIVED;
+            case REJECTED -> targetStatus == DRAFT;
             case APPROVED -> targetStatus == ARCHIVED;
             case ARCHIVED -> false;
         };

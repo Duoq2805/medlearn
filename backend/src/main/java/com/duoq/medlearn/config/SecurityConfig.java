@@ -43,7 +43,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/**",           // Auth endpoints: register, login, verify, refresh, logout
+                                "/api/auth/register",
+                                "/api/auth/login",
+                                "/api/auth/verify",
+                                "/api/auth/refresh",
+                                "/api/auth/forgot-password",
+                                "/api/auth/reset-password",
+                                "/api/auth/resend-verification",
                                 "/api/public/**"          // Các public API khác (nếu có)
                         ).permitAll()
                         .anyRequest().authenticated()

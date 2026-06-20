@@ -37,6 +37,10 @@ public interface DiseaseVersionRepository extends JpaRepository<DiseaseVersion, 
     // Lấy toàn bộ version của 1 disease (history)
     List<DiseaseVersion> findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(Long diseaseId);
 
+    // Method to find version by ID bypassing @SQLRestriction for restore operations
+    @Query("SELECT dv FROM DiseaseVersion dv WHERE dv.id = :id")
+    Optional<DiseaseVersion> findByIdIgnoreDeletedAt(@Param("id") Long id);
+
     // Lấy version mới nhất của disease để tính version_number tiếp theo
     @Query("SELECT MAX(dv.versionNumber) FROM DiseaseVersion dv WHERE dv.disease.id = :diseaseId")
     Optional<Integer> findMaxVersionNumberByDiseaseId(@Param("diseaseId") Long diseaseId);

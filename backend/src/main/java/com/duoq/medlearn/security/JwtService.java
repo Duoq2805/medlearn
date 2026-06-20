@@ -16,6 +16,12 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
+import org.springframework.scheduling.annotation.Scheduled;
+import java.util.concurrent.ConcurrentHashMap;
+import java.time.OffsetDateTime;
+
+import java.time.temporal.ChronoUnit;
+
 @Service
 public class JwtService {
 
@@ -25,8 +31,24 @@ public class JwtService {
     @Value("${jwt.expiration}")
     private Long expiration;
 
+    private final ConcurrentHashMap<String, OffsetDateTime> tokenBlocklist = new ConcurrentHashMap<>();
+
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public void blockToken(String token) {
+        tokenBlocklist.put(token, OffsetDateTime.now().plus(expiration, ChronoUnit.MILLIS));
+    }
+
+    public boolean isTokenBlocked(String token) {
+        return tokenBlocklist.containsKey(token);
+    }
+
+    @Scheduled(fixedRate = 3600000) // 1 hour
+    public void cleanupBlocklist() {
+        OffsetDateTime now = OffsetDateTime.now();
+        tokenBlocklist.entrySet().removeIf(entry -> now.isAfter(entry.getValue()));
     }
 
     public String generateToken(UserDetails userDetails) {

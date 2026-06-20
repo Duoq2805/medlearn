@@ -44,4 +44,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT DISTINCT u FROM User u LEFT JOIN FETCH u.roles r LEFT JOIN FETCH r.permissions WHERE u.username = :username AND u.deletedAt IS NULL")
     Optional<User> findByUsernameWithRolesAndPermissions(@Param("username") String username);
+
+    // Method to find user by ID bypassing @SQLRestriction for activate operations
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional<User> findByIdIgnoreDeletedAt(@Param("id") Long id);
 }

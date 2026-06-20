@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -68,8 +70,13 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
-        authService.logout(request.getRefreshToken());
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest httpRequest, @Valid @RequestBody RefreshTokenRequest request) {
+        String authHeader = httpRequest.getHeader("Authorization");
+        String accessToken = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring(7);
+        }
+        authService.logout(request.getRefreshToken(), accessToken);
         return ResponseEntity.ok(ApiResponse.success("Logged out successfully", null));
     }
 }

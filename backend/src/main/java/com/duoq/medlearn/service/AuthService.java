@@ -15,7 +15,7 @@ public interface AuthService {
     MessageResponse resendVerification(ResendVerificationRequest request);
     AuthResponse login(LoginRequest request);
     AuthResponse refreshToken(String refreshToken);
-    void logout(String refreshToken);
+    void logout(String refreshToken, String accessToken);
     UserDTO getCurrentUser();
     MessageResponse forgotPassword(ForgotPasswordRequest request);
     MessageResponse resetPassword(ResetPasswordRequest request);

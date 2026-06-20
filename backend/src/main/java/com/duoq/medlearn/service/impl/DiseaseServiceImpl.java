@@ -170,6 +170,10 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     public Page<DiseaseSummaryDTO> getApprovedDiseases(String keyword, Long categoryId, List<Long> symptomIds, Pageable pageable) {
+        // Use separate query paths to avoid Hibernate type inference issues with null symptomIds
+        if (symptomIds == null || symptomIds.isEmpty()) {
+            return diseaseRepository.findApprovedSummaryByFiltersWithoutSymptomIds(keyword, categoryId, pageable);
+        }
         return diseaseRepository.findApprovedSummaryByFilters(keyword, categoryId, symptomIds, pageable);
     }
 
@@ -305,7 +309,8 @@ public class DiseaseServiceImpl implements DiseaseService {
     @Override
     @Transactional
     public void restoreDisease(Long diseaseId) {
-        Disease disease = diseaseRepository.findById(diseaseId)
+        // Use findByIdIgnoreDeletedAt to bypass @SQLRestriction for soft-deleted entities
+        Disease disease = diseaseRepository.findByIdIgnoreDeletedAt(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
         User currentUser = findCurrentUserWithRoles();

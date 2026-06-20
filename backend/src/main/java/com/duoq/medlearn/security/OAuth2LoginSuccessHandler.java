@@ -55,7 +55,19 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 .build();
         sessionRepository.save(session);
 
-        String redirectUrl = appUrl + "/oauth2/redirect?token=" + accessToken + "&refreshToken=" + refreshToken;
+        jakarta.servlet.http.Cookie accessTokenCookie = new jakarta.servlet.http.Cookie("accessToken", accessToken);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60); // 60 seconds for frontend to pick it up
+        accessTokenCookie.setSecure(true);
+        response.addCookie(accessTokenCookie);
+
+        jakarta.servlet.http.Cookie refreshTokenCookie = new jakarta.servlet.http.Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(60);
+        refreshTokenCookie.setSecure(true);
+        response.addCookie(refreshTokenCookie);
+
+        String redirectUrl = appUrl + "/oauth2/redirect";
         log.info("OAuth2 login success for user: {}", user.getEmail());
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);

@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * Implementation of PermissionService.
  * Loads permissions directly from database (no caching in Phase 1).
  */
-@Service
+@Service("permissionService")
 @RequiredArgsConstructor
 @Slf4j
 public class PermissionServiceImpl implements PermissionService {

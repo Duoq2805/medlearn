@@ -31,6 +31,10 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     @Query("SELECT d FROM Disease d WHERE d.id = :id AND d.deletedAt IS NULL")
     Optional<Disease> findByIdForUpdate(@Param("id") Long id);
 
+    // Method to find disease by ID bypassing @SQLRestriction for restore operations
+    @Query("SELECT d FROM Disease d WHERE d.id = :id")
+    Optional<Disease> findByIdIgnoreDeletedAt(@Param("id") Long id);
+
     Page<Disease> findAllByDeletedAtIsNull(Pageable pageable);
 
     Page<Disease> findAllByCategoryIdAndDeletedAtIsNull(Long categoryId, Pageable pageable);
@@ -87,6 +91,25 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
             @Param("name") String name,
             @Param("categoryId") Long categoryId,
             @Param("symptomIds") java.util.List<Long> symptomIds,
+            Pageable pageable
+    );
+
+    // Query without symptom filter - used when symptomIds is null to avoid Hibernate type inference issue
+    @Query("""
+    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
+        d.id, d.name, d.slug, d.updatedAt
+    )
+    FROM Disease d
+    JOIN d.currentVersion dv
+    WHERE d.deletedAt IS NULL
+      AND dv.status = 'APPROVED'
+      AND dv.deletedAt IS NULL
+      AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:categoryId IS NULL OR d.category.id = :categoryId)
+    """)
+    Page<DiseaseSummaryDTO> findApprovedSummaryByFiltersWithoutSymptomIds(
+            @Param("name") String name,
+            @Param("categoryId") Long categoryId,
             Pageable pageable
     );
 

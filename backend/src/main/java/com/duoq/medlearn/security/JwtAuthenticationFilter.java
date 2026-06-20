@@ -38,6 +38,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
+        if (jwtService.isTokenBlocked(token)) {
+            log.debug("JWT is blocked on request [{}]", request.getRequestURI());
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token revoked");
+            return;
+        }
+
         try {
             String email = jwtService.extractEmail(token);
 
@@ -53,12 +60,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } catch (ExpiredJwtException e) {
             log.debug("JWT expired on request [{}]: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT expired");
+            return;
         } catch (JwtException e) {
             log.debug("JWT invalid on request [{}]: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT invalid");
+            return;
         } catch (IllegalArgumentException e) {
             log.debug("JWT argument error on request [{}]: {}", request.getRequestURI(), e.getMessage());
             SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT argument error");
+            return;
         }
 
         chain.doFilter(request, response);

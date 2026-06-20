@@ -250,7 +250,8 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     @Override
     @Transactional
     public void restoreVersion(Long versionId) {
-        DiseaseVersion version = diseaseVersionRepository.findById(versionId)
+        // Use findByIdIgnoreDeletedAt to bypass @SQLRestriction for soft-deleted entities
+        DiseaseVersion version = diseaseVersionRepository.findByIdIgnoreDeletedAt(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
         version.setDeletedAt(null);
         diseaseVersionRepository.save(version);

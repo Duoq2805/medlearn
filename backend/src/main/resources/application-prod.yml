@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medlearn_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5436/medlearn_db}
     username: ${SPRING_DATASOURCE_USERNAME:medlearn}
     password: ${SPRING_DATASOURCE_PASSWORD:prod_db_password}
     driver-class-name: org.postgresql.Driver

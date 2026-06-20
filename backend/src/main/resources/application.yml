@@ -6,7 +6,7 @@ spring:
 
   # Database
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medlearn_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5436/medlearn_db}
     username: ${SPRING_DATASOURCE_USERNAME:medlearn}
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -59,7 +59,16 @@ spring:
 #              - public_profile
 
 server:
-  port: 8080
+  port: 6060
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
 
 # JWT
 jwt:
@@ -75,7 +84,7 @@ auth:
 
 # App
 app:
-  url: http://localhost:8080
+  url: http://localhost:6060
 
 email:
   verification:

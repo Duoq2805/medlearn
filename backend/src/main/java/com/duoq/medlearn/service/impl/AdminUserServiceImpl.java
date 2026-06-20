@@ -74,7 +74,8 @@ public class AdminUserServiceImpl implements AdminUserService {
     @Override
     @Transactional
     public void activateUser(Long id) {
-        User user = userRepository.findById(id)
+        // Use findByIdIgnoreDeletedAt to bypass @SQLRestriction for soft-deleted entities
+        User user = userRepository.findByIdIgnoreDeletedAt(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setDeletedAt(null);
         user.setStatus(Boolean.TRUE.equals(user.getIsVerified()) ? UserStatus.ACTIVE : UserStatus.PENDING);

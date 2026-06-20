@@ -75,6 +75,17 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(message));
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
+        log.warn("Business validation failed: {}", ex.getMessage());
+        // Return 409 Conflict for state transition violations, 400 for validation failures
+        HttpStatus status = ex.getMessage() != null && ex.getMessage().contains("workflow transition")
+                ? HttpStatus.CONFLICT
+                : HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
         log.error("Unexpected error: {} - {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);

@@ -259,7 +259,10 @@ public class AuthServiceImpl implements AuthService {
     // LOGOUT
     @Override
     @Transactional
-    public void logout(String refreshToken) {
+    public void logout(String refreshToken, String accessToken) {
+        if (accessToken != null) {
+            jwtService.blockToken(accessToken);
+        }
         sessionRepository.findByRefreshToken(refreshToken)
                 .ifPresent(session -> {
                     session.setRevokedAt(OffsetDateTime.now());

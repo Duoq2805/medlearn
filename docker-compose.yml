@@ -7,10 +7,10 @@ services:
     environment:
       POSTGRES_DB: medlearn_db
       POSTGRES_USER: medlearn
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:Medlearn@123}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Medlearn@123}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5433:5432"
+      - "5436:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -21,12 +21,13 @@ services:
     networks:
       - medlearn_network
 
-  # Nếu bạn muốn chạy cả app trong docker (optional)
   app:
+    env_file:
+    - ./backend/.env
     build: ./backend
     container_name: medlearn_app
     ports:
-      - "8080:8080"
+      - "6060:6060"
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,13 +35,12 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/medlearn_db
       SPRING_DATASOURCE_USERNAME: medlearn
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:Medlearn@123}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-Medlearn@123}
     networks:
       - medlearn_network
 
 volumes:
   postgres_data:
-    driver: local
 
 networks:
   medlearn_network:

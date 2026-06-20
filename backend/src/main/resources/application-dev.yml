@@ -1,13 +1,11 @@
 spring:
-  profiles:
-    active: dev
   application:
     name: medlearn
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/medlearn_db}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5436/medlearn_db}
     username: ${SPRING_DATASOURCE_USERNAME:medlearn}
-    password: ${SPRING_DATASOURCE_PASSWORD:default_db_password}
+    password: ${SPRING_DATASOURCE_PASSWORD:Medlearn@123}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -27,8 +25,8 @@ spring:
   mail:
     host: ${SPRING_MAIL_HOST:smtp.gmail.com}
     port: ${SPRING_MAIL_PORT:587}
-    username: ${SPRING_MAIL_USERNAME:default_test@example.com}
-    password: ${SPRING_MAIL_PASSWORD:default_mail_password}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -41,23 +39,23 @@ spring:
       client:
         registration:
           google:
-            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID:default_google_client_id}
-            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET:default_google_client_secret}
+            client-id: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID}
+            client-secret: ${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET}
             scope:
               - email
               - profile
 
 server:
-  port: 8080
+  port: 6060
 
 jwt:
-  secret: "ThisIsADefaultSecretKeyForLocalDevOnly-256bits-CHANGE-ME"
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   password-reset-expiry-hours: ${JWT_PASSWORD_RESET_EXPIRY_HOURS:1}
 
 app:
-  url: http://localhost:8080
+  url: http://localhost:6060
 
 email:
   verification:

@@ -34,7 +34,7 @@ spring:
               - profile
 
 server:
-  port: 8080
+  port: 6060
 
 jwt:
   secret: "ThisIsADefaultTestSecretKeyForLocalTestingOnly-256bits"
@@ -43,7 +43,7 @@ jwt:
   password-reset-expiry-hours: 1
 
 app:
-  url: http://localhost:8080
+  url: http://localhost:6060
 
 logging:
   level:
