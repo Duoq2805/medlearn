@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication System Overview</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #1e1e1e; color: #d4d4d4; line-height: 1.6; margin: 0; padding: 20px; }
+        .container { max-width: 960px; margin: 0 auto; background-color: #252526; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5); }
+        h1, h2, h3 { color: #569cd6; }
+        h1 { text-align: center; margin-bottom: 30px; font-size: 2.5em; }
+        h2 { border-bottom: 2px solid #569cd6; padding-bottom: 5px; margin-top: 40px; margin-bottom: 15px; font-size: 1.8em; }
+        h3 { margin-top: 25px; margin-bottom: 10px; font-size: 1.3em; color: #4fc1ff; }
+        ul, ol { margin-left: 20px; padding-left: 20px; }
+        li { margin-bottom: 10px; }
+        code {
+            background-color: #3a3a3a;
+            color: #ce9178;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        pre code {
+            display: block;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+        .section {
+            background-color: #333333;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 5px solid #569cd6;
+        }
+        .dark-mode-toggle {
+            position: fixed;
+            top: 10px;
+            right: 20px;
+            background-color: #3a3a3a;
+            color: #d4d4d4;
+            border: 1px solid #569cd6;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        .dark-mode-toggle:hover { background-color: #444444; }
+        .collapsible-header {
+            cursor: pointer;
+            font-weight: bold;
+            color: #4fc1ff;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .collapsible-header::after {
+            content: '\25BC'; /* Downward arrow */
+            font-size: 0.8em;
+            transition: transform 0.3s ease-in-out;
+        }
+        .collapsible-header.expanded::after {
+            transform: rotate(180deg);
+        }
+        .collapsible-content {
+            display: none;
+            overflow: hidden;
+            padding-left: 15px;
+            border-left: 1px dashed #569cd6;
+            margin-top: 5px;
+        }
+        .collapsible-content.visible { display: block; }
+        .code-block {
+            background-color: #2f2f2f;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            overflow-x: auto;
+        }
+        .file-list a {
+            color: #4fc1ff;
+            text-decoration: none;
+        }
+        .file-list a:hover {
+            text-decoration: underline;
+        }
+        .constraints li {
+            color: #f44336; /* Red for important constraints */
+        }
+        .continuation-prompt {
+            background-color: #3a3a3a;
+            color: #ce9178;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+            position: relative;
+            font-size: 0.9em;
+        }
+        .copy-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #569cd6;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .copy-button:hover { background-color: #4fa3d6; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Authentication System Overview</h1>
+
+        <div class="section">
+            <h2>1. Feature Overview</h2>
+            <p>The Authentication System is a critical component of the Medvora platform, responsible for securely managing user access. It supports distinct roles (User, Reviewer, Admin) and utilizes JWT for stateless authentication. The system is designed to be scalable, maintainable, and secure, adhering to clean architecture principles.</p>
+        </div>
+
+        <div class="section">
+            <h2>2. Current Architecture</h2>
+            <p>The backend follows a layered architecture:</p>
+            <pre><code>Controller
+    ↓
+Service
+    ↓
+Repository
+    ↓
+Database</code></pre>
+            <h3>Key Components:</h3>
+            <ul>
+                <li><strong>Controllers:</strong> Handle incoming API requests, delegate to services. Thin, no business logic.</li>
+                <li><strong>Services:</strong> Contain core business logic, use DTOs, exceptions, and transaction management.</li>
+                <li><strong>Repositories:</strong> Data access layer using Spring Data JPA, handling entity interactions and soft deletes.</li>
+                <li><strong>DTOs:</strong> Data Transfer Objects for API communication (requests/responses).</li>
+                <li><strong>Entities:</strong> JPA entities representing database tables.</li>
+                <li><strong>Security:</strong> JWT implementation, role-based access control (<code>@PreAuthorize</code>), <code>SecurityFilterChain</code>, <code>CurrentUserResolver</code>.</li>
+                <li><strong>Mappers:</strong> MapStruct for converting between Entities and DTOs.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>3. Authentication Workflow</h2>
+            <h3>Authentication Flow:</h3>
+            <ol>
+                <li>User sends credentials (e.g., email/password) to the auth controller.</li>
+                <li>Auth controller delegates to the AuthService.</li>
+                <li>AuthService validates credentials, checks user status, and generates a JWT.</li>
+                <li>JWT is returned to the client.</li>
+                <li>Subsequent requests include the JWT in the <code>Authorization</code> header.</li>
+                <li>A filter intercepts requests, validates the JWT, and extracts user details.</li>
+                <li>User information is available via <code>CurrentUserResolver</code>.</li>
+            </ol>
+            <h3>Role-Based Access:</h3>
+            <ul>
+                <li>Access to certain endpoints is protected by <code>@PreAuthorize</code> annotations based on user roles (USER, REVIEWER, ADMIN).</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>4. Related Files/Components</h2>
+            <p>Key files and components involved in the authentication system:</p>
+            <ul class="file-list">
+                <li><code>src/main/java/com/duoq/medlearn/config/SecurityConfig.java</code>: Configures security filters, JWT validation, and access control.</li>
+                <li><code>src/main/java/com/duoq/medlearn/config/JwtService.java</code>: Handles JWT generation and validation.</li>
+                <li><code>src/main/java/com/duoq/medlearn/service/AuthService.java</code>: Implements authentication logic.</li>
+                <li><code>src/main/java/com/duoq/medlearn/controller/AuthController.java</code>: Handles authentication API endpoints.</li>
+                <li><code>src/main/java/com/duoq/medlearn/security/SecurityFilterChain.java</code>: Defines the security filter chain.</li>
+                <li><code>src/main/java/com/duoq/medlearn/security/CurrentUserResolver.java</code>: Provides access to the current authenticated user.</li>
+                <li><code>src/main/java/com/duoq/medlearn/dto/request/LoginRequest.java</code></li>
+                <li><code>src/main/java/com/duoq/medlearn/dto/request/RegisterRequest.java</code></li>
+                <li><code>src/main/java/com/duoq/medlearn/dto/response/AuthResponse.java</code></li>
+                <li><code>src/main/java/com/duoq/medlearn/exception/*Exception.java</code>: Custom exceptions related to authentication.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>5. Completed Work (Authentication Enhancements)</h2>
+            <ul>
+                <li>Core JWT generation and validation (HS256, jjwt 0.12.6).</li>
+                <li>User registration + email verification flow.</li>
+                <li><strong>Resend email verification</strong> — <code>POST /api/auth/resend-verification</code>.</li>
+                <li>Timing-safe login (always run BCrypt even for unknown email).</li>
+                <li>Refresh token with reuse detection → revoke all sessions.</li>
+                <li>Logout via refresh token body.</li>
+                <li><strong>Password reset flow</strong> — <code>POST /api/auth/forgot-password</code> + <code>POST /api/auth/reset-password</code>.</li>
+                <li><strong>JWT error differentiation</strong> — Expired / Malformed / Signature / Generic → typed log + clearContext.</li>
+                <li><strong>Login rate limiting</strong> — in-memory, 5 attempts / 15min block.</li>
+                <li>Spring Security auth failures → 401, Access denied → 403, Rate limit → 429.</li>
+                <li>MapStruct UserMapper (User → UserDTO), <code>/me</code> không lộ entity.</li>
+                <li>Role-based access via <code>@PreAuthorize</code> + <code>@EnableMethodSecurity</code>.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>6. In Progress / TODOs</h2>
+            <ul>
+                <li>Integration tests cho auth critical paths (login sai/đúng, refresh reuse, rate limit, JWT expired).</li>
+                <li>OAuth2 token delivery còn qua query param → migrate sang HttpOnly cookie.</li>
+                <li>Password policy: nâng từ min-6 lên regex mạnh hơn (hoa/thường/số/ký tự đặc biệt).</li>
+                <li>Persistence cho Notification events (hiện in-memory SSE).</li>
+                <li>AI Stream endpoint còn scaffold, chưa tích hợp AI provider thực.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>7. Constraints & Important Rules</h2>
+            <ul class="constraints">
+                <li>JWT authentication with Bearer token (HS256).</li>
+                <li>Stateless session (<code>SessionCreationPolicy.STATELESS</code>).</li>
+                <li>Strict adherence to layered architecture (Controller → Service → Repository → Database).</li>
+                <li>Use DTOs for all API communication; never return entities directly.</li>
+                <li>Maintain API compatibility during changes.</li>
+                <li>Sensitive data must not be exposed or hardcoded.</li>
+                <li>Follow established Naming and Package Structure rules.</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>8. Reusable Patterns</h2>
+            <ul>
+                <li>JWT Generation/Validation (<code>JwtService</code>).</li>
+                <li>Layered Architecture (Controller-Service-Repository).</li>
+                <li>DTO-centric API communication.</li>
+                <li>Custom Exception Handling via <code>GlobalExceptionHandler</code>.</li>
+                <li>Role-based access control with <code>@PreAuthorize</code>.</li>
+                <li>Soft Deletes for entities.</li>
+                <li>MapStruct for entity-DTO mapping.</li>
+            </ul>
+        </div>
+
+        <div class="section" id="continuation-prompt-section">
+            <h2>9. Continuation Prompt for Next Session</h2>
+            <div class="continuation-prompt" id="continuation-prompt">
+                <button class="copy-button" onclick="copyPrompt()">Copy</button>
+                <pre><code id="continuation-prompt-code"># Medvora Backend – Auth Session Continuation Prompt
+# Date: 2026-05-27 | Module: Authentication System
+
+## Current State (HOÀN CHỈNH)
+
+Auth system đã implement đầy đủ:
+- Register + email verify + resend-verification
+- Login (timing-safe) + rate limit (5 attempts / 15min block)
+- Refresh token (reuse detection → revoke all sessions)
+- Logout (refresh token body)
+- Password reset (forgot → email → reset)
+- JWT error differentiation (Expired/Malformed/Signature/Generic)
+- GlobalExceptionHandler: 401/403/429/400/404 mapped
+- MapStruct UserMapper, /me không lộ entity
+- Role-based: USER / REVIEWER / ADMIN via @PreAuthorize
+- Service Layer Refactor: Auth, User, Notification, Email, SymptomChecker đã chuẩn hóa
+
+## Files nên đọc khi bắt đầu phiên mới
+
+- docs/summaries/SESSION_SUMMARY.md (mục 2026-05-27)
+- docs/architecture/auth-architecture.md
+- src/.../controller/AuthController.java
+- src/.../service/impl/AuthServiceImpl.java
+- src/.../service/impl/UserServiceImpl.java
+- src/.../service/impl/AdminUserServiceImpl.java (mới)
+- src/.../service/NotificationService.java (mới)
+- src/.../service/impl/NotificationServiceImpl.java (mới)
+
+## Next Tasks (ưu tiên)
+
+1. **Service Layer Refactor:**
+   - **Tách AdminUserService:**
+     - Create `AdminUserService` interface.
+     - Create `AdminUserServiceImpl`.
+     - Trim `UserService` + `UserServiceImpl`.
+     - Update `UserController` injection.
+   - **Clean AuthServiceImpl:** Fix inline `java.util.concurrent` import, group `@Value` fields.
+   - **Chuẩn hóa OAuth2 injection:** Inject `OAuth2UserService` interface vào `SecurityConfig`.
+2. **Build verify & Docs Update:**
+   - Run `mvn -DskipTests compile`.
+   - Update `auth-overview.html`.
+   - Update `SESSION_SUMMARY.md`.
+3. **Further Auth Enhancements (post-refactor):**
+   - Integration tests cho auth critical paths.
+   - Migrate OAuth2 token delivery: query param → HttpOnly cookie.
+   - Nâng password policy (RegisterRequest @Pattern).
+4. **Realtime/AI Stream:**
+   - Add AI provider integration cho `AiStreamController`.
+   - Consider persistence cho Notification events.
+
+## Conventions đang dùng
+
+- Layered: Controller (thin) → Service interface / impl → Repository → Entity
+- DTOs: @Data + Jakarta Validation (request); @Data @Builder (response)
+- ApiResponse<T> wrapper cho tất cả endpoints
+- Constructor injection via @RequiredArgsConstructor
+- Soft delete: deletedAt + @SQLRestriction
+- Enums: @Enumerated(EnumType.STRING)
+- Timestamps: OffsetDateTime + @CreationTimestamp / @UpdateTimestamp
+- @Version optimistic locking
+- @Transactional trên write operations
+- @Async cho email
+- @Scheduled cleanup (AuthServiceImpl, 1h interval)
+
+## Constraints quan trọng
+
+- KHÔNG hardcode secrets
+- KHÔNG return entity trực tiếp từ API
+- KHÔNG đặt business logic trong Controller
+- Security sensitive responses (forgot-password, resend): same message bất kể email tồn tại không
+- Refresh token reuse: check revokedAt TRƯỚC expired/deactivated
+- Login: luôn chạy passwordEncoder.matches() dù user không tồn tại (timing-safe)
+
+## Config locations
+
+- application.yml: jwt.*, auth.rate-limit.*, email.verification.*, app.url
+- Migration: src/main/resources/db/migration/
+</code></pre>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function copyPrompt() {
+            const promptCode = document.getElementById('continuation-prompt-code');
+            const textarea = document.createElement('textarea');
+            textarea.value = promptCode.textContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            textarea.remove();
+            alert('Continuation prompt copied to clipboard!');
+        }
+
+        document.querySelectorAll('.collapsible-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                content.classList.toggle('visible');
+                header.classList.toggle('expanded');
+            });
+        });
+    </script>
+</body>
+</html>

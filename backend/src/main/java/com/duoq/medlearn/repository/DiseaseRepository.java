@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import jakarta.persistence.LockModeType;
+
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -62,16 +64,16 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     WHERE d.deletedAt IS NULL
       AND dv.status = 'APPROVED'
       AND dv.deletedAt IS NULL
-      AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:name IS NULL OR CAST(d.name AS text) ILIKE '%' || CAST(:name AS text) || '%')
       AND (:categoryId IS NULL OR d.category.id = :categoryId)
       AND (:symptomIds IS NULL OR dvs.symptom.id IN :symptomIds)
     """)
-    Page<DiseaseSummaryDTO> findApprovedSummaryByFilters(
-            @Param("name") String name,
-            @Param("categoryId") Long categoryId,
-            @Param("symptomIds") java.util.List<Long> symptomIds,
-            Pageable pageable
-    );
+        Page<DiseaseSummaryDTO> findApprovedSummaryByFilters(
+                @Param("name") String name,
+                @Param("categoryId") Long categoryId,
+                @Param("symptomIds") List<Long> symptomIds,
+                Pageable pageable
+        );
 
     @Query("""
     SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
@@ -104,14 +106,14 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     WHERE d.deletedAt IS NULL
       AND dv.status = 'APPROVED'
       AND dv.deletedAt IS NULL
-      AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
+      AND (:name IS NULL OR CAST(d.name AS text) ILIKE '%' || CAST(:name AS text) || '%')
       AND (:categoryId IS NULL OR d.category.id = :categoryId)
     """)
-    Page<DiseaseSummaryDTO> findApprovedSummaryByFiltersWithoutSymptomIds(
-            @Param("name") String name,
-            @Param("categoryId") Long categoryId,
-            Pageable pageable
-    );
+        Page<DiseaseSummaryDTO> findApprovedSummaryByFiltersWithoutSymptomIds(
+                @Param("name") String name,
+                @Param("categoryId") Long categoryId,
+                Pageable pageable
+        );
 
-    Page<DiseaseSummaryDTO> findApprovedSummaryByNameContaining(String keyword, Long categoryId, Pageable pageable);
+
 }

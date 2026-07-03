@@ -50,7 +50,7 @@ class DiseaseServiceImplTest {
         testDisease.setSlug("diabetes"); testDisease.setCategory(testCategory);
         lenient().when(currentUserResolver.resolveCurrentUserId()).thenReturn(1L);
         lenient().when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(testUser));
-        lenient().when(permissionService.hasPermission(any())).thenReturn(false);
+        lenient().when(permissionService.hasPermission(any(PermissionCode.class))).thenReturn(false);
     }
 
     @Test void createDisease_shouldSucceed() {

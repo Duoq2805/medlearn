@@ -2,6 +2,7 @@ package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.dto.ai.DiseaseMatchResultDTO;
 import com.duoq.medlearn.domain.entity.*;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.security.CurrentUserResolver;
@@ -97,7 +98,7 @@ class SymptomCheckerIntegrationTest {
         linkSymptom(noCurrV, fever);
         // Intentionally NOT setting currentVersion
 
-        when(permissionService.hasPermission(any())).thenReturn(true);
+        when(permissionService.hasPermission(any(PermissionCode.class))).thenReturn(true);
     }
 
     @Test

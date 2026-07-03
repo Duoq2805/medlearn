@@ -2,6 +2,7 @@ package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.entity.*;
 import com.duoq.medlearn.domain.dto.section.*;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
@@ -53,7 +54,7 @@ class DiseaseSectionServiceImplTest {
 
         lenient().when(currentUserResolver.resolveCurrentUserId()).thenReturn(1L);
         lenient().when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(testUser));
-        lenient().when(permissionService.hasPermission(any())).thenReturn(false);
+        lenient().when(permissionService.hasPermission(any(PermissionCode.class))).thenReturn(false);
     }
 
     @Test void createSection_shouldSucceed() {

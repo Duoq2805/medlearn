@@ -129,6 +129,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DiseaseDTO getDiseaseById(Long diseaseId) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
@@ -154,6 +155,7 @@ public class DiseaseServiceImpl implements DiseaseService {
      * @throws ResourceNotFoundException nếu disease không tồn tại
      */
     @Override
+    @Transactional(readOnly = true)
     public DiseaseDetailDTO getDiseaseBySlug(String slug) {
         Disease disease = diseaseRepository.findBySlugWithCategory(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
@@ -162,6 +164,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DiseaseDetailDTO getDiseaseCurrentVersion(Long diseaseId) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
@@ -169,6 +172,7 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<DiseaseSummaryDTO> getApprovedDiseases(String keyword, Long categoryId, List<Long> symptomIds, Pageable pageable) {
         // Use separate query paths to avoid Hibernate type inference issues with null symptomIds
         if (symptomIds == null || symptomIds.isEmpty()) {
@@ -198,6 +202,7 @@ public class DiseaseServiceImpl implements DiseaseService {
      * @return danh sách disease summary
      */
     @Override
+    @Transactional(readOnly = true)
     public Page<DiseaseSummaryDTO> searchDiseases(DiseaseSearchRequest request, Pageable pageable) {
         String keyword = request != null ? request.getKeyword() : null;
         Long categoryId = request != null ? request.getCategoryId() : null;

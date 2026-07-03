@@ -1,17 +1,19 @@
 package com.duoq.medlearn.domain.dto.ai;
 
-import java.util.List;
-
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * Request DTO for symptom checker V1 analyze endpoint.
- */
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class SymptomCheckerRequest {
+
+    @NotEmpty(message = "At least one symptom ID is required")
     private List<Long> symptomIds;
+
+    private Integer limit;
 }

@@ -39,6 +39,21 @@ public class PermissionServiceImpl implements PermissionService {
 
     @Override
     @Transactional(readOnly = true)
+    public boolean hasPermission(String permissionName) {
+        if (permissionName == null || permissionName.isBlank()) {
+            return false;
+        }
+        try {
+            PermissionCode permission = PermissionCode.valueOf(permissionName);
+            return hasPermission(permission);
+        } catch (IllegalArgumentException e) {
+            log.warn("Invalid permission name: {}", permissionName);
+            return false;
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean hasAnyPermission(PermissionCode... permissions) {
         if (permissions == null || permissions.length == 0) {
             return false;

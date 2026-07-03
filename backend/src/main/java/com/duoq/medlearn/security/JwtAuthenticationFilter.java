@@ -1,13 +1,16 @@
 package com.duoq.medlearn.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,9 +23,9 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
@@ -31,7 +34,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
+        String requestURI = request.getRequestURI();
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.debug("No valid JWT token found for request URI: {}", requestURI);
             chain.doFilter(request, response);
             return;
         }
@@ -39,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = authHeader.substring(7);
 
         if (jwtService.isTokenBlocked(token)) {
-            log.debug("JWT is blocked on request [{}]", request.getRequestURI());
+            log.debug("JWT token is blocked for request URI: {}", requestURI);
             SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token revoked");
             return;
@@ -50,27 +56,44 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
                 if (jwtService.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                    log.debug("Successfully authenticated user: {} for request: {}", email, requestURI);
                 }
             }
         } catch (ExpiredJwtException e) {
-            log.debug("JWT expired on request [{}]: {}", request.getRequestURI(), e.getMessage());
+            log.warn("JWT token expired for request URI: {}: {}", requestURI, e.getMessage());
             SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT expired");
             return;
-        } catch (JwtException e) {
-            log.debug("JWT invalid on request [{}]: {}", request.getRequestURI(), e.getMessage());
+        } catch (MalformedJwtException e) {
+            log.warn("JWT token malformed for request URI: {}: {}", requestURI, e.getMessage());
             SecurityContextHolder.clearContext();
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT invalid");
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT malformed");
+            return;
+        } catch (UnsupportedJwtException e) {
+            log.warn("JWT token unsupported for request URI: {}: {}", requestURI, e.getMessage());
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT unsupported");
+            return;
+        } catch (SignatureException e) {
+            log.warn("JWT signature invalid for request URI: {}: {}", requestURI, e.getMessage());
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT signature invalid");
             return;
         } catch (IllegalArgumentException e) {
-            log.debug("JWT argument error on request [{}]: {}", request.getRequestURI(), e.getMessage());
+            log.warn("JWT argument error for request URI: {}: {}", requestURI, e.getMessage());
             SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT argument error");
+            return;
+        } catch (Exception e) {
+            log.error("Unexpected error during JWT authentication filter for request URI: {}: {}", requestURI, e.getMessage(), e);
+            SecurityContextHolder.clearContext();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Authentication processing failed");
             return;
         }
 

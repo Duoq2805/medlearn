@@ -3,6 +3,8 @@ package com.duoq.medlearn.controller;
 import com.duoq.medlearn.domain.dto.common.ApiResponse;
 import com.duoq.medlearn.domain.dto.section.*;
 import com.duoq.medlearn.service.DiseaseSectionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +16,14 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sections")
 @RequiredArgsConstructor
+@Tag(name = "Disease Sections", description = "Disease content section APIs")
 public class DiseaseSectionController {
 
     private final DiseaseSectionService diseaseSectionService;
 
     @PostMapping
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
+    @Operation(summary = "Create section")
     public ResponseEntity<ApiResponse<DiseaseSectionDTO>> createSection(
             @RequestParam Long versionId,
             @Valid @RequestBody CreateDiseaseSectionRequest request
@@ -31,7 +35,8 @@ public class DiseaseSectionController {
     }
 
     @PostMapping("/batch")
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
+    @Operation(summary = "Create sections in batch")
     public ResponseEntity<ApiResponse<List<DiseaseSectionDTO>>> createSections(
             @RequestParam Long versionId,
             @Valid @RequestBody List<CreateDiseaseSectionRequest> requests
@@ -43,16 +48,19 @@ public class DiseaseSectionController {
     }
 
     @GetMapping("/{sectionId}")
+    @Operation(summary = "Get section by ID")
     public ResponseEntity<ApiResponse<DiseaseSectionDTO>> getSectionById(@PathVariable Long sectionId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getSectionById(sectionId)));
     }
 
     @GetMapping("/version/{versionId}")
+    @Operation(summary = "List sections by version")
     public ResponseEntity<ApiResponse<List<DiseaseSectionDTO>>> getSectionsByVersion(@PathVariable Long versionId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getSectionsByVersion(versionId)));
     }
 
     @GetMapping("/version/{versionId}/type/{sectionType}")
+    @Operation(summary = "Get section by version and type")
     public ResponseEntity<ApiResponse<DiseaseSectionDTO>> getSectionByType(
             @PathVariable Long versionId,
             @PathVariable String sectionType
@@ -63,7 +71,8 @@ public class DiseaseSectionController {
     }
 
     @PutMapping("/{sectionId}")
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
+    @Operation(summary = "Update section")
     public ResponseEntity<ApiResponse<DiseaseSectionDTO>> updateSection(
             @PathVariable Long sectionId,
             @Valid @RequestBody UpdateDiseaseSectionRequest request
@@ -75,7 +84,8 @@ public class DiseaseSectionController {
     }
 
     @PostMapping("/version/{versionId}/reorder")
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
+    @Operation(summary = "Reorder sections")
     public ResponseEntity<ApiResponse<Void>> reorderSections(
             @PathVariable Long versionId,
             @Valid @RequestBody List<SectionOrderRequest> requests
@@ -85,27 +95,31 @@ public class DiseaseSectionController {
     }
 
     @DeleteMapping("/{sectionId}")
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
+    @Operation(summary = "Delete section")
     public ResponseEntity<ApiResponse<Void>> deleteSection(@PathVariable Long sectionId) {
         diseaseSectionService.deleteSection(sectionId);
         return ResponseEntity.ok(ApiResponse.success("Section deleted", null));
     }
 
     @DeleteMapping("/version/{versionId}")
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_DELETE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_DELETE')")
+    @Operation(summary = "Soft delete sections by version")
     public ResponseEntity<ApiResponse<Void>> softDeleteSectionsByVersion(@PathVariable Long versionId) {
         diseaseSectionService.softDeleteSectionsByVersion(versionId);
         return ResponseEntity.ok(ApiResponse.success("Sections soft deleted", null));
     }
 
     @PostMapping("/version/{versionId}/validate")
-    @PreAuthorize("@permissionService.hasPermission(T(com.duoq.medlearn.domain.enums.PermissionCode).VERSION_WRITE)")
+    @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
+    @Operation(summary = "Validate required sections")
     public ResponseEntity<ApiResponse<Void>> validateRequiredSections(@PathVariable Long versionId) {
         diseaseSectionService.validateRequiredSections(versionId);
         return ResponseEntity.ok(ApiResponse.success("Sections validated", null));
     }
 
     @GetMapping("/{sectionId}/markdown")
+    @Operation(summary = "Render section markdown")
     public ResponseEntity<ApiResponse<String>> renderMarkdownContent(@PathVariable Long sectionId) {
         return ResponseEntity.ok(ApiResponse.success(
                 diseaseSectionService.renderMarkdownContent(sectionId)
@@ -113,11 +127,13 @@ public class DiseaseSectionController {
     }
 
     @GetMapping("/types")
+    @Operation(summary = "List section types")
     public ResponseEntity<ApiResponse<List<SectionTypeDTO>>> getAllSectionTypes() {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getAllSectionTypes()));
     }
 
     @GetMapping("/templates")
+    @Operation(summary = "List default section templates")
     public ResponseEntity<ApiResponse<List<SectionTemplateDTO>>> getDefaultTemplates() {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getDefaultTemplates()));
     }

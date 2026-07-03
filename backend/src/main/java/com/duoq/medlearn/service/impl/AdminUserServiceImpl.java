@@ -36,12 +36,14 @@ public class AdminUserServiceImpl implements AdminUserService {
     private final CurrentUserResolver currentUserResolver;
 
     @Override
+    @Transactional(readOnly = true)
     public Page<UserDTO> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
                 .map(userMapper::toUserDTO);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserDTO getUserById(Long id) {
         User user = userRepository.findByIdWithRoles(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

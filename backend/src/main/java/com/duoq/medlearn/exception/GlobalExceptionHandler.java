@@ -1,6 +1,7 @@
 package com.duoq.medlearn.exception;
 
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
+import com.duoq.medlearn.domain.dto.common.ErrorResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -17,28 +19,28 @@ import java.util.stream.Collectors;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAuthenticationException(AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex,
+                                                                        HttpServletRequest request) {
+        return error(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), request);
     }
 
     @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
-    public ResponseEntity<ApiResponse<Void>> handleSpringSecurityAuthException(
-            org.springframework.security.core.AuthenticationException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error("Authentication failed: " + ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleSpringSecurityAuthException(
+            org.springframework.security.core.AuthenticationException ex, HttpServletRequest request) {
+        return error(HttpStatus.UNAUTHORIZED, "Unauthorized",
+                "Authentication failed: " + ex.getMessage(), request);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException ex) {
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("Access denied: " + ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex,
+                                                              HttpServletRequest request) {
+        return error(HttpStatus.FORBIDDEN, "Forbidden", "Access denied: " + ex.getMessage(), request);
     }
 
     @ExceptionHandler(RateLimitExceededException.class)
-    public ResponseEntity<ApiResponse<Void>> handleRateLimit(RateLimitExceededException ex) {
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleRateLimit(RateLimitExceededException ex,
+                                                          HttpServletRequest request) {
+        return error(HttpStatus.TOO_MANY_REQUESTS, "Too Many Requests", ex.getMessage(), request);
     }
 
     @ExceptionHandler({
@@ -49,48 +51,58 @@ public class GlobalExceptionHandler {
             InvalidCredentialsException.class,
             TokenReusedException.class
     })
-    public ResponseEntity<ApiResponse<Void>> handleConflictAndBadRequests(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleConflictAndBadRequests(RuntimeException ex,
+                                                                        HttpServletRequest request) {
+        return error(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(), request);
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInvalidToken(InvalidTokenException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex,
+                                                              HttpServletRequest request) {
+        return error(HttpStatus.UNAUTHORIZED, "Unauthorized", ex.getMessage(), request);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse<Void>> handleResourceNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex,
+                                                                  HttpServletRequest request) {
+        return error(HttpStatus.NOT_FOUND, "Not Found", ex.getMessage(), request);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
+                                                           HttpServletRequest request) {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining("; "));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error(message));
+        return error(HttpStatus.BAD_REQUEST, "Validation Failed", message, request);
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
+    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex,
+                                                              HttpServletRequest request) {
         log.warn("Business validation failed: {}", ex.getMessage());
-        // Return 409 Conflict for state transition violations, 400 for validation failures
         HttpStatus status = ex.getMessage() != null && ex.getMessage().contains("workflow transition")
                 ? HttpStatus.CONFLICT
                 : HttpStatus.BAD_REQUEST;
-        return ResponseEntity.status(status)
-                .body(ApiResponse.error(ex.getMessage()));
+        return error(status, status == HttpStatus.CONFLICT ? "Conflict" : "Bad Request",
+                ex.getMessage(), request);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<Void>> handleGeneralException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
         log.error("Unexpected error: {} - {}", ex.getClass().getSimpleName(), ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("An unexpected error occurred. Please try again later."));
+        return error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
+                "An unexpected error occurred. Please try again later.", request);
+    }
+
+    private ResponseEntity<ErrorResponse> error(HttpStatus status, String error, String message,
+                                                 HttpServletRequest request) {
+        return ResponseEntity.status(status).body(ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(error)
+                .message(message)
+                .path(request.getRequestURI())
+                .build());
     }
 }
-

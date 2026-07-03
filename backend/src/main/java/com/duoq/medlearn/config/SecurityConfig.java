@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -22,6 +23,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +35,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
     private final OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     // ===== CHAIN 1: API Security (JWT) - Order cao nhất =====
     @Bean
@@ -40,20 +43,43 @@ public class SecurityConfig {
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
         http
                 .securityMatcher("/api/**")  // Chỉ áp dụng cho API endpoints
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/register",
-                                "/api/auth/login",
-                                "/api/auth/verify",
-                                "/api/auth/refresh",
-                                "/api/auth/forgot-password",
-                                "/api/auth/reset-password",
-                                "/api/auth/resend-verification",
-                                "/api/public/**"          // Các public API khác (nếu có)
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                .authorizeHttpRequests(auth -> {
+                    // ===== PUBLIC AUTH ENDPOINTS =====
+                    auth.requestMatchers(
+                            "/api/auth/register",
+                            "/api/auth/login",
+                            "/api/auth/verify",
+                            "/api/auth/verify-email/**",
+                            "/api/auth/refresh",
+                            "/api/auth/forgot-password",
+                            "/api/auth/reset-password",
+                            "/api/auth/resend-verification"
+                    ).permitAll();
+                    // ===== PUBLIC GET ENDPOINTS (read-only) =====
+                    auth.requestMatchers(
+                            HttpMethod.GET,
+                            "/api/diseases/**",
+                            "/api/categories/**",
+                            "/api/symptoms",
+                            "/api/symptoms/search",
+                            "/api/cases",
+                            "/api/cases/**",
+                            "/api/notifications/**",
+                            "/api/ai/**",
+                            "/api/versions/**",
+                            "/api/sections/**"
+                    ).permitAll();
+                    // ===== PUBLIC POST ENDPOINTS (no auth needed) =====
+                    auth.requestMatchers(HttpMethod.POST, "/api/symptom-checker/**").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/diseases/search").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/cases/{id}/diagnose").permitAll();
+                    // ===== PROTECTED: auth required =====
+                    auth.requestMatchers("/api/auth/me", "/api/auth/logout").authenticated();
+                    // ===== ALL OTHER ENDPOINTS (write/moderation/admin): require auth =====
+                    auth.anyRequest().authenticated();
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

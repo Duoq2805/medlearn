@@ -1,6 +1,7 @@
 package com.duoq.medlearn.service.impl;
 
 import com.duoq.medlearn.domain.entity.*;
+import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
@@ -155,7 +156,7 @@ class DiseaseWorkflowIntegrationTest {
         diseaseRepository.save(testDisease);
 
         // Grant all permissions for test
-        when(permissionService.hasPermission(any())).thenReturn(true);
+        when(permissionService.hasPermission(any(PermissionCode.class))).thenReturn(true);
     }
 
     @Test

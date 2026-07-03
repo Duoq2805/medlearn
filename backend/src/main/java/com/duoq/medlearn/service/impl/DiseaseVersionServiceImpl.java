@@ -93,6 +93,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DiseaseVersionDTO getVersionById(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
@@ -100,6 +101,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<DiseaseVersionDTO> getDiseaseVersions(Long diseaseId) {
         return diseaseVersionRepository.findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(diseaseId)
                 .stream()
@@ -108,6 +110,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DiseaseVersionDTO getCurrentApprovedVersion(Long diseaseId) {
         DiseaseVersion version = diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Current approved version not found"));
@@ -115,6 +118,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public DiseaseVersionDTO getLatestDraftVersion(Long diseaseId) {
         return diseaseVersionRepository.findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(diseaseId)
                 .stream()
@@ -125,6 +129,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<DiseaseVersionDTO> getPendingReviewVersions(Pageable pageable) {
         return diseaseVersionRepository.findAllByStatusAndDeletedAtIsNull(VersionStatus.PENDING_REVIEW, pageable)
                 .map(diseaseMapper::toDiseaseVersionDTO);

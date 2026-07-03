@@ -1,0 +1,84 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { authApi } from '../api/auth';
+import { User, AuthResponse } from '../types';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
+export const useAuth = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [loginError, setLoginError] = useState<string | null>(null);
+  const [registerError, setRegisterError] = useState<string | null>(null);
+
+  // Get current user
+  const { data: user, isLoading } = useQuery<User | null>({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return null;
+      try {
+        return await authApi.me();
+      } catch {
+        return null;
+      }
+    },
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Login mutation
+  const loginMutation = useMutation({
+    mutationFn: (params: { email: string; password: string }) =>
+      authApi.login(params.email, params.password),
+    onSuccess: (data: AuthResponse) => {
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      setLoginError(null);
+      navigate('/dashboard');
+    },
+    onError: (error: any) => {
+      const msg = error?.response?.data?.message || error?.message || 'Invalid email/username or password.';
+      setLoginError(msg);
+    },
+  });
+
+  // Register mutation
+  const registerMutation = useMutation({
+    mutationFn: (userData: { username: string; email: string; password: string; fullName: string }) =>
+      authApi.register(userData),
+    onSuccess: (data: AuthResponse) => {
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+      setRegisterError(null);
+      navigate('/verify-email');
+    },
+    onError: (error: any) => {
+      const msg = error?.response?.data?.message || error?.message || 'Registration failed. Please try again.';
+      setRegisterError(msg);
+    },
+  });
+
+  // Logout
+  const logout = () => {
+    setLoginError(null);
+    setRegisterError(null);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    queryClient.clear();
+    navigate('/login');
+  };
+
+  return {
+    user,
+    isLoading,
+    login: loginMutation.mutate,
+    loginError,
+    loginLoading: loginMutation.isPending,
+    register: registerMutation.mutate,
+    registerError,
+    registerLoading: registerMutation.isPending,
+    logout,
+  };
+};
