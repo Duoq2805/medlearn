@@ -22,5 +22,15 @@ public enum AuditAction {
 
     // Business-Critical
     DISEASE_DELETED,
-    DISEASE_RESTORED
+    DISEASE_RESTORED,
+
+    // AI
+    AI_REQUEST,
+    AI_RESPONSE,
+    AI_QUOTA_EXCEEDED,
+    AI_INJECTION_DETECTED,
+    AI_RATE_LIMITED,
+    AI_CACHE_HIT,
+    AI_PROVIDER_FAILOVER,
+    AI_OUTPUT_REJECTED
 }

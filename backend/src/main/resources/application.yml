@@ -82,6 +82,36 @@ auth:
     max-attempts: 5
     block-duration-minutes: 15
 
+# AI
+ai:
+  gateway:
+    default-provider: nine-router
+    api-key: ${AI_GATEWAY_API_KEY:}
+    base-url: ${AI_GATEWAY_BASE_URL:https://api.9router.com}
+    timeout-ms: 60000
+    max-retries: 2
+  prompt:
+    location: prompts
+    encoding: UTF-8
+    max-version-history: 20
+  cache:
+    enabled: true
+    max-size: 1000
+    ttl-minutes: 60
+    max-entry-size: 10000
+  quota:
+    default-monthly-tokens: 1000000
+    enabled: true
+  rate-limit:
+    enabled: true
+    requests-per-minute: 100
+    tokens-per-minute: 100000
+  security:
+    injection-filter-enabled: true
+    output-filter-enabled: true
+    max-prompt-length: 100000
+    min-prompt-length: 1
+
 # App
 app:
   url: http://localhost:6060

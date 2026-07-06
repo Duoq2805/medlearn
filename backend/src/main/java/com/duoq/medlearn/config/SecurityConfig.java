@@ -57,6 +57,9 @@ public class SecurityConfig {
                             "/api/auth/reset-password",
                             "/api/auth/resend-verification"
                     ).permitAll();
+                    // ===== AI SUMMARIES & DRAFTS: require auth (before public GET to override /api/ai/**) =====
+                    auth.requestMatchers("/api/ai/summaries/**").authenticated();
+                    auth.requestMatchers("/api/ai/drafts/**").authenticated();
                     // ===== PUBLIC GET ENDPOINTS (read-only) =====
                     auth.requestMatchers(
                             HttpMethod.GET,
@@ -75,6 +78,8 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.POST, "/api/symptom-checker/**").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/diseases/search").permitAll();
                     auth.requestMatchers(HttpMethod.POST, "/api/cases/{id}/diagnose").permitAll();
+                    // ===== AI ADMIN: require auth =====
+                    auth.requestMatchers("/api/ai/admin/**").authenticated();
                     // ===== PROTECTED: auth required =====
                     auth.requestMatchers("/api/auth/me", "/api/auth/logout").authenticated();
                     // ===== ALL OTHER ENDPOINTS (write/moderation/admin): require auth =====

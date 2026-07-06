@@ -65,3 +65,12 @@ auth:
   rate-limit:
     max-attempts: 5
     block-duration-minutes: 15
+
+# AI
+ai:
+  gateway:
+    api-key: ${AI_GATEWAY_API_KEY:sk-dev-key}
+    base-url: ${AI_GATEWAY_BASE_URL:https://api.9router.com}
+  cache:
+    enabled: true
+    ttl-minutes: 5

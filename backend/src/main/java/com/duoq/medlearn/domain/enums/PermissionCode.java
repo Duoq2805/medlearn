@@ -30,5 +30,11 @@ public enum PermissionCode {
     ROLE_ASSIGN,
 
     // System domain
-    AUDIT_VIEW
+    AUDIT_VIEW,
+
+    // AI domain
+    AI_USE,
+    AI_SUMMARY,
+    AI_MANAGE,
+    AI_VIEW_USAGE
 }

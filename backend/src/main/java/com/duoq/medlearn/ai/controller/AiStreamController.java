@@ -1,4 +1,4 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.ai.controller;
 
 import com.duoq.medlearn.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
