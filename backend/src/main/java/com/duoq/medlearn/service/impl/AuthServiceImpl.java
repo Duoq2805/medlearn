@@ -14,7 +14,7 @@ import com.duoq.medlearn.domain.dto.auth.ResendVerificationRequest;
 import com.duoq.medlearn.domain.dto.auth.ResetPasswordRequest;
 import com.duoq.medlearn.domain.dto.auth.AuthResponse;
 import com.duoq.medlearn.domain.dto.auth.MessageResponse;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import com.duoq.medlearn.exception.AccountDeactivatedException;
 import com.duoq.medlearn.exception.EmailAlreadyExistsException;
 import com.duoq.medlearn.exception.EmailNotVerifiedException;
@@ -96,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    // ĐĂNG KÝ
+    // 膼膫NG K脻
     @Override
     @Transactional
     public MessageResponse register(RegisterRequest request) {
@@ -135,7 +135,7 @@ public class AuthServiceImpl implements AuthService {
         return new MessageResponse("Registration successful! Please check your email to verify your account.");
     }
 
-    // XÁC NHẬN EMAIL
+    // X脕C NH岷琋 EMAIL
     @Override
     @Transactional
     public MessageResponse verifyEmail(String token) {
@@ -159,7 +159,7 @@ public class AuthServiceImpl implements AuthService {
         return new MessageResponse("Email verified successfully! You can now login.");
     }
 
-    // ĐĂNG NHẬP
+    // 膼膫NG NH岷琍
     @Override
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -270,9 +270,9 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
-    // LẤY USER HIỆN TẠI
+    // L岷 USER HI峄哊 T岷營
     @Override
-    public UserDTO getCurrentUser() {
+    public UserResponse getCurrentUser() {
         org.springframework.security.core.Authentication auth =
                 org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
@@ -281,7 +281,7 @@ public class AuthServiceImpl implements AuthService {
         CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
         User user = userDetails.getUser();
 
-        return userMapper.toUserDTO(user);
+        return userMapper.toUserResponse(user);
     }
 
     private String generateToken() {

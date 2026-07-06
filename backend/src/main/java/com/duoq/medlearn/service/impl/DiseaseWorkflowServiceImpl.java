@@ -8,7 +8,7 @@ import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.repository.*;
@@ -42,25 +42,25 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
 
     @Override
     @Transactional
-    public DiseaseVersionDTO submit(Long versionId) {
+    public DiseaseVersionResponse submit(Long versionId) {
         return diseaseVersionService.submitForReview(versionId);
     }
 
     @Override
     @Transactional
-    public DiseaseVersionDTO approve(Long versionId, ModerationRequest request) {
+    public DiseaseVersionResponse approve(Long versionId, ModerationRequest request) {
         return diseaseVersionService.approveVersion(versionId, request);
     }
 
     @Override
     @Transactional
-    public DiseaseVersionDTO reject(Long versionId, ModerationRequest request) {
+    public DiseaseVersionResponse reject(Long versionId, ModerationRequest request) {
         return diseaseVersionService.rejectVersion(versionId, request);
     }
 
     @Override
     @Transactional
-    public DiseaseVersionDTO rollback(Long diseaseId, Long targetVersionId) {
+    public DiseaseVersionResponse rollback(Long diseaseId, Long targetVersionId) {
         validateReviewerPermission();
 
         Disease disease = diseaseRepository.findByIdForUpdate(diseaseId)
@@ -103,7 +103,7 @@ public class DiseaseWorkflowServiceImpl implements DiseaseWorkflowService {
                 previousVersionId != null ? Map.of("currentVersionId", previousVersionId) : Map.of(),
                 Map.of("targetVersionId", targetVersionId, "snapshotVersionId", snapshot.getId()));
 
-        return diseaseMapper.toDiseaseVersionDTO(snapshot);
+        return diseaseMapper.toDiseaseVersionResponse(snapshot);
     }
 
     @Override

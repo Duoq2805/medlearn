@@ -58,7 +58,7 @@ class DiseaseServiceImplTest {
         when(diseaseRepository.existsByName("New")).thenReturn(false);
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(testCategory));
         when(diseaseRepository.save(any(Disease.class))).thenReturn(testDisease);
-        when(diseaseMapper.toDiseaseDTO(any(Disease.class))).thenReturn(DiseaseDTO.builder().id(1L).name("New").slug("new").build());
+        when(diseaseMapper.toDiseaseResponse(any(Disease.class))).thenReturn(DiseaseResponse.builder().id(1L).name("New").slug("new").build());
         assertThat(diseaseService.createDisease(req)).isNotNull();
         verify(diseaseVersionService).createDraftVersion(eq(1L), any());
     }

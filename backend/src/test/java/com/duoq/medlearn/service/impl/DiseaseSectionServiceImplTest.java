@@ -63,7 +63,7 @@ class DiseaseSectionServiceImplTest {
         when(diseaseVersionRepository.findById(1L)).thenReturn(Optional.of(draftVersion));
         when(sectionTypeRepository.findById(1)).thenReturn(Optional.of(testSectionType));
         when(diseaseSectionRepository.save(any(DiseaseSection.class))).thenReturn(testSection);
-        when(diseaseMapper.toDiseaseSectionDTO(any(DiseaseSection.class))).thenReturn(DiseaseSectionDTO.builder().id(1L).build());
+        when(diseaseMapper.toDiseaseSectionResponse(any(DiseaseSection.class))).thenReturn(DiseaseSectionResponse.builder().id(1L).build());
         assertThat(diseaseSectionService.createSection(1L, req)).isNotNull();
     }
 
@@ -82,7 +82,7 @@ class DiseaseSectionServiceImplTest {
     @Test void updateSection_shouldSucceed() {
         when(diseaseSectionRepository.findById(1L)).thenReturn(Optional.of(testSection));
         when(diseaseSectionRepository.save(any(DiseaseSection.class))).thenReturn(testSection);
-        when(diseaseMapper.toDiseaseSectionDTO(any(DiseaseSection.class))).thenReturn(DiseaseSectionDTO.builder().id(1L).build());
+        when(diseaseMapper.toDiseaseSectionResponse(any(DiseaseSection.class))).thenReturn(DiseaseSectionResponse.builder().id(1L).build());
         UpdateDiseaseSectionRequest req = new UpdateDiseaseSectionRequest(); req.setTitle("Updated");
         assertThat(diseaseSectionService.updateSection(1L, req)).isNotNull();
     }

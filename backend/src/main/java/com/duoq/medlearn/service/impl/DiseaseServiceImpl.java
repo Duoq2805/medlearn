@@ -6,14 +6,14 @@ import com.duoq.medlearn.domain.entity.DiseaseVersion;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.VersionStatus;
-import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection;
 import com.duoq.medlearn.domain.dto.disease.CreateDiseaseDraftRequest;
 import com.duoq.medlearn.domain.dto.disease.CreateDiseaseRequest;
 import com.duoq.medlearn.domain.dto.disease.DiseaseSearchRequest;
 import com.duoq.medlearn.domain.dto.disease.UpdateDiseaseRequest;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDTO;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDetailDTO;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseResponse;
+import com.duoq.medlearn.domain.dto.disease.DiseaseDetailResponse;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.repository.CategoryRepository;
@@ -53,31 +53,31 @@ public class DiseaseServiceImpl implements DiseaseService {
     private final PermissionService permissionService;
 
     /**
-     * Tạo disease mới và khởi tạo draft version đầu tiên.
+     * T宀奉摰 disease m宄勬铂 v鑴?kh宄勭剾 t宀奉摰 draft version 鑶藉卜顪?ti閿歯.
      *
      * Workflow:
-     * 1. Kiểm tra trùng tên disease
-     * 2. Kiểm tra trùng slug
+     * 1. Ki宄勫儾 tra tr闇塶g t閿歯 disease
+     * 2. Ki宄勫儾 tra tr闇塶g slug
      * 3. Resolve category
-     * 4. Tạo Disease entity
-     * 5. Tạo DiseaseVersion đầu tiên với trạng thái DRAFT
-     * 6. Gán current version
+     * 4. T宀奉摰 Disease entity
+     * 5. T宀奉摰 DiseaseVersion 鑶藉卜顪?ti閿歯 v宄勬铂 tr宀奉摯g th璋﹊ DRAFT
+     * 6. G璋﹏ current version
      *
      * Business Rules:
-     * - Disease name phải unique
-     * - Disease slug phải unique
-     * - Mỗi disease luôn bắt đầu bằng một draft version
-     * - Nội dung disease được quản lý thông qua version
+     * - Disease name ph宀奉柉 unique
+     * - Disease slug ph宀奉柉 unique
+     * - M宄勬 disease lu涔坣 b宀风椂 鑶藉卜顪?b宀风湏g m宄勬獩 draft version
+     * - N宄勬獙 dung disease 鑶界摙宄勵柀 qu宀奉柎 l濯?th涔坣g qua version
      *
-     * @param request dữ liệu tạo disease
-     * @return disease dto đã được tạo
+     * @param request d宄?li宄勫檽 t宀奉摰 disease
+     * @return disease dto 鑶借尗 鑶界摙宄勵柀 t宀奉摰
      *
-     * @throws IllegalStateException nếu tên hoặc slug đã tồn tại
-     * @throws ResourceNotFoundException nếu category không tồn tại
+     * @throws IllegalStateException n宀风赴 t閿歯 ho宀风 slug 鑶借尗 t宄勬悏 t宀奉摨
+     * @throws ResourceNotFoundException n宀风赴 category kh涔坣g t宄勬悏 t宀奉摨
      */
     @Override
     @Transactional
-    public DiseaseDTO createDisease(CreateDiseaseRequest request) {
+    public DiseaseResponse createDisease(CreateDiseaseRequest request) {
         if (existsByName(request.getName())) {
             throw new IllegalStateException("Disease name already exists");
         }
@@ -95,32 +95,32 @@ public class DiseaseServiceImpl implements DiseaseService {
 
         disease = diseaseRepository.save(disease);
 
-        DiseaseVersionDTO draftVersion = diseaseVersionService.createDraftVersion(
+        DiseaseVersionResponse draftVersion = diseaseVersionService.createDraftVersion(
                 disease.getId(),
                 null
         );
 
-        return diseaseMapper.toDiseaseDTO(disease);
+        return diseaseMapper.toDiseaseResponse(disease);
     }
 
     /**
-     * Wrapper method dùng để tạo disease draft.
+     * Wrapper method d闇塶g 鑶藉硠?t宀奉摰 disease draft.
      *
-     * Method này convert CreateDiseaseDraftRequest
-     * sang CreateDiseaseRequest để tái sử dụng logic
-     * của createDisease().
+     * Method n鑴縴 convert CreateDiseaseDraftRequest
+     * sang CreateDiseaseRequest 鑶藉硠?t璋﹊ s宄?d宄勵櫞g logic
+     * c宄勵湩 createDisease().
      *
-     * Mục đích:
-     * - Tránh duplicate business logic
-     * - Giữ workflow tạo disease thống nhất
+     * M宄勵櫓 鑶介搯ch:
+     * - Tr璋﹏h duplicate business logic
+     * - Gi宄?workflow t宀奉摰 disease th宄勬唫g nh宀奉櫤
      *
-     * @param request request tạo draft
-     * @return disease dto vừa được tạo
+     * @param request request t宀奉摰 draft
+     * @return disease dto v宄勭帨 鑶界摙宄勵柀 t宀奉摰
      */
 
     @Override
     @Transactional
-    public DiseaseDTO createDiseaseDraft(CreateDiseaseDraftRequest request) {
+    public DiseaseResponse createDiseaseDraft(CreateDiseaseDraftRequest request) {
         CreateDiseaseRequest createRequest = new CreateDiseaseRequest();
         createRequest.setName(request.getName());
         createRequest.setSlug(request.getSlug());
@@ -130,33 +130,33 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public DiseaseDTO getDiseaseById(Long diseaseId) {
+    public DiseaseResponse getDiseaseById(Long diseaseId) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
-        return diseaseMapper.toDiseaseDTO(disease);
+        return diseaseMapper.toDiseaseResponse(disease);
     }
 
     /**
-     * Lấy chi tiết disease theo slug.
+     * L宀奉櫩 chi ti宀风腐 disease theo slug.
      *
-     * Thường dùng cho:
+     * Th鐡㈠硠婕琯 d闇塶g cho:
      * - Public disease detail page
      * - Disease explorer
      * - SEO-friendly URL
      *
-     * Response bao gồm:
+     * Response bao g宄勬悎:
      * - Disease metadata
      * - Current version
      * - Disease sections
      *
-     * @param slug slug của disease
+     * @param slug slug c宄勵湩 disease
      * @return disease detail dto
      *
-     * @throws ResourceNotFoundException nếu disease không tồn tại
+     * @throws ResourceNotFoundException n宀风赴 disease kh涔坣g t宄勬悏 t宀奉摨
      */
     @Override
     @Transactional(readOnly = true)
-    public DiseaseDetailDTO getDiseaseBySlug(String slug) {
+    public DiseaseDetailResponse getDiseaseBySlug(String slug) {
         Disease disease = diseaseRepository.findBySlugWithCategory(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
@@ -165,7 +165,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public DiseaseDetailDTO getDiseaseCurrentVersion(Long diseaseId) {
+    public DiseaseDetailResponse getDiseaseCurrentVersion(Long diseaseId) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
         return buildDiseaseDetail(disease);
@@ -173,7 +173,7 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<DiseaseSummaryDTO> getApprovedDiseases(String keyword, Long categoryId, List<Long> symptomIds, Pageable pageable) {
+    public Page<DiseaseSummaryProjection> getApprovedDiseases(String keyword, Long categoryId, List<Long> symptomIds, Pageable pageable) {
         // Use separate query paths to avoid Hibernate type inference issues with null symptomIds
         if (symptomIds == null || symptomIds.isEmpty()) {
             return diseaseRepository.findApprovedSummaryByFiltersWithoutSymptomIds(keyword, categoryId, pageable);
@@ -182,28 +182,28 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     /**
-     * Tìm kiếm disease theo keyword hoặc category.
+     * T鐭沵 ki宀风辅 disease theo keyword ho宀风 category.
      *
-     * Hỗ trợ:
-     * - Search theo tên disease
+     * H宄?tr宄?
+     * - Search theo t閿歯 disease
      * - Filter theo category
      * - Pagination
      *
-     * Nếu có categoryId:
-     * -> ưu tiên filter theo category
+     * N宀风赴 c璐?categoryId:
+     * -> 鐡 ti閿歯 filter theo category
      *
-     * Nếu không có categoryId:
+     * N宀风赴 kh涔坣g c璐?categoryId:
      * -> search theo keyword
      *
-     * Chỉ trả về disease chưa bị soft delete.
+     * Ch宄?tr宀?v宄?disease ch鐡 b宄?soft delete.
      *
-     * @param request dữ liệu search/filter
-     * @param pageable thông tin pagination
-     * @return danh sách disease summary
+     * @param request d宄?li宄勫檽 search/filter
+     * @param pageable th涔坣g tin pagination
+     * @return danh s璋ヽh disease summary
      */
     @Override
     @Transactional(readOnly = true)
-    public Page<DiseaseSummaryDTO> searchDiseases(DiseaseSearchRequest request, Pageable pageable) {
+    public Page<DiseaseSummaryProjection> searchDiseases(DiseaseSearchRequest request, Pageable pageable) {
         String keyword = request != null ? request.getKeyword() : null;
         Long categoryId = request != null ? request.getCategoryId() : null;
         List<Long> symptomIds = request != null ? request.getSymptomIds() : null;
@@ -212,35 +212,35 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     /**
-     * Cập nhật metadata của disease.
+     * C宀风捀 nh宀风捊 metadata c宄勵湩 disease.
      *
-     * Chỉ cập nhật:
+     * Ch宄?c宀风捀 nh宀风捊:
      * - name
      * - slug
      * - category
      *
-     * Không cập nhật content disease trực tiếp.
-     * Content phải được chỉnh sửa thông qua
+     * Kh涔坣g c宀风捀 nh宀风捊 content disease tr宄勭渹 ti宀风斧.
+     * Content ph宀奉柉 鑶界摙宄勵柀 ch宄勫《h s宄勭挦 th涔坣g qua
      * DiseaseVersion workflow.
      *
      * Permission Rules:
-     * - Owner được phép update
+     * - Owner 鑶界摙宄勵柀 ph鑼卲 update
      * - REVIEWER/ADMIN bypass ownership check
      *
      * Validation Rules:
-     * - Name phải unique
-     * - Slug phải unique
+     * - Name ph宀奉柉 unique
+     * - Slug ph宀奉柉 unique
      *
-     * @param diseaseId id disease cần update
-     * @param request dữ liệu update
-     * @return disease dto sau khi cập nhật
+     * @param diseaseId id disease c宀奉湸 update
+     * @param request d宄?li宄勫檽 update
+     * @return disease dto sau khi c宀风捀 nh宀风捊
      *
-     * @throws ResourceNotFoundException nếu disease không tồn tại
-     * @throws IllegalStateException nếu không có quyền update
+     * @throws ResourceNotFoundException n宀风赴 disease kh涔坣g t宄勬悏 t宀奉摨
+     * @throws IllegalStateException n宀风赴 kh涔坣g c璐?quy宄勪苟 update
      */
     @Override
     @Transactional
-    public DiseaseDTO updateDiseaseMetadata(Long diseaseId, UpdateDiseaseRequest request) {
+    public DiseaseResponse updateDiseaseMetadata(Long diseaseId, UpdateDiseaseRequest request) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
 
@@ -266,35 +266,35 @@ public class DiseaseServiceImpl implements DiseaseService {
             disease.setCategory(resolveCategory(request.getCategoryId()));
         }
 
-        return diseaseMapper.toDiseaseDTO(diseaseRepository.save(disease));
+        return diseaseMapper.toDiseaseResponse(diseaseRepository.save(disease));
     }
 
     /**
-     * Clone approved version hiện tại thành draft mới.
+     * Clone approved version hi宄勫檳 t宀奉摨 th鑴縩h draft m宄勬铂.
      *
      * Workflow:
      * Approved Version
-     *      ↓
+     *      閳?
      * Clone Current Version
-     *      ↓
+     *      閳?
      * Create Draft
-     *      ↓
-     * Contributor chỉnh sửa draft
+     *      閳?
+     * Contributor ch宄勫《h s宄勭挦 draft
      *
-     * Mục đích:
-     * - Đảm bảo approved content immutable
-     * - Lưu toàn bộ version history
-     * - Hỗ trợ moderation workflow
+     * M宄勵櫓 鑶介搯ch:
+     * - 鑶煎卜顤?b宀奉柕 approved content immutable
+     * - L鐡 to鑴縩 b宄?version history
+     * - H宄?tr宄?moderation workflow
      *
      * Business Rules:
-     * - Không được edit approved version trực tiếp
-     * - Mọi thay đổi phải tạo version mới
+     * - Kh涔坣g 鑶界摙宄勵柀 edit approved version tr宄勭渹 ti宀风斧
+     * - M宄勫常 thay 鑶藉硠鏄?ph宀奉柉 t宀奉摰 version m宄勬铂
      *
-     * @param diseaseId id disease cần clone version
-     * @return draft version mới được tạo
+     * @param diseaseId id disease c宀奉湸 clone version
+     * @return draft version m宄勬铂 鑶界摙宄勵柀 t宀奉摰
      */
     @Override
-    public DiseaseVersionDTO cloneCurrentVersion(Long diseaseId) {
+    public DiseaseVersionResponse cloneCurrentVersion(Long diseaseId) {
         return diseaseVersionService.cloneApprovedVersion(diseaseId);
     }
 
@@ -367,19 +367,19 @@ public class DiseaseServiceImpl implements DiseaseService {
     }
 
     /**
-     * Kiểm tra user hiện tại có quyền quản lý disease hay không.
+     * Ki宄勫儾 tra user hi宄勫檳 t宀奉摨 c璐?quy宄勪苟 qu宀奉柎 l濯?disease hay kh涔坣g.
      *
      * Permission Rules:
-     * - REVIEWER và ADMIN được bypass ownership check
-     * - Contributor chỉ được quản lý disease của chính mình
+     * - REVIEWER v鑴?ADMIN 鑶界摙宄勵柀 bypass ownership check
+     * - Contributor ch宄?鑶界摙宄勵柀 qu宀奉柎 l濯?disease c宄勵湩 ch閾唍h m鐭沶h
      *
-     * Ownership được xác định bằng cách:
-     * - User đã từng tạo DiseaseVersion của disease đó
+     * Ownership 鑶界摙宄勵柀 x璋ヽ 鑶藉硠濯檋 b宀风湏g c璋ヽh:
+     * - User 鑶借尗 t宄勭幁g t宀奉摰 DiseaseVersion c宄勵湩 disease 鑶借锤
      *
-     * @param diseaseId id disease cần kiểm tra quyền
+     * @param diseaseId id disease c宀奉湸 ki宄勫儾 tra quy宄勪苟
      *
-     * @throws ResourceNotFoundException nếu disease không tồn tại
-     * @throws IllegalStateException nếu user không phải owner
+     * @throws ResourceNotFoundException n宀风赴 disease kh涔坣g t宄勬悏 t宀奉摨
+     * @throws IllegalStateException n宀风赴 user kh涔坣g ph宀奉柉 owner
      */
     private void validateDiseaseOwnership(Long diseaseId) {
         Disease disease = diseaseRepository.findById(diseaseId)
@@ -424,34 +424,34 @@ public class DiseaseServiceImpl implements DiseaseService {
     /**
      * Build full disease detail response.
      *
-     * Response bao gồm:
+     * Response bao g宄勬悎:
      * - Disease metadata
      * - Current version
      * - Disease sections
      *
-     * Được sử dụng cho:
+     * 鑶肩摙宄勵柀 s宄?d宄勵櫞g cho:
      * - Public disease detail
      * - Reviewer preview
      * - Contributor preview
      *
      * @param disease disease entity
-     * @return disease detail dto hoàn chỉnh
+     * @return disease detail dto ho鑴縩 ch宄勫《h
      */
-    private DiseaseDetailDTO buildDiseaseDetail(Disease disease) {
+    private DiseaseDetailResponse buildDiseaseDetail(Disease disease) {
         DiseaseVersion currentVersion = disease.getCurrentVersion();
-        DiseaseVersionDTO currentVersionDto = null;
+        DiseaseVersionResponse currentVersionDto = null;
 
         if (currentVersion != null) {
-            currentVersionDto = diseaseMapper.toDiseaseVersionDTO(currentVersion);
+            currentVersionDto = diseaseMapper.toDiseaseVersionResponse(currentVersion);
         }
 
-        return DiseaseDetailDTO.builder()
-                .disease(diseaseMapper.toDiseaseDTO(disease))
+        return DiseaseDetailResponse.builder()
+                .disease(diseaseMapper.toDiseaseResponse(disease))
                 .currentVersion(currentVersionDto)
                 .sections(currentVersion == null ? List.of() :
                         diseaseSectionRepository.findAllByVersionIdWithType(currentVersion.getId())
                                 .stream()
-                                .map(diseaseMapper::toDiseaseSectionDTO)
+                                .map(diseaseMapper::toDiseaseSectionResponse)
                                 .toList())
                 .build();
     }

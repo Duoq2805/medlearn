@@ -24,7 +24,7 @@ public class DiseaseSectionController {
     @PostMapping
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Create section")
-    public ResponseEntity<ApiResponse<DiseaseSectionDTO>> createSection(
+    public ResponseEntity<ApiResponse<DiseaseSectionResponse>> createSection(
             @RequestParam Long versionId,
             @Valid @RequestBody CreateDiseaseSectionRequest request
     ) {
@@ -37,7 +37,7 @@ public class DiseaseSectionController {
     @PostMapping("/batch")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Create sections in batch")
-    public ResponseEntity<ApiResponse<List<DiseaseSectionDTO>>> createSections(
+    public ResponseEntity<ApiResponse<List<DiseaseSectionResponse>>> createSections(
             @RequestParam Long versionId,
             @Valid @RequestBody List<CreateDiseaseSectionRequest> requests
     ) {
@@ -49,19 +49,19 @@ public class DiseaseSectionController {
 
     @GetMapping("/{sectionId}")
     @Operation(summary = "Get section by ID")
-    public ResponseEntity<ApiResponse<DiseaseSectionDTO>> getSectionById(@PathVariable Long sectionId) {
+    public ResponseEntity<ApiResponse<DiseaseSectionResponse>> getSectionById(@PathVariable Long sectionId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getSectionById(sectionId)));
     }
 
     @GetMapping("/version/{versionId}")
     @Operation(summary = "List sections by version")
-    public ResponseEntity<ApiResponse<List<DiseaseSectionDTO>>> getSectionsByVersion(@PathVariable Long versionId) {
+    public ResponseEntity<ApiResponse<List<DiseaseSectionResponse>>> getSectionsByVersion(@PathVariable Long versionId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getSectionsByVersion(versionId)));
     }
 
     @GetMapping("/version/{versionId}/type/{sectionType}")
     @Operation(summary = "Get section by version and type")
-    public ResponseEntity<ApiResponse<DiseaseSectionDTO>> getSectionByType(
+    public ResponseEntity<ApiResponse<DiseaseSectionResponse>> getSectionByType(
             @PathVariable Long versionId,
             @PathVariable String sectionType
     ) {
@@ -73,7 +73,7 @@ public class DiseaseSectionController {
     @PutMapping("/{sectionId}")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Update section")
-    public ResponseEntity<ApiResponse<DiseaseSectionDTO>> updateSection(
+    public ResponseEntity<ApiResponse<DiseaseSectionResponse>> updateSection(
             @PathVariable Long sectionId,
             @Valid @RequestBody UpdateDiseaseSectionRequest request
     ) {
@@ -128,13 +128,13 @@ public class DiseaseSectionController {
 
     @GetMapping("/types")
     @Operation(summary = "List section types")
-    public ResponseEntity<ApiResponse<List<SectionTypeDTO>>> getAllSectionTypes() {
+    public ResponseEntity<ApiResponse<List<SectionTypeResponse>>> getAllSectionTypes() {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getAllSectionTypes()));
     }
 
     @GetMapping("/templates")
     @Operation(summary = "List default section templates")
-    public ResponseEntity<ApiResponse<List<SectionTemplateDTO>>> getDefaultTemplates() {
+    public ResponseEntity<ApiResponse<List<SectionTemplateResponse>>> getDefaultTemplates() {
         return ResponseEntity.ok(ApiResponse.success(diseaseSectionService.getDefaultTemplates()));
     }
 }

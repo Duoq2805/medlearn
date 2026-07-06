@@ -3,7 +3,7 @@ package com.duoq.medlearn.controller;
 import com.duoq.medlearn.domain.dto.common.ApiResponse;
 import com.duoq.medlearn.domain.dto.common.PagedResponse;
 import com.duoq.medlearn.domain.dto.version.CreateDiseaseVersionRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
 import com.duoq.medlearn.domain.dto.version.UpdateDiseaseVersionRequest;
 import com.duoq.medlearn.service.DiseaseVersionService;
@@ -29,7 +29,7 @@ public class DiseaseVersionController {
     @PostMapping("/draft")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Create draft version", description = "Create a new draft version for a disease")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> createDraftVersion(
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> createDraftVersion(
             @RequestParam Long diseaseId,
             @Valid @RequestBody CreateDiseaseVersionRequest request
     ) {
@@ -42,7 +42,7 @@ public class DiseaseVersionController {
     @PostMapping("/clone/{diseaseId}")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Clone approved version", description = "Clone the current approved version into a new draft")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> cloneApprovedVersion(@PathVariable Long diseaseId) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> cloneApprovedVersion(@PathVariable Long diseaseId) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Version cloned",
                 diseaseVersionService.cloneApprovedVersion(diseaseId)
@@ -51,33 +51,33 @@ public class DiseaseVersionController {
 
     @GetMapping("/{versionId}")
     @Operation(summary = "Get version by ID")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> getVersionById(@PathVariable Long versionId) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> getVersionById(@PathVariable Long versionId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseVersionService.getVersionById(versionId)));
     }
 
     @GetMapping("/disease/{diseaseId}")
     @Operation(summary = "List all versions for a disease")
-    public ResponseEntity<ApiResponse<List<DiseaseVersionDTO>>> getDiseaseVersions(@PathVariable Long diseaseId) {
+    public ResponseEntity<ApiResponse<List<DiseaseVersionResponse>>> getDiseaseVersions(@PathVariable Long diseaseId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseVersionService.getDiseaseVersions(diseaseId)));
     }
 
     @GetMapping("/disease/{diseaseId}/current")
     @Operation(summary = "Get current approved version")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> getCurrentApprovedVersion(@PathVariable Long diseaseId) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> getCurrentApprovedVersion(@PathVariable Long diseaseId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseVersionService.getCurrentApprovedVersion(diseaseId)));
     }
 
     @GetMapping("/disease/{diseaseId}/latest-draft")
     @PreAuthorize("@permissionService.hasPermission('VERSION_READ')")
     @Operation(summary = "Get latest draft version for a disease")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> getLatestDraftVersion(@PathVariable Long diseaseId) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> getLatestDraftVersion(@PathVariable Long diseaseId) {
         return ResponseEntity.ok(ApiResponse.success(diseaseVersionService.getLatestDraftVersion(diseaseId)));
     }
 
     @GetMapping("/pending-review")
     @PreAuthorize("@permissionService.hasPermission('VERSION_REVIEW')")
     @Operation(summary = "List versions pending review")
-    public ResponseEntity<ApiResponse<PagedResponse<DiseaseVersionDTO>>> getPendingReviewVersions(Pageable pageable) {
+    public ResponseEntity<ApiResponse<PagedResponse<DiseaseVersionResponse>>> getPendingReviewVersions(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(
                 PagedResponse.of(diseaseVersionService.getPendingReviewVersions(pageable))
         ));
@@ -86,7 +86,7 @@ public class DiseaseVersionController {
     @PutMapping("/{versionId}")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Update draft version content")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> updateDraftVersion(
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> updateDraftVersion(
             @PathVariable Long versionId,
             @Valid @RequestBody UpdateDiseaseVersionRequest request
     ) {
@@ -99,7 +99,7 @@ public class DiseaseVersionController {
     @PostMapping("/{versionId}/submit")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Submit version for review")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> submitForReview(@PathVariable Long versionId) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> submitForReview(@PathVariable Long versionId) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Version submitted for review",
                 diseaseVersionService.submitForReview(versionId)
@@ -109,7 +109,7 @@ public class DiseaseVersionController {
     @PostMapping("/{versionId}/approve")
     @PreAuthorize("@permissionService.hasPermission('VERSION_REVIEW')")
     @Operation(summary = "Approve a version")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> approveVersion(
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> approveVersion(
             @PathVariable Long versionId,
             @Valid @RequestBody ModerationRequest request
     ) {
@@ -122,7 +122,7 @@ public class DiseaseVersionController {
     @PostMapping("/{versionId}/reject")
     @PreAuthorize("@permissionService.hasPermission('VERSION_REVIEW')")
     @Operation(summary = "Reject a version")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> rejectVersion(
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> rejectVersion(
             @PathVariable Long versionId,
             @Valid @RequestBody ModerationRequest request
     ) {
@@ -135,7 +135,7 @@ public class DiseaseVersionController {
     @PostMapping("/{versionId}/archive")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Archive a version")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> archiveVersion(@PathVariable Long versionId) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> archiveVersion(@PathVariable Long versionId) {
         return ResponseEntity.ok(ApiResponse.success(
                 "Version archived",
                 diseaseVersionService.archiveVersion(versionId)

@@ -64,22 +64,24 @@ export default function DiseaseDetailPage() {
             </div>
           </div>
 
-          {/* Reading Progress */}
-          <div className="card-neumorphic p-6 mb-8">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">Your Progress</h2>
-              <span className="text-sm font-semibold text-[var(--accent-primary)]">{readingProgress}%</span>
+          {/* Reading Progress (Guests only see this if logged in) */}
+          {user && (
+            <div className="card-neumorphic p-6 mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">Your Progress</h2>
+                <span className="text-sm font-semibold text-[var(--accent-primary)]">{readingProgress}%</span>
+              </div>
+              <div className="w-full h-3 rounded-full bg-[var(--surface-primary)] shadow-[inset_2px_2px_6px_var(--shadow-dark),inset_-2px_-2px_6px_var(--shadow-light)] overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-emerald-300 rounded-full transition-all" style={{ width: `${readingProgress}%` }}></div>
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] mt-3">Last read: 2 hours ago</p>
             </div>
-            <div className="w-full h-3 rounded-full bg-[var(--surface-primary)] shadow-[inset_2px_2px_6px_var(--shadow-dark),inset_-2px_-2px_6px_var(--shadow-light)] overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-[var(--accent-primary)] to-emerald-300 rounded-full transition-all" style={{ width: `${readingProgress}%` }}></div>
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] mt-3">Last read: 2 hours ago</p>
-          </div>
+          )}
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Left: Content */}
-            <div className="lg:col-span-2 space-y-6">
+          <div className={`grid gap-6 mb-8 ${user ? 'grid-cols-1 lg:grid-cols-3' : 'grid-cols-1'}`}>
+            {/* Left: Content (always full width for guests, 2/3 for users) */}
+            <div className={user ? 'lg:col-span-2 space-y-6' : 'space-y-6'}>
               <AnimatedSection>
                 <div className="card-neumorphic p-8">
                   <h2 className="font-display text-2xl font-bold text-[var(--text-primary)] mb-4">Definition</h2>
@@ -128,66 +130,70 @@ export default function DiseaseDetailPage() {
               </AnimatedSection>
             </div>
 
-            {/* Right: Sidebar */}
-            <div className="lg:col-span-1 space-y-6">
-              {/* Quick Actions */}
-              <div className="card-neumorphic p-6 space-y-2">
-                <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">Generate</h2>
-                <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed text-sm">
-                  <Sparkles size={14} /> Flashcards
-                </button>
-                <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed text-sm">
-                  <Target size={14} /> Quiz
-                </button>
-                <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed text-sm">
-                  <Brain size={14} /> Case Study
-                </button>
-                <Link to="/disease/1/edit" className="btn-neumorphic-primary py-2 px-4 w-full flex items-center justify-center gap-2 text-sm">
-                  <FileText size={14} /> Edit
-                </Link>
-              </div>
+            {/* Right: Sidebar (only for logged-in users) */}
+            {user && (
+              <div className="lg:col-span-1 space-y-6">
+                {/* Quick Actions */}
+                <div className="card-neumorphic p-6 space-y-2">
+                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">Generate</h2>
+                  <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed text-sm">
+                    <Sparkles size={14} /> Flashcards
+                  </button>
+                  <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed text-sm">
+                    <Target size={14} /> Quiz
+                  </button>
+                  <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 opacity-50 cursor-not-allowed text-sm">
+                    <Brain size={14} /> Case Study
+                  </button>
+                  <Link to="/disease/1/edit" className="btn-neumorphic-primary py-2 px-4 w-full flex items-center justify-center gap-2 text-sm">
+                    <FileText size={14} /> Edit
+                  </Link>
+                </div>
 
-              {/* Learning Notes */}
-              <div className="card-neumorphic p-6">
-                <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">My Notes</h2>
-                <textarea placeholder="Add personal notes..." className="input-neumorphic w-full min-h-[120px] resize-none text-sm" />
-                <button className="btn-neumorphic-primary py-2 px-4 mt-3 text-sm">Save Notes</button>
-              </div>
+                {/* Learning Notes */}
+                <div className="card-neumorphic p-6">
+                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">My Notes</h2>
+                  <textarea placeholder="Add personal notes..." className="input-neumorphic w-full min-h-[120px] resize-none text-sm" />
+                  <button className="btn-neumorphic-primary py-2 px-4 mt-3 text-sm">Save Notes</button>
+                </div>
 
-              {/* Related Content */}
-              <div className="card-neumorphic p-6">
-                <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">Related Diseases</h2>
-                <div className="space-y-2">
-                  {['Bronchitis', 'Tuberculosis', 'ARDS'].map((related, i) => (
-                    <Link key={i} to="/explorer" className="depth-layer-1 rounded-lg p-2 text-sm flex items-center justify-between hover:bg-[var(--surface-hover)]">
-                      <span className="text-[var(--text-primary)]">{related}</span>
-                      <ChevronRight size={14} className="text-[var(--text-tertiary)]" />
-                    </Link>
-                  ))}
+                {/* Related Content */}
+                <div className="card-neumorphic p-6">
+                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4">Related Diseases</h2>
+                  <div className="space-y-2">
+                    {['Bronchitis', 'Tuberculosis', 'ARDS'].map((related, i) => (
+                      <Link key={i} to="/explorer" className="depth-layer-1 rounded-lg p-2 text-sm flex items-center justify-between hover:bg-[var(--surface-hover)]">
+                        <span className="text-[var(--text-primary)]">{related}</span>
+                        <ChevronRight size={14} className="text-[var(--text-tertiary)]" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Discussion */}
+                <div className="card-neumorphic p-6">
+                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <MessageSquare size={18} /> Discussion
+                  </h2>
+                  <p className="text-xs text-[var(--text-secondary)] mb-3">Comments disabled (coming soon)</p>
+                  <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full opacity-50 cursor-not-allowed text-sm">Add Comment</button>
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Discussion */}
-              <div className="card-neumorphic p-6">
-                <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                  <MessageSquare size={18} /> Discussion
-                </h2>
-                <p className="text-xs text-[var(--text-secondary)] mb-3">Comments disabled (coming soon)</p>
-                <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full opacity-50 cursor-not-allowed text-sm">Add Comment</button>
+          {/* Continue Reading CTA (only for logged-in users) */}
+          {user && (
+            <div className="card-neumorphic p-6 flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-[var(--text-primary)]">Continue where you left off</p>
+                <p className="text-xs text-[var(--text-secondary)]">You have 65% of this disease completed</p>
               </div>
+              <button className="btn-neumorphic-primary py-3 px-8 flex items-center gap-2">
+                Continue <ChevronRight size={18} />
+              </button>
             </div>
-          </div>
-
-          {/* Continue Reading CTA */}
-          <div className="card-neumorphic p-6 flex items-center justify-between">
-            <div>
-              <p className="font-semibold text-[var(--text-primary)]">Continue where you left off</p>
-              <p className="text-xs text-[var(--text-secondary)]">You have 65% of this disease completed</p>
-            </div>
-            <button className="btn-neumorphic-primary py-3 px-8 flex items-center gap-2">
-              Continue <ChevronRight size={18} />
-            </button>
-          </div>
+          )}
         </AnimatedSection>
       </div>
     </div>

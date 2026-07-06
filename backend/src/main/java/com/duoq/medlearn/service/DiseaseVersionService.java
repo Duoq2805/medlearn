@@ -3,7 +3,7 @@ package com.duoq.medlearn.service;
 import com.duoq.medlearn.domain.dto.version.CreateDiseaseVersionRequest;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
 import com.duoq.medlearn.domain.dto.version.UpdateDiseaseVersionRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,29 +11,29 @@ import java.util.List;
 
 public interface DiseaseVersionService {
 
-    DiseaseVersionDTO createDraftVersion(Long diseaseId, CreateDiseaseVersionRequest request);
+    DiseaseVersionResponse createDraftVersion(Long diseaseId, CreateDiseaseVersionRequest request);
 
-    DiseaseVersionDTO cloneApprovedVersion(Long diseaseId);
+    DiseaseVersionResponse cloneApprovedVersion(Long diseaseId);
 
-    DiseaseVersionDTO getVersionById(Long versionId);
+    DiseaseVersionResponse getVersionById(Long versionId);
 
-    List<DiseaseVersionDTO> getDiseaseVersions(Long diseaseId);
+    List<DiseaseVersionResponse> getDiseaseVersions(Long diseaseId);
 
-    DiseaseVersionDTO getCurrentApprovedVersion(Long diseaseId);
+    DiseaseVersionResponse getCurrentApprovedVersion(Long diseaseId);
 
-    DiseaseVersionDTO getLatestDraftVersion(Long diseaseId);
+    DiseaseVersionResponse getLatestDraftVersion(Long diseaseId);
 
-    Page<DiseaseVersionDTO> getPendingReviewVersions(Pageable pageable);
+    Page<DiseaseVersionResponse> getPendingReviewVersions(Pageable pageable);
 
-    DiseaseVersionDTO updateDraftVersion(Long versionId, UpdateDiseaseVersionRequest request);
+    DiseaseVersionResponse updateDraftVersion(Long versionId, UpdateDiseaseVersionRequest request);
 
-    DiseaseVersionDTO submitForReview(Long versionId);
+    DiseaseVersionResponse submitForReview(Long versionId);
 
-    DiseaseVersionDTO approveVersion(Long versionId, ModerationRequest request);
+    DiseaseVersionResponse approveVersion(Long versionId, ModerationRequest request);
 
-    DiseaseVersionDTO rejectVersion(Long versionId, ModerationRequest request);
+    DiseaseVersionResponse rejectVersion(Long versionId, ModerationRequest request);
 
-    DiseaseVersionDTO archiveVersion(Long versionId);
+    DiseaseVersionResponse archiveVersion(Long versionId);
 
     void softDeleteVersion(Long versionId);
 

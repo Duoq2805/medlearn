@@ -4,12 +4,12 @@ import com.duoq.medlearn.domain.dto.common.ApiResponse;
 import com.duoq.medlearn.domain.dto.common.PagedResponse;
 import com.duoq.medlearn.domain.dto.disease.CreateDiseaseDraftRequest;
 import com.duoq.medlearn.domain.dto.disease.CreateDiseaseRequest;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDTO;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDetailDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseResponse;
+import com.duoq.medlearn.domain.dto.disease.DiseaseDetailResponse;
 import com.duoq.medlearn.domain.dto.disease.DiseaseSearchRequest;
-import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection;
 import com.duoq.medlearn.domain.dto.disease.UpdateDiseaseRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.service.DiseaseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,21 +34,21 @@ public class DiseaseController {
     @PostMapping
     @PreAuthorize("@permissionService.hasPermission('DISEASE_WRITE')")
     @Operation(summary = "Create disease", description = "Create a new disease with an initial draft version")
-    public ResponseEntity<ApiResponse<DiseaseDTO>> createDisease(@Valid @RequestBody CreateDiseaseRequest request) {
+    public ResponseEntity<ApiResponse<DiseaseResponse>> createDisease(@Valid @RequestBody CreateDiseaseRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Disease created", diseaseService.createDisease(request)));
     }
 
     @PostMapping("/draft")
     @PreAuthorize("@permissionService.hasPermission('DISEASE_WRITE')")
     @Operation(summary = "Create disease draft", description = "Create a new disease in draft state")
-    public ResponseEntity<ApiResponse<DiseaseDTO>> createDiseaseDraft(@Valid @RequestBody CreateDiseaseDraftRequest request) {
+    public ResponseEntity<ApiResponse<DiseaseResponse>> createDiseaseDraft(@Valid @RequestBody CreateDiseaseDraftRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Disease draft created", diseaseService.createDiseaseDraft(request)));
     }
 
     @GetMapping
     @Operation(summary = "List approved diseases", description = "Browse approved diseases with optional keyword/category/symptom filters. Pagination: use ?page=0&size=20 (not pageSize)")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PagedResponse<DiseaseSummaryDTO>>> getDiseases(
+    public ResponseEntity<ApiResponse<PagedResponse<DiseaseSummaryProjection>>> getDiseases(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) List<Long> symptomIds,
@@ -61,7 +61,7 @@ public class DiseaseController {
 
     @GetMapping("/search")
     @Operation(summary = "Search diseases", description = "Full-text search approved diseases by keyword")
-    public ResponseEntity<ApiResponse<PagedResponse<DiseaseSummaryDTO>>> searchDiseases(
+    public ResponseEntity<ApiResponse<PagedResponse<DiseaseSummaryProjection>>> searchDiseases(
             @RequestParam(required = false) String keyword,
             Pageable pageable
     ) {
@@ -72,7 +72,7 @@ public class DiseaseController {
 
     @PostMapping("/search")
     @Operation(summary = "Advanced disease search", description = "Search diseases with advanced filters in request body")
-    public ResponseEntity<ApiResponse<PagedResponse<DiseaseSummaryDTO>>> advancedSearch(
+    public ResponseEntity<ApiResponse<PagedResponse<DiseaseSummaryProjection>>> advancedSearch(
             @RequestBody(required = false) DiseaseSearchRequest request,
             Pageable pageable
     ) {
@@ -81,26 +81,26 @@ public class DiseaseController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Get disease by ID")
-    public ResponseEntity<ApiResponse<DiseaseDTO>> getDiseaseById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DiseaseResponse>> getDiseaseById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(diseaseService.getDiseaseById(id)));
     }
 
     @GetMapping("/slug/{slug}")
     @Operation(summary = "Get disease by slug")
-    public ResponseEntity<ApiResponse<DiseaseDetailDTO>> getDiseaseBySlug(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<DiseaseDetailResponse>> getDiseaseBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(ApiResponse.success(diseaseService.getDiseaseBySlug(slug)));
     }
 
     @GetMapping("/{id}/current-version")
     @Operation(summary = "Get disease current approved version detail")
-    public ResponseEntity<ApiResponse<DiseaseDetailDTO>> getDiseaseCurrentVersion(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DiseaseDetailResponse>> getDiseaseCurrentVersion(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(diseaseService.getDiseaseCurrentVersion(id)));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@permissionService.hasPermission('DISEASE_WRITE')")
     @Operation(summary = "Update disease metadata")
-    public ResponseEntity<ApiResponse<DiseaseDTO>> updateDiseaseMetadata(
+    public ResponseEntity<ApiResponse<DiseaseResponse>> updateDiseaseMetadata(
             @PathVariable Long id,
             @Valid @RequestBody UpdateDiseaseRequest request
     ) {
@@ -110,7 +110,7 @@ public class DiseaseController {
     @PostMapping("/{id}/clone-current-version")
     @PreAuthorize("@permissionService.hasPermission('VERSION_WRITE')")
     @Operation(summary = "Clone current approved version into a new draft")
-    public ResponseEntity<ApiResponse<DiseaseVersionDTO>> cloneCurrentVersion(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<DiseaseVersionResponse>> cloneCurrentVersion(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success("Current version cloned", diseaseService.cloneCurrentVersion(id)));
     }
 

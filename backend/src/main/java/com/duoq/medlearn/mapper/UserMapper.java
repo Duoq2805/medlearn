@@ -3,7 +3,7 @@ package com.duoq.medlearn.mapper;
 import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.dto.auth.AuthResponse;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -15,7 +15,7 @@ public interface UserMapper {
 
     @Mapping(target = "roles", expression = "java(mapRoleNames(user.getRoles()))")
     @Mapping(target = "status", expression = "java(user.getStatus() != null ? user.getStatus().name() : null)")
-    UserDTO toUserDTO(User user);
+    UserResponse toUserResponse(User user);
 
     @Mapping(target = "roles", expression = "java(mapRoleNames(user.getRoles()))")
     @Mapping(target = "accessToken", source = "accessToken")

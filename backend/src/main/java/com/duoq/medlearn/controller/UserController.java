@@ -2,7 +2,7 @@ package com.duoq.medlearn.controller;
 
 import com.duoq.medlearn.domain.dto.common.ApiResponse;
 import com.duoq.medlearn.domain.dto.user.UpdateProfileRequest;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import com.duoq.medlearn.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -21,13 +21,13 @@ public class UserController {
 
     @GetMapping("/me")
     @Operation(summary = "Get current user profile")
-    public ResponseEntity<ApiResponse<UserDTO>> getMyProfile() {
+    public ResponseEntity<ApiResponse<UserResponse>> getMyProfile() {
         return ResponseEntity.ok(ApiResponse.success(userService.getCurrentUser()));
     }
 
     @PutMapping("/me")
     @Operation(summary = "Update current user profile")
-    public ResponseEntity<ApiResponse<UserDTO>> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Profile updated", userService.updateProfile(request)));
     }
 }

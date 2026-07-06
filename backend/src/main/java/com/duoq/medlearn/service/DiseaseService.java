@@ -1,13 +1,13 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection;
 import com.duoq.medlearn.domain.dto.disease.CreateDiseaseDraftRequest;
 import com.duoq.medlearn.domain.dto.disease.CreateDiseaseRequest;
 import com.duoq.medlearn.domain.dto.disease.DiseaseSearchRequest;
 import com.duoq.medlearn.domain.dto.disease.UpdateDiseaseRequest;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDTO;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDetailDTO;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseResponse;
+import com.duoq.medlearn.domain.dto.disease.DiseaseDetailResponse;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -15,31 +15,31 @@ import java.util.List;
 
 public interface DiseaseService {
 
-    DiseaseDTO createDisease(CreateDiseaseRequest request);
+    DiseaseResponse createDisease(CreateDiseaseRequest request);
 
-    DiseaseDTO createDiseaseDraft(CreateDiseaseDraftRequest request);
+    DiseaseResponse createDiseaseDraft(CreateDiseaseDraftRequest request);
 
-    DiseaseDTO getDiseaseById(Long diseaseId);
+    DiseaseResponse getDiseaseById(Long diseaseId);
 
-    DiseaseDetailDTO getDiseaseBySlug(String slug);
+    DiseaseDetailResponse getDiseaseBySlug(String slug);
 
-    DiseaseDetailDTO getDiseaseCurrentVersion(Long diseaseId);
+    DiseaseDetailResponse getDiseaseCurrentVersion(Long diseaseId);
 
-    Page<DiseaseSummaryDTO> getApprovedDiseases(
+    Page<DiseaseSummaryProjection> getApprovedDiseases(
             String keyword,
             Long categoryId,
             List<Long> symptomIds,
             Pageable pageable
     );
 
-    Page<DiseaseSummaryDTO> searchDiseases(
+    Page<DiseaseSummaryProjection> searchDiseases(
             DiseaseSearchRequest request,
             Pageable pageable
     );
 
-    DiseaseDTO updateDiseaseMetadata(Long diseaseId, UpdateDiseaseRequest request);
+    DiseaseResponse updateDiseaseMetadata(Long diseaseId, UpdateDiseaseRequest request);
 
-    DiseaseVersionDTO cloneCurrentVersion(Long diseaseId);
+    DiseaseVersionResponse cloneCurrentVersion(Long diseaseId);
 
     void softDeleteDisease(Long diseaseId);
 

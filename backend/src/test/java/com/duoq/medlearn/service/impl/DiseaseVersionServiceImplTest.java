@@ -4,7 +4,7 @@ import com.duoq.medlearn.domain.entity.Disease;
 import com.duoq.medlearn.domain.entity.DiseaseVersion;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.VersionStatus;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.repository.DiseaseRepository;
@@ -96,12 +96,12 @@ class DiseaseVersionServiceImplTest {
         when(currentUserResolver.resolveCurrentUserId()).thenReturn(1L);
         when(userRepository.findByIdWithRoles(1L)).thenReturn(Optional.of(testUser));
         when(diseaseVersionRepository.save(any(DiseaseVersion.class))).thenReturn(draftVersion);
-        when(diseaseMapper.toDiseaseVersionDTO(any(DiseaseVersion.class)))
-                .thenReturn(DiseaseVersionDTO.builder().id(1L).status(VersionStatus.PENDING_REVIEW).build());
+        when(diseaseMapper.toDiseaseVersionResponse(any(DiseaseVersion.class)))
+                .thenReturn(DiseaseVersionResponse.builder().id(1L).status(VersionStatus.PENDING_REVIEW).build());
         doNothing().when(diseaseSectionService).validateRequiredSections(1L);
 
         // When
-        DiseaseVersionDTO result = diseaseVersionService.submitForReview(1L);
+        DiseaseVersionResponse result = diseaseVersionService.submitForReview(1L);
 
         // Then
         assertThat(result).isNotNull();

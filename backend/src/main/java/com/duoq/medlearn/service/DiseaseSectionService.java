@@ -3,9 +3,9 @@ package com.duoq.medlearn.service;
 import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
 import com.duoq.medlearn.domain.dto.section.SectionOrderRequest;
 import com.duoq.medlearn.domain.dto.section.UpdateDiseaseSectionRequest;
-import com.duoq.medlearn.domain.dto.section.DiseaseSectionDTO;
-import com.duoq.medlearn.domain.dto.section.SectionTemplateDTO;
-import com.duoq.medlearn.domain.dto.section.SectionTypeDTO;
+import com.duoq.medlearn.domain.dto.section.DiseaseSectionResponse;
+import com.duoq.medlearn.domain.dto.section.SectionTemplateResponse;
+import com.duoq.medlearn.domain.dto.section.SectionTypeResponse;
 
 import java.util.List;
 
@@ -15,12 +15,12 @@ public interface DiseaseSectionService {
     // CREATE
     // ================================
 
-    DiseaseSectionDTO createSection(
+    DiseaseSectionResponse createSection(
             Long versionId,
             CreateDiseaseSectionRequest request
     );
 
-    List<DiseaseSectionDTO> createSections(
+    List<DiseaseSectionResponse> createSections(
             Long versionId,
             List<CreateDiseaseSectionRequest> requests
     );
@@ -29,11 +29,11 @@ public interface DiseaseSectionService {
     // READ
     // ================================
 
-    DiseaseSectionDTO getSectionById(Long sectionId);
+    DiseaseSectionResponse getSectionById(Long sectionId);
 
-    List<DiseaseSectionDTO> getSectionsByVersion(Long versionId);
+    List<DiseaseSectionResponse> getSectionsByVersion(Long versionId);
 
-    DiseaseSectionDTO getSectionByType(
+    DiseaseSectionResponse getSectionByType(
             Long versionId,
             String sectionType
     );
@@ -42,7 +42,7 @@ public interface DiseaseSectionService {
     // UPDATE
     // ================================
 
-    DiseaseSectionDTO updateSection(
+    DiseaseSectionResponse updateSection(
             Long sectionId,
             UpdateDiseaseSectionRequest request
     );
@@ -76,7 +76,7 @@ public interface DiseaseSectionService {
     // TEMPLATE
     // ================================
 
-    List<SectionTypeDTO> getAllSectionTypes();
+    List<SectionTypeResponse> getAllSectionTypes();
 
-    List<SectionTemplateDTO> getDefaultTemplates();
+    List<SectionTemplateResponse> getDefaultTemplates();
 }

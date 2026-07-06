@@ -8,7 +8,7 @@ import com.duoq.medlearn.domain.dto.auth.RegisterRequest;
 import com.duoq.medlearn.domain.dto.auth.ResendVerificationRequest;
 import com.duoq.medlearn.domain.dto.auth.ResetPasswordRequest;
 import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import com.duoq.medlearn.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,7 +75,7 @@ public class AuthController {
 
     @GetMapping("/me")
     @Operation(summary = "Get current authenticated user")
-    public ResponseEntity<ApiResponse<UserDTO>> getMe() {
+    public ResponseEntity<ApiResponse<UserResponse>> getMe() {
         return ResponseEntity.ok(ApiResponse.success("Get profile success", authService.getCurrentUser()));
     }
 

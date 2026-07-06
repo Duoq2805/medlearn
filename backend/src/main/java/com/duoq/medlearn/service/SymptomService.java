@@ -1,19 +1,21 @@
 package com.duoq.medlearn.service;
 
 import com.duoq.medlearn.domain.dto.symptom.CreateSymptomRequest;
-import com.duoq.medlearn.domain.dto.symptom.SymptomDTO;
+import com.duoq.medlearn.domain.dto.symptom.SymptomResponse;
 import com.duoq.medlearn.domain.dto.symptom.UpdateSymptomRequest;
 
 import java.util.List;
 
 public interface SymptomService {
-    List<SymptomDTO> getAllSymptoms();
+    List<SymptomResponse> getAllSymptoms();
 
-    List<SymptomDTO> searchSymptoms(String query);
+    SymptomResponse getSymptomById(Long id);
 
-    SymptomDTO createSymptom(CreateSymptomRequest request);
+    List<SymptomResponse> searchSymptoms(String query);
 
-    SymptomDTO updateSymptom(Long id, UpdateSymptomRequest request);
+    SymptomResponse createSymptom(CreateSymptomRequest request);
+
+    SymptomResponse updateSymptom(Long id, UpdateSymptomRequest request);
 
     void deleteSymptom(Long id);
 }

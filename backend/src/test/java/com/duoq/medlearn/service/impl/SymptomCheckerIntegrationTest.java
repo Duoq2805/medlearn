@@ -1,12 +1,12 @@
 package com.duoq.medlearn.service.impl;
 
-import com.duoq.medlearn.domain.dto.ai.DiseaseMatchResultDTO;
+import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisResponse;
 import com.duoq.medlearn.domain.entity.*;
 import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.service.SymptomCheckerServiceV1;
+import com.duoq.medlearn.symptom.service.SymptomCheckerServiceV1;
 import com.duoq.medlearn.service.AuditService;
 import com.duoq.medlearn.service.PermissionService;
 import com.duoq.medlearn.service.DiseaseSectionService;
@@ -78,21 +78,21 @@ class SymptomCheckerIntegrationTest {
         approvedDisease.setCurrentVersion(approvedV);
         diseaseRepository.save(approvedDisease);
 
-        // Disease 2: DRAFT with symptoms fever, headache (2) — should be excluded
+        // Disease 2: DRAFT with symptoms fever, headache (2) 閳?should be excluded
         draftDisease = diseaseRepository.save(createDisease("Draft Disease", "draft-disease"));
         DiseaseVersion draftV = createVersion(draftDisease, VersionStatus.DRAFT);
         draftV.setId(diseaseVersionRepository.save(draftV).getId());
         linkSymptom(draftV, fever);
         linkSymptom(draftV, headache);
 
-        // Disease 3: APPROVED but archived — symptoms fever, cough (2) — should be excluded
+        // Disease 3: APPROVED but archived 閳?symptoms fever, cough (2) 閳?should be excluded
         archivedDisease = diseaseRepository.save(createDisease("Archived Disease", "archived-disease"));
         DiseaseVersion archivedV = createVersion(archivedDisease, VersionStatus.ARCHIVED);
         linkSymptom(archivedV, fever);
         linkSymptom(archivedV, cough);
         // Even though currentVersion is set, version is ARCHIVED so symptom link won't resolve
 
-        // Disease 4: APPROVED with no currentVersion set — should be excluded
+        // Disease 4: APPROVED with no currentVersion set 閳?should be excluded
         Disease noCurrentDisease = diseaseRepository.save(createDisease("No Current", "no-current-disease"));
         DiseaseVersion noCurrV = createVersion(noCurrentDisease, VersionStatus.APPROVED);
         linkSymptom(noCurrV, fever);
@@ -104,8 +104,8 @@ class SymptomCheckerIntegrationTest {
     @Test
     void analyze_shouldIncludeApprovedDisease() {
         List<Long> userSymptoms = Arrays.asList(fever.getId(), cough.getId());
-        List<DiseaseMatchResultDTO> results = symptomCheckerServiceV1.analyze(userSymptoms);
-        Optional<DiseaseMatchResultDTO> approved = results.stream()
+        List<SymptomAnalysisResponse> results = symptomCheckerServiceV1.analyze(userSymptoms);
+        Optional<SymptomAnalysisResponse> approved = results.stream()
                 .filter(r -> r.getDiseaseName().equals("Approved Disease"))
                 .findFirst();
         assertThat(approved).isPresent();
@@ -115,8 +115,8 @@ class SymptomCheckerIntegrationTest {
     @Test
     void analyze_shouldExcludeDraftDisease() {
         List<Long> userSymptoms = Arrays.asList(fever.getId(), cough.getId());
-        List<DiseaseMatchResultDTO> results = symptomCheckerServiceV1.analyze(userSymptoms);
-        Optional<DiseaseMatchResultDTO> draft = results.stream()
+        List<SymptomAnalysisResponse> results = symptomCheckerServiceV1.analyze(userSymptoms);
+        Optional<SymptomAnalysisResponse> draft = results.stream()
                 .filter(r -> r.getDiseaseName().equals("Draft Disease"))
                 .findFirst();
         assertThat(draft).isEmpty();
@@ -125,8 +125,8 @@ class SymptomCheckerIntegrationTest {
     @Test
     void analyze_shouldExcludeArchivedDisease() {
         List<Long> userSymptoms = Arrays.asList(fever.getId(), cough.getId());
-        List<DiseaseMatchResultDTO> results = symptomCheckerServiceV1.analyze(userSymptoms);
-        Optional<DiseaseMatchResultDTO> archived = results.stream()
+        List<SymptomAnalysisResponse> results = symptomCheckerServiceV1.analyze(userSymptoms);
+        Optional<SymptomAnalysisResponse> archived = results.stream()
                 .filter(r -> r.getDiseaseName().equals("Archived Disease"))
                 .findFirst();
         assertThat(archived).isEmpty();
@@ -135,8 +135,8 @@ class SymptomCheckerIntegrationTest {
     @Test
     void analyze_shouldExcludeDiseaseWithoutCurrentVersion() {
         List<Long> userSymptoms = Arrays.asList(fever.getId(), cough.getId());
-        List<DiseaseMatchResultDTO> results = symptomCheckerServiceV1.analyze(userSymptoms);
-        Optional<DiseaseMatchResultDTO> noCurrent = results.stream()
+        List<SymptomAnalysisResponse> results = symptomCheckerServiceV1.analyze(userSymptoms);
+        Optional<SymptomAnalysisResponse> noCurrent = results.stream()
                 .filter(r -> r.getDiseaseName().equals("No Current"))
                 .findFirst();
         assertThat(noCurrent).isEmpty();
@@ -144,7 +144,7 @@ class SymptomCheckerIntegrationTest {
 
     @Test
     void analyze_shouldReturnEmpty_whenUserSymptomsEmpty() {
-        List<DiseaseMatchResultDTO> results = symptomCheckerServiceV1.analyze(new ArrayList<>());
+        List<SymptomAnalysisResponse> results = symptomCheckerServiceV1.analyze(new ArrayList<>());
         assertThat(results).isEmpty();
     }
 

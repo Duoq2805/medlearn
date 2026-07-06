@@ -1,7 +1,7 @@
 package com.duoq.medlearn.repository;
 
 import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO;
+import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,20 +42,20 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     Page<Disease> findAllByCategoryIdAndDeletedAtIsNull(Long categoryId, Pageable pageable);
 
     @Query("""
-        SELECT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
+        SELECT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
             d.id, d.name, d.slug, d.updatedAt
         )
         FROM Disease d
         WHERE d.deletedAt IS NULL
           AND (:name IS NULL OR LOWER(d.name) LIKE LOWER(CONCAT('%', :name, '%')))
         """)
-    Page<DiseaseSummaryDTO> findSummaryByNameContaining(
+    Page<DiseaseSummaryProjection> findSummaryByNameContaining(
             @Param("name") String name,
             Pageable pageable
     );
 
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
+    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d
@@ -68,7 +68,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
       AND (:categoryId IS NULL OR d.category.id = :categoryId)
       AND (:symptomIds IS NULL OR dvs.symptom.id IN :symptomIds)
     """)
-        Page<DiseaseSummaryDTO> findApprovedSummaryByFilters(
+        Page<DiseaseSummaryProjection> findApprovedSummaryByFilters(
                 @Param("name") String name,
                 @Param("categoryId") Long categoryId,
                 @Param("symptomIds") List<Long> symptomIds,
@@ -76,7 +76,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
         );
 
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
+    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d
@@ -89,7 +89,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
       AND (:categoryId IS NULL OR d.category.id = :categoryId)
       AND (:symptomIds IS NULL OR dvs.symptom.id IN :symptomIds)
     """)
-    Page<DiseaseSummaryDTO> findSummaryByApprovedFilters(
+    Page<DiseaseSummaryProjection> findSummaryByApprovedFilters(
             @Param("name") String name,
             @Param("categoryId") Long categoryId,
             @Param("symptomIds") java.util.List<Long> symptomIds,
@@ -98,7 +98,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
 
     // Query without symptom filter - used when symptomIds is null to avoid Hibernate type inference issue
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryDTO(
+    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d
@@ -109,7 +109,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
       AND (:name IS NULL OR CAST(d.name AS text) ILIKE '%' || CAST(:name AS text) || '%')
       AND (:categoryId IS NULL OR d.category.id = :categoryId)
     """)
-        Page<DiseaseSummaryDTO> findApprovedSummaryByFiltersWithoutSymptomIds(
+        Page<DiseaseSummaryProjection> findApprovedSummaryByFiltersWithoutSymptomIds(
                 @Param("name") String name,
                 @Param("categoryId") Long categoryId,
                 Pageable pageable

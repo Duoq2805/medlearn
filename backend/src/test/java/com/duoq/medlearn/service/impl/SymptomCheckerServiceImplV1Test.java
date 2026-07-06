@@ -1,6 +1,7 @@
 package com.duoq.medlearn.service.impl;
 
-import com.duoq.medlearn.domain.dto.ai.DiseaseMatchResultDTO;
+import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisResponse;
+import com.duoq.medlearn.symptom.service.impl.SymptomCheckerServiceImplV1;
 import com.duoq.medlearn.domain.entity.Symptom;
 import com.duoq.medlearn.repository.DiseaseRepository;
 import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
@@ -52,7 +53,7 @@ class SymptomCheckerServiceImplV1Test {
         // Both user symptoms AND all disease symptoms need name resolution
         when(symptomRepository.findAllByIdIn(anyList())).thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough")));
 
-        List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
+        List<SymptomAnalysisResponse> results = service.analyze(userSymptomIds);
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getDiseaseName()).isEqualTo("Flu");
@@ -81,7 +82,7 @@ class SymptomCheckerServiceImplV1Test {
                         symptom(5L, "Chills")
                 ));
 
-        List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
+        List<SymptomAnalysisResponse> results = service.analyze(userSymptomIds);
 
         assertThat(results).hasSize(1);
         assertThat(results.get(0).getMatchScore()).isEqualTo(25.0);
@@ -109,7 +110,7 @@ class SymptomCheckerServiceImplV1Test {
                 .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough"),
                         symptom(3L, "F3"), symptom(4L, "F4"), symptom(5L, "F5"), symptom(6L, "F6")));
 
-        List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
+        List<SymptomAnalysisResponse> results = service.analyze(userSymptomIds);
         assertThat(results).isEmpty();
     }
 
@@ -126,7 +127,7 @@ class SymptomCheckerServiceImplV1Test {
         when(symptomRepository.findAllByIdIn(anyList()))
                 .thenReturn(Arrays.asList(symptom(1L, "Fever"), symptom(2L, "Cough"), symptom(3L, "Fatigue")));
 
-        List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
+        List<SymptomAnalysisResponse> results = service.analyze(userSymptomIds);
 
         assertThat(results).hasSize(2);
         assertThat(results.get(0).getDiseaseName()).isEqualTo("Disease B");
@@ -155,7 +156,7 @@ class SymptomCheckerServiceImplV1Test {
         for (Long id : ids) { allSymptoms.add(symptom(id + 100L, "DiseaseSymptom" + id)); }
         when(symptomRepository.findAllByIdIn(anyList())).thenReturn(allSymptoms);
 
-        List<DiseaseMatchResultDTO> results = service.analyze(userSymptomIds);
+        List<SymptomAnalysisResponse> results = service.analyze(userSymptomIds);
         assertThat(results).hasSize(10);
     }
 

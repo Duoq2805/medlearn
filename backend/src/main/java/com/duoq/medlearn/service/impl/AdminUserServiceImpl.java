@@ -4,7 +4,7 @@ import com.duoq.medlearn.domain.entity.Role;
 import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.enums.AuditAction;
 import com.duoq.medlearn.domain.enums.UserStatus;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.UserMapper;
 import com.duoq.medlearn.repository.RoleRepository;
@@ -37,17 +37,17 @@ public class AdminUserServiceImpl implements AdminUserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<UserDTO> getAllUsers(Pageable pageable) {
+    public Page<UserResponse> getAllUsers(Pageable pageable) {
         return userRepository.findAll(pageable)
-                .map(userMapper::toUserDTO);
+                .map(userMapper::toUserResponse);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDTO getUserById(Long id) {
+    public UserResponse getUserById(Long id) {
         User user = userRepository.findByIdWithRoles(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        return userMapper.toUserDTO(user);
+        return userMapper.toUserResponse(user);
     }
 
     @Override
@@ -65,8 +65,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 "notification",
                 Map.of(
                         "type", "ACCOUNT_STATUS",
-                        "title", "Tài khoản bị vô hiệu hóa",
-                        "message", "Tài khoản của bạn đã bị vô hiệu hóa bởi quản trị viên.",
+                        "title", "T脿i kho岷 b峄?v么 hi峄噓 h贸a",
+                        "message", "T脿i kho岷 c峄 b岷 膽茫 b峄?v么 hi峄噓 h贸a b峄焛 qu岷 tr峄?vi锚n.",
                         "createdAt", OffsetDateTime.now()
                 )
         );
@@ -90,8 +90,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 "notification",
                 Map.of(
                         "type", "ACCOUNT_STATUS",
-                        "title", "Tài khoản được kích hoạt",
-                        "message", "Tài khoản của bạn đã được kích hoạt lại.",
+                        "title", "T脿i kho岷 膽瓢峄 k铆ch ho岷",
+                        "message", "T脿i kho岷 c峄 b岷 膽茫 膽瓢峄 k铆ch ho岷 l岷.",
                         "createdAt", OffsetDateTime.now()
                 )
         );
@@ -116,8 +116,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 "notification",
                 Map.of(
                         "type", "ROLE_UPDATE",
-                        "title", "Vai trò được cập nhật",
-                        "message", "Bạn đã được gán vai trò: " + roleName,
+                        "title", "Vai tr貌 膽瓢峄 c岷璸 nh岷璽",
+                        "message", "B岷 膽茫 膽瓢峄 g谩n vai tr貌: " + roleName,
                         "createdAt", OffsetDateTime.now()
                 )
         );
@@ -143,8 +143,8 @@ public class AdminUserServiceImpl implements AdminUserService {
                 "notification",
                 Map.of(
                         "type", "ROLE_UPDATE",
-                        "title", "Vai trò được cập nhật",
-                        "message", "Vai trò đã bị gỡ: " + roleName,
+                        "title", "Vai tr貌 膽瓢峄 c岷璸 nh岷璽",
+                        "message", "Vai tr貌 膽茫 b峄?g峄? " + roleName,
                         "createdAt", OffsetDateTime.now()
                 )
         );

@@ -1,7 +1,7 @@
 package com.duoq.medlearn.controller;
 
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudyDetailDTO;
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudySummaryDTO;
+import com.duoq.medlearn.domain.dto.casestudy.CaseStudyDetailResponse;
+import com.duoq.medlearn.domain.dto.casestudy.CaseStudySummaryProjection;
 import com.duoq.medlearn.domain.dto.casestudy.CreateCaseStudyRequest;
 import com.duoq.medlearn.domain.dto.casestudy.DiagnoseRequest;
 import com.duoq.medlearn.domain.dto.casestudy.DiagnoseResponse;
@@ -29,28 +29,28 @@ public class CaseStudyController {
     @GetMapping
     @Operation(summary = "List approved case studies")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PagedResponse<CaseStudySummaryDTO>>> getAllCases(Pageable pageable) {
+    public ResponseEntity<ApiResponse<PagedResponse<CaseStudySummaryProjection>>> getAllCases(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(PagedResponse.of(caseStudyService.getAllCases(pageable))));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get case study by ID")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<CaseStudyDetailDTO>> getCaseById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<CaseStudyDetailResponse>> getCaseById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(caseStudyService.getCaseById(id)));
     }
 
     @GetMapping("/slug/{slug}")
     @Operation(summary = "Get case study by slug")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<CaseStudyDetailDTO>> getCaseBySlug(@PathVariable String slug) {
+    public ResponseEntity<ApiResponse<CaseStudyDetailResponse>> getCaseBySlug(@PathVariable String slug) {
         return ResponseEntity.ok(ApiResponse.success(caseStudyService.getCaseBySlug(slug)));
     }
 
     @PostMapping
     @PreAuthorize("@permissionService.hasPermission('DISEASE_WRITE')")
     @Operation(summary = "Create case study")
-    public ResponseEntity<ApiResponse<CaseStudyDetailDTO>> createCase(@Valid @RequestBody CreateCaseStudyRequest request) {
+    public ResponseEntity<ApiResponse<CaseStudyDetailResponse>> createCase(@Valid @RequestBody CreateCaseStudyRequest request) {
         return ResponseEntity.ok(ApiResponse.success("Case study created", caseStudyService.createCase(request)));
     }
 

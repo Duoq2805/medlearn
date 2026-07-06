@@ -2,26 +2,80 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
-import { getPermissions } from '../../hooks/usePermissions';
+import { MedvoraLogo } from '../MedvoraLogo';
 import {
   Menu, Moon, Sun, LogOut, Settings, Bell, User, BookOpen,
-  Brain, Zap, Target, Sparkles, BarChart3, Search,
-  Bookmark, LayoutDashboard, ChevronDown, X, Command, FileText, Clock, ClipboardCheck
+  Brain, Sparkles, BarChart3, Search,
+  Bookmark, LayoutDashboard, ChevronDown, X, Command, FileText, Clock, ClipboardCheck,
+  ShieldCheck, Shield, Activity, Database, Users, Eye, CheckCircle2,
+  FileWarning, MessageSquare, LineChart, FolderKanban,
+  Wrench, Monitor, Globe, HardDrive, Mail, Tags,
+  Pill, Stethoscope, ChevronRight
 } from 'lucide-react';
 
-const NAV_AUTH = [
-  { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/explorer', icon: BookOpen, label: 'Diseases' },
-  { to: '/flashcards', icon: Sparkles, label: 'Flashcards' },
-  { to: '/quiz', icon: ClipboardCheck, label: 'Quiz' },
-  { to: '/cases', icon: Target, label: 'Cases' },
-  { to: '/symptom-checker', icon: Brain, label: 'Symptom Checker' },
-] as const;
+type NavItem = { to: string; icon: any; label: string; children?: NavItem[] };
 
-const NAV_GUEST = [
+const NAV: Record<string, NavItem[]> = {
+  USER: [
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/explorer', icon: BookOpen, label: 'Diseases' },
+    { to: '/flashcards', icon: Sparkles, label: 'Flashcards' },
+    { to: '/quiz', icon: ClipboardCheck, label: 'Quiz' },
+    { to: '/cases', icon: Stethoscope, label: 'Cases' },
+    { to: '/symptom-checker', icon: Brain, label: 'Symptom Checker' },
+  ],
+  REVIEWER: [
+    { to: '/reviewer/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/reviewer/queue', icon: FolderKanban, label: 'Review Queue' },
+    { to: '/reviewer/review/1', icon: FileText, label: 'Assigned Reviews' },
+    { to: '/reviewer/history', icon: Clock, label: 'History' },
+    { to: '/reviewer/reports', icon: BarChart3, label: 'Reports' },
+  ],
+  ADMIN: [
+    { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/admin/users', icon: Users, label: 'Users' },
+    { to: '/admin/diseases', icon: BookOpen, label: 'Content', children: [
+      { to: '/admin/diseases', icon: BookOpen, label: 'Diseases' },
+      { to: '/admin/categories', icon: Tags, label: 'Categories' },
+      { to: '/admin/symptoms', icon: Pill, label: 'Symptoms' },
+      { to: '/admin/cases', icon: Activity, label: 'Cases' },
+    ] },
+    { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
+    { to: '/admin/audit-logs', icon: FileText, label: 'System', children: [
+      { to: '/admin/audit-logs', icon: FileText, label: 'Audit Logs' },
+      { to: '/settings', icon: Settings, label: 'Settings' },
+    ] },
+  ],
+};
+
+const NAV_GUEST: NavItem[] = [
   { to: '/explorer', icon: BookOpen, label: 'Diseases' },
-  { to: '/cases', icon: Target, label: 'Cases' },
-] as const;
+  { to: '/symptom-checker', icon: Brain, label: 'Symptom Checker' },
+];
+
+const AVATAR_MENU: Record<string, NavItem[]> = {
+  USER: [
+    { to: '/profile', icon: User, label: 'Profile' },
+    { to: '/bookmarks', icon: Bookmark, label: 'Bookmarks' },
+    { to: '/drafts', icon: FileText, label: 'My Drafts' },
+    { to: '/progress', icon: BarChart3, label: 'Progress' },
+    { to: '/history', icon: Clock, label: 'History' },
+    { to: '/settings', icon: Settings, label: 'Settings' },
+  ],
+  REVIEWER: [
+    { to: '/profile', icon: User, label: 'Profile' },
+    { to: '/reviewer/queue', icon: FolderKanban, label: 'Review Queue' },
+    { to: '/reviewer/history', icon: Clock, label: 'Review History' },
+    { to: '/reviewer/reports', icon: BarChart3, label: 'My Reports' },
+  ],
+  ADMIN: [
+    { to: '/admin/dashboard', icon: Shield, label: 'Admin Dashboard' },
+    { to: '/admin/users', icon: Users, label: 'User Management' },
+    { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
+    { to: '/admin/audit-logs', icon: FileText, label: 'Audit Logs' },
+    { to: '/settings', icon: Settings, label: 'Platform Settings' },
+  ],
+};
 
 export const Navigation: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
@@ -30,120 +84,170 @@ export const Navigation: React.FC = () => {
   const [isAvatarOpen, setIsAvatarOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const avatarRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
+  const dropdownRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const perm = user ? getPermissions(user.roles?.[0]) : null;
+  const role = (user?.roles?.[0] || user?.role || 'USER').toUpperCase();
   const isActive = (path: string) => location.pathname.startsWith(path);
 
   useEffect(() => {
-    const handle = (e: MouseEvent) => {
+    const handleMouseClick = (e: MouseEvent) => {
       if (avatarRef.current && !avatarRef.current.contains(e.target as Node)) setIsAvatarOpen(false);
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) setIsNotifOpen(false);
+      Object.entries(dropdownRefs.current).forEach(([key, ref]) => {
+        if (ref && !ref.contains(e.target as Node) && openDropdown === key) setOpenDropdown(null);
+      });
     };
-    document.addEventListener('mousedown', handle);
-    return () => document.removeEventListener('mousedown', handle);
-  }, []);
+    document.addEventListener('mousedown', handleMouseClick);
+    return () => document.removeEventListener('mousedown', handleMouseClick);
+  }, [openDropdown]);
 
   useEffect(() => {
-    const handle = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen(true);
-      }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); setIsSearchOpen(true); }
     };
-    document.addEventListener('keydown', handle);
-    return () => document.removeEventListener('keydown', handle);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const userInitial = user?.fullName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || '?';
-  const navItems = user ? NAV_AUTH : NAV_GUEST;
+  const navItems = user ? (NAV[role] || NAV.USER) : NAV_GUEST;
+  const avatarItems = AVATAR_MENU[role] || AVATAR_MENU.USER;
 
-  const handleLogout = () => {
-    logout();
-    setIsAvatarOpen(false);
-    navigate('/');
-  };
+  const handleLogout = () => { logout(); setIsAvatarOpen(false); navigate('/'); };
+
+  const renderNavLink = (item: NavItem, isChild = false) => (
+    <Link key={item.to + item.label} to={item.to}
+      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+        isActive(item.to)
+          ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+          : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+      }`}
+      onClick={() => setOpenDropdown(null)}
+    >
+      <item.icon size={16} /> {item.label}
+    </Link>
+  );
+
+  const renderDesktopNav = () => (
+    <nav className="hidden md:flex gap-1 items-center">
+      {user && (
+        <button onClick={() => setIsSearchOpen(true)}
+          className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] transition-colors" aria-label="Search">
+          <Search size={16} />
+          <span className="text-xs text-[var(--text-tertiary)] border border-[var(--border)] rounded px-1.5 py-0.5"><Command size={10} className="inline" />K</span>
+        </button>
+      )}
+      {navItems.map((item) => {
+        if (item.children) {
+          return (
+            <div key={item.label} ref={(el) => { dropdownRefs.current[item.label] = el; }} className="relative">
+              <button onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
+                  item.children.some(c => isActive(c.to))
+                    ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+                    : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+                }`}>
+                <item.icon size={16} /> {item.label} <ChevronDown size={12} className={`transition-transform ${openDropdown === item.label ? 'rotate-180' : ''}`} />
+              </button>
+              {openDropdown === item.label && (
+                <div className="absolute top-full left-0 mt-1 w-44 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-xl shadow-lg z-50 overflow-hidden depth-layer-1 p-1.5">
+                  {item.children.map((child) => (
+                    <Link key={child.to + child.label} to={child.to}
+                      className={`flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${
+                        isActive(child.to)
+                          ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]'
+                          : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
+                      }`}
+                      onClick={() => setOpenDropdown(null)}>
+                      <child.icon size={14} /> {child.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        }
+        return renderNavLink(item);
+      })}
+    </nav>
+  );
+
+  const renderMobileNav = () => navItems.flatMap((item) =>
+    item.children
+      ? [item, ...item.children.map(c => ({ ...c, icon: c.icon || item.icon }))]
+      : [item]
+  ).map((link) => (
+    <Link key={link.to + link.label} to={link.to} onClick={() => setIsMobileOpen(false)}
+      className={`flex items-center gap-2 text-sm font-medium ${isActive(link.to) ? 'text-[var(--accent-primary)]' : 'text-[var(--text-secondary)]'}`}>
+      <link.icon size={16} /> {link.label}
+    </Link>
+  ));
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 py-4">
       <div className="max-w-7xl mx-auto">
         <div className="rounded-2xl px-6 py-3 border backdrop-blur-xl flex justify-between items-center bg-white dark:bg-[var(--surface-primary)] border-[var(--border)]" style={{ boxShadow: 'var(--shadow-sm)' }}>
-          {/* Logo */}
-          <Link to={user ? '/dashboard' : '/'} className="font-display font-bold text-xl text-[var(--text-primary)]">Medvora</Link>
+          <Link to={user ? '/admin/dashboard' : '/'} className="flex items-center gap-2.5 group">
+            <MedvoraLogo className="h-9 w-9" variant="icon" />
+            <span className="font-display font-bold text-lg hidden md:inline bg-gradient-to-r from-[var(--text-primary)] to-[var(--text-secondary)] dark:from-[var(--accent-primary)] dark:to-[var(--accent-light)] bg-clip-text text-transparent">Medvora</span>
+          </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex gap-1">
-            {user && (
-              <button onClick={() => setIsSearchOpen(true)} className="flex items-center gap-2 px-3 py-1.5 text-sm rounded-lg text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]">
-                <Search size={16} />
-                <kbd className="text-xs px-1 py-0.5 rounded border border-[var(--border)]">⌘K</kbd>
-              </button>
-            )}
-            {navItems.map((link) => (
-              <Link key={link.to} to={link.to} className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
-                isActive(link.to) ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]' : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)]'
-              }`}>
-                <link.icon size={16} /> {link.label}
-              </Link>
-            ))}
-          </nav>
+          {renderDesktopNav()}
 
-          {/* Right */}
-          <div className="flex items-center gap-2">
-            <button onClick={toggleTheme} className="p-2.5 rounded-full border border-[var(--border)] hover:bg-[var(--surface-hover)]">
+          <div className="flex items-center gap-3">
+            <button onClick={toggleTheme} className="p-2.5 rounded-full border border-[var(--border)] bg-[--surface-white] dark:bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--surface-hover)] transition-colors" aria-label="Toggle theme">
               {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </button>
 
             {user ? (
               <>
-                {/* Notifications */}
                 <div ref={notifRef} className="relative">
-                  <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2.5 rounded-full border border-[var(--border)] hover:bg-[var(--surface-hover)] relative">
+                  <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2.5 rounded-full border border-[var(--border)] bg-[--surface-white] dark:bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--surface-hover)] transition-colors relative" aria-label="Notifications">
                     <Bell size={18} />
                     <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-bold">3</span>
                   </button>
                   {isNotifOpen && (
-                    <div className="absolute right-0 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] shadow-lg z-50">
-                      <div className="p-3 border-b"><p className="text-sm font-semibold">Notifications</p></div>
+                    <div className="absolute right-0 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-xl shadow-lg z-50 overflow-hidden depth-layer-1">
+                      <div className="p-3 border-b border-[var(--shadow-dark)]"><p className="text-sm font-semibold text-[var(--text-primary)]">Notifications</p></div>
                       <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
-                        {[...Array(3)].map((_, i) => (
-                          <div key={i} className="flex gap-2 p-2 rounded hover:bg-[var(--surface-hover)]">
-                            <span className="w-2 h-2 mt-1 rounded-full bg-[var(--accent-primary)] shrink-0" />
-                            <div className="text-xs">
-                              <p className="text-[var(--text-primary)]">Draft approved</p>
-                              <p className="text-[var(--text-tertiary)]">5m ago</p>
-                            </div>
-                          </div>
-                        ))}
+                        <div className="flex items-start gap-2 p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors cursor-pointer">
+                          <span className="w-2 h-2 mt-1.5 rounded-full bg-[var(--accent-primary)] shrink-0" />
+                          <div><p className="text-xs text-[var(--text-primary)]">New user registered: Dr. Chen</p><p className="text-[10px] text-[var(--text-tertiary)]">5m ago</p></div>
+                        </div>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Avatar */}
                 <div ref={avatarRef} className="relative">
-                  <button onClick={() => setIsAvatarOpen(!isAvatarOpen)} className="flex items-center gap-1.5 px-2 py-1 rounded-full border border-[var(--border)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20">
+                  <button onClick={() => setIsAvatarOpen(!isAvatarOpen)} className="p-1.5 rounded-full border border-[var(--border)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 transition-all flex items-center gap-1.5 pr-3" aria-label="User menu">
                     <div className="w-7 h-7 rounded-full bg-[var(--accent-primary)] flex items-center justify-center text-white text-xs font-bold">{userInitial}</div>
-                    <ChevronDown size={14} />
+                    <ChevronDown size={14} className="text-[var(--text-secondary)]" />
                   </button>
                   {isAvatarOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] shadow-lg z-50">
-                      <div className="p-3 border-b">
-                        <p className="text-sm font-semibold">{user.fullName || user.username}</p>
+                    <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-xl shadow-lg z-50 overflow-hidden depth-layer-1">
+                      <div className="p-3 border-b border-[var(--shadow-dark)]">
+                        <p className="text-sm font-semibold text-[var(--text-primary)]">{user.fullName || user.username}</p>
                         <p className="text-xs text-[var(--text-secondary)]">{user.email}</p>
+                        <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{role}</p>
                       </div>
                       <div className="p-1.5 space-y-0.5">
-                        <Link to="/profile" className="flex gap-2 px-3 py-2 text-sm rounded hover:bg-[var(--surface-hover)]"><User size={16} /> Profile</Link>
-                        <Link to="/bookmarks" className="flex gap-2 px-3 py-2 text-sm rounded hover:bg-[var(--surface-hover)]"><Bookmark size={16} /> Bookmarks</Link>
-                        {perm?.canCreateDraft && <Link to="/drafts" className="flex gap-2 px-3 py-2 text-sm rounded hover:bg-[var(--surface-hover)]"><FileText size={16} /> My Drafts</Link>}
-                        <Link to="/progress" className="flex gap-2 px-3 py-2 text-sm rounded hover:bg-[var(--surface-hover)]"><BarChart3 size={16} /> Progress</Link>
-                        <Link to="/history" className="flex gap-2 px-3 py-2 text-sm rounded hover:bg-[var(--surface-hover)]"><Clock size={16} /> History</Link>
-                        <Link to="/settings" className="flex gap-2 px-3 py-2 text-sm rounded hover:bg-[var(--surface-hover)]"><Settings size={16} /> Settings</Link>
+                        {avatarItems.map((item) => (
+                          <Link key={item.label} to={item.to} onClick={() => setIsAvatarOpen(false)}
+                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors">
+                            <item.icon size={16} /> {item.label}
+                          </Link>
+                        ))}
                         <hr className="border-[var(--shadow-dark)] my-1" />
-                        <button onClick={handleLogout} className="w-full flex gap-2 px-3 py-2 text-sm text-red-600 rounded hover:bg-red-500/10"><LogOut size={16} /> Logout</button>
+                        <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-red-600 hover:bg-red-500/10 transition-colors">
+                          <LogOut size={16} /> Logout
+                        </button>
                       </div>
                     </div>
                   )}
@@ -151,48 +255,34 @@ export const Navigation: React.FC = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="text-sm px-4 py-2 rounded">Login</Link>
-                <Link to="/register" className="text-sm px-4 py-2 rounded bg-[var(--accent-primary)] text-white hover:bg-[var(--accent-light)]">Start Free</Link>
+                <Link to="/login" className="text-sm font-medium px-4 py-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Login</Link>
+                <Link to="/register" className="text-sm font-medium px-4 py-2 rounded-lg bg-[var(--accent-primary)] hover:bg-[var(--accent-light)] text-white transition-all shadow-md hover:shadow-lg active:scale-95">Start Free</Link>
               </>
             )}
 
-            <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="md:hidden p-2.5 rounded-full border border-[var(--border)]">
+            <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="md:hidden p-2.5 rounded-full border border-[var(--border)] bg-[--surface-white] dark:bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--surface-hover)] transition-colors" aria-label="Menu">
               {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
         {isMobileOpen && (
-          <div className="md:hidden mt-3 p-4 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)]">
-            <nav className="flex flex-col gap-2">
-              {navItems.map((link) => (
-                <Link key={link.to} to={link.to} onClick={() => setIsMobileOpen(false)} className="flex gap-2 text-sm p-2">
-                  <link.icon size={16} /> {link.label}
-                </Link>
-              ))}
+          <div className="md:hidden mt-3 p-4 rounded-xl border border-[var(--border)] bg-[--surface-white] dark:bg-[var(--surface-secondary)] backdrop-blur-xl" style={{ boxShadow: 'var(--shadow-sm)' }}>
+            <nav className="flex flex-col gap-3">
+              {renderMobileNav()}
             </nav>
           </div>
         )}
       </div>
 
-      {/* Search Modal */}
       {isSearchOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setIsSearchOpen(false)}>
           <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface-primary)] shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-lg shadow-xl overflow-hidden p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
-              <Search size={18} />
-              <input autoFocus placeholder="Search Diseases, Cases, Flashcards..." className="flex-1 bg-transparent border-none outline-none text-sm" />
-              <kbd className="text-xs px-1.5 py-0.5 rounded border">⌘K</kbd>
-            </div>
-            <div className="space-y-2">
-              {['/explorer', '/cases', '/flashcards', '/quiz', '/bookmarks', '/history'].map((to, i) => (
-                <Link key={i} to={to} onClick={() => setIsSearchOpen(false)} className="flex gap-3 p-2 rounded hover:bg-[var(--surface-hover)] text-sm">
-                  <BookOpen size={16} />
-                  <div><p>Result {i + 1}</p><p className="text-xs text-[var(--text-secondary)]">Navigate to {to}</p></div>
-                </Link>
-              ))}
+              <Search size={18} className="text-[var(--text-tertiary)]" />
+              <input ref={searchInputRef} type="text" autoFocus placeholder="Search..." className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-[var(--text-tertiary)]" />
+              <kbd className="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]">⌘ K</kbd>
             </div>
           </div>
         </div>

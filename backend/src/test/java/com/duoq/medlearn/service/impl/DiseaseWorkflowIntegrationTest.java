@@ -5,7 +5,7 @@ import com.duoq.medlearn.domain.enums.PermissionCode;
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.security.CurrentUserResolver;
 import com.duoq.medlearn.service.AuditService;
@@ -190,7 +190,7 @@ class DiseaseWorkflowIntegrationTest {
         diseaseSectionService.createSection(versionId, treatmentRequest);
 
         // Step 2: Submit for review
-        DiseaseVersionDTO submittedVersion = diseaseWorkflowService.submit(versionId);
+        DiseaseVersionResponse submittedVersion = diseaseWorkflowService.submit(versionId);
         assertThat(submittedVersion).isNotNull();
         assertThat(submittedVersion.getStatus()).isEqualTo(VersionStatus.PENDING_REVIEW);
 
@@ -199,7 +199,7 @@ class DiseaseWorkflowIntegrationTest {
         ModerationRequest moderationRequest = new ModerationRequest();
         moderationRequest.setNote("Approved for publication");
 
-        DiseaseVersionDTO approvedVersion = diseaseWorkflowService.approve(versionId, moderationRequest);
+        DiseaseVersionResponse approvedVersion = diseaseWorkflowService.approve(versionId, moderationRequest);
         assertThat(approvedVersion).isNotNull();
         assertThat(approvedVersion.getStatus()).isEqualTo(VersionStatus.APPROVED);
     }

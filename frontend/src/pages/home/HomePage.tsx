@@ -32,7 +32,10 @@ export default function HomePage() {
 
   // Redirect authenticated users to dashboard
   if (user) {
-    navigate('/dashboard', { replace: true });
+    const role = (user.roles?.[0] || user.role || 'USER').toUpperCase();
+    if (role === 'ADMIN') navigate('/admin/dashboard', { replace: true });
+    else if (role === 'REVIEWER') navigate('/reviewer/dashboard', { replace: true });
+    else navigate('/dashboard', { replace: true });
     return null;
   }
 

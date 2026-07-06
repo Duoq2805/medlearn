@@ -3,7 +3,7 @@ package com.duoq.medlearn.controller;
 import com.duoq.medlearn.domain.dto.common.ApiResponse;
 import com.duoq.medlearn.domain.dto.common.PagedResponse;
 import com.duoq.medlearn.domain.dto.user.RoleRequest;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import com.duoq.medlearn.service.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,7 +29,7 @@ public class AdminController {
     @PreAuthorize("@permissionService.hasPermission('USER_VIEW_ALL')")
     @Operation(summary = "List all users")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<PagedResponse<UserDTO>>> getAllUsers(Pageable pageable) {
+    public ResponseEntity<ApiResponse<PagedResponse<UserResponse>>> getAllUsers(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(PagedResponse.of(adminUserService.getAllUsers(pageable))));
     }
 
@@ -37,7 +37,7 @@ public class AdminController {
     @PreAuthorize("@permissionService.hasPermission('USER_VIEW_ALL')")
     @Operation(summary = "Get user by ID")
     @Transactional(readOnly = true)
-    public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(adminUserService.getUserById(id)));
     }
 

@@ -7,7 +7,7 @@ import { AnimatedSection, StaggerContainer, StaggerItem } from '../../components
 import Skeleton from '../../components/ui/Skeleton';
 
 // Reusable Neumorphic Input Components
-const FloatingInput = ({ label, value, onChange, placeholder, type = 'text', required = false, className = '' }: {
+const NeumorphicInput = ({ label, value, onChange, placeholder, type = 'text', required = false, className = '', ...props }: {
   label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   placeholder: string; type?: string; required?: boolean; className?: string;
 }) => {
@@ -15,16 +15,18 @@ const FloatingInput = ({ label, value, onChange, placeholder, type = 'text', req
   const active = focused || value.length > 0;
   return (
     <div className={`relative ${className}`}>
-      <label className={`absolute left-3 top-2 text-xs font-semibold uppercase tracking-wider transition-all pointer-events-none ${active ? '-top-2 left-2 bg-[var(--bg-primary)] px-1 text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'}`}>
+      <label
+        className={`absolute left-3 top-2 text-xs font-semibold uppercase tracking-wider transition-all duration-300 pointer-events-none ${active ? '-top-2 left-2 bg-[var(--bg-primary)] px-1 text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'}`}
+      >
         {label}{required && <span className="text-red-500">*</span>}
       </label>
       {type === 'textarea' ? (
         <textarea value={value} onChange={onChange} placeholder={focused ? placeholder : ''}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-          className="input-neumorphic w-full min-h-[100px] resize-none pt-5 text-sm" />
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(value !== '' ? true : false)}
+          className="input-neumorphic w-full min-h-[100px] resize-none pt-5 text-sm" {...props} />
       ) : (
         <input type={type} value={value} onChange={onChange} placeholder={focused ? placeholder : ''}
-          onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
+          onFocus={() => setFocused(true)} onBlur={() => setFocused(value !== '' ? true : false)}
           className="input-neumorphic w-full pt-5 text-sm" {...props} />
       )}
     </div>
@@ -33,47 +35,39 @@ const FloatingInput = ({ label, value, onChange, placeholder, type = 'text', req
 
 export default function CreateDiseasePage() {
   const { user } = useAuth();
-  const [autoSave, setAutoSave] = useState('All changes saved');
+  const [autoSave] = useState('All changes saved');
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('');
   const [icd, setIcd] = useState('');
   const [status] = useState('Draft');
   const [version] = useState(1);
   const [lastEdited] = useState('Just now');
-  const [reviewerComments] = useState('None');
-
-  const editorRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
-  const bottomBarRef = useRef<HTMLDivElement>(null);
+  const completionPct = 50;
 
   const sections = [
-    { label: 'Definition', key: 'def' },
-    { label: 'Etiology', key: 'et' },
-    { label: 'Symptoms', key: 'sym' },
-    { label: 'Diagnosis', key: 'dx' },
-    { label: 'Treatment', key: 'tx' },
-    { label: 'Complications', key: 'comp' },
-    { label: 'Prevention', key: 'prev' },
-    { label: 'References', key: 'ref' },
+    { label: 'Definition', key: 'definition' },
+    { label: 'Etiology', key: 'etiology' },
+    { label: 'Symptoms', key: 'symptoms' },
+    { label: 'Diagnosis', key: 'diagnosis' },
+    { label: 'Treatment', key: 'treatment' },
+    { label: 'Complications', key: 'complications' },
+    { label: 'Prevention', key: 'prevention' },
+    { label: 'References', key: 'references' },
   ];
-
-  const completionPercentage = 50; // Placeholder
 
   return (
     <div className="min-h-screen pt-28 pb-24 relative z-10">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex gap-8 items-start">
-          {/* EDITOR */}
-          <main ref={editorRef} className="flex-1 max-w-[70ch] min-w-0 space-y-8">
+          {/* EDITOR (70%) */}
+          <main className="flex-1 max-w-[70ch] min-w-0 space-y-8">
             <AnimatedSection>
-              <button onClick={() => navigate('/drafts')} className="flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-4">
-                <ArrowLeft size={16} /> Back to Drafts
-              </button>
-              <div className="card-neumorphic p-8 mb-6">
-                <FloatingInput label="Disease Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pneumonia" required />
+              {/* Header Meta */}
+              <div className="card-neumorphic p-8">
+                <NeumorphicInput label="Disease Title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Pneumonia" required />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  <FloatingInput label="Category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Infectious Diseases" />
-                  <FloatingInput label="ICD Code" value={icd} onChange={(e) => setIcd(e.target.value)} placeholder="e.g. J18.9" />
+                  <NeumorphicInput label="Category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Infectious Diseases" />
+                  <NeumorphicInput label="ICD Code" value={icd} onChange={(e) => setIcd(e.target.value)} placeholder="e.g. J18.9" />
                 </div>
                 <div className="mt-6">
                   <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Tags</label>
@@ -94,34 +88,45 @@ export default function CreateDiseasePage() {
             </AnimatedSection>
           </main>
 
-          {/* SIDEBAR */}
-          <aside ref={sidebarRef} className="w-[30%] min-w-[260px] sticky top-28 space-y-6">
+          {/* SIDEBAR (30%) */}
+          <aside className="w-[30%] min-w-[300px] sticky top-28 self-start space-y-6">
             <AnimatedSection>
               {/* Draft Status */}
               <div className="card-neumorphic p-6">
-                <h3 className="font-display text-base font-bold text-[var(--text-primary)] mb-4">Draft Status</h3>
+                <h3 className="font-display text-base font-bold text-[var(--text-primary)] mb-4">Draft Details</h3>
                 <div className="space-y-3 text-sm">
-                  <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Status</span><span className={`px-2 py-0.5 rounded text-xs font-medium ${
-                    status === 'Draft' ? 'bg-blue-500/10 text-blue-600' :
-                    status === 'Pending Review' ? 'bg-amber-500/10 text-amber-600' :
-                    'bg-red-500/10 text-red-600'
-                  }`}>{status}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Completion</span><span className="font-semibold text-[var(--accent-primary)]">{completionPercentage}%</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Version</span><span>v{version}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Last Edited</span><span>{lastEdited}</span></div>
-                  <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Reviewer Status</span><span>{reviewerComments}</span></div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Status</p>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${status === 'Draft' ? 'bg-blue-500/10 text-blue-600' : status === 'Pending Review' ? 'bg-amber-500/10 text-amber-600' : 'bg-red-500/10 text-red-600'}`}>{status}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Completion</p>
+                    <span className="text-sm font-semibold text-[var(--accent-primary)]">{completionPct}%</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Version</p>
+                    <span className="text-sm text-[var(--text-secondary)]">v{version}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Last Edited</p>
+                    <span className="text-sm text-[var(--text-secondary)]">{lastEdited}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-[var(--text-primary)]">Reviewer Status</p>
+                    <span className="text-sm text-[var(--text-secondary)]">None</span>
+                  </div>
                 </div>
-                <button disabled className="btn-neumorphic-secondary py-2 w-full text-sm flex items-center justify-center gap-2 mt-4 opacity-50 cursor-not-allowed"><FileText size={14} /> Attachments</button>
-                <button disabled className="btn-neumorphic-secondary py-2 w-full text-sm flex items-center justify-center gap-2 mt-2 opacity-50 cursor-not-allowed"><Sparkles size={14} /> AI Assistant</button>
+                <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full text-sm flex items-center justify-center gap-2 opacity-50 cursor-not-allowed mb-2"><FileText size={14} /> Attachments</button>
+                <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full text-sm flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"><Sparkles size={14} /> AI Assistant</button>
               </div>
 
               {/* AI Card Placeholder */}
               <div className="card-neumorphic p-6">
-                <div className="flex items-center gap-2 mb-3"><Sparkles size={16} className="text-[var(--accent-primary)]" /><h3 className="font-display text-base font-bold">AI Assistant</h3></div>
+                <div className="flex items-center gap-2 mb-4"><Sparkles size={16} className="text-[var(--accent-primary)]" /><h3 className="font-display text-base font-bold">AI Assistant</h3></div>
                 <div className="space-y-2 text-sm">
-                  {[...Array(3)].map((_, i) => (
-                    <button key={i} disabled className="btn-neumorphic-secondary py-2 w-full text-xs opacity-50 cursor-not-allowed">Generate Content {i+1}</button>
-                  ))}
+                  <button disabled className="btn-neumorphic-secondary py-2 w-full text-xs opacity-50 cursor-not-allowed">Generate Definition</button>
+                  <button disabled className="btn-neumorphic-secondary py-2 w-full text-sm opacity-50 cursor-not-allowed">Improve Etiology</button>
+                  <button disabled className="btn-neumorphic-secondary py-2 w-full text-sm opacity-50 cursor-not-allowed">Simplify Symptoms</button>
                 </div>
               </div>
             </AnimatedSection>
@@ -131,7 +136,7 @@ export default function CreateDiseasePage() {
 
       {/* Sticky Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 px-6 py-3">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="rounded-2xl p-4 bg-[var(--bg-primary)] shadow-[inset_4px_4px_10px_var(--shadow-dark),inset_-4px_-4px_10px_var(--shadow-light)] flex items-center justify-between">
             <div className="flex items-center gap-2 text-xs text-[var(--text-tertiary)]"><Clock size={14} />{autoSave}</div>
             <div className="flex items-center gap-3">

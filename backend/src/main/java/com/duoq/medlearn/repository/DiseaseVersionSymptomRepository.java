@@ -165,4 +165,17 @@ public interface DiseaseVersionSymptomRepository extends JpaRepository<DiseaseVe
       AND d.deletedAt IS NULL
     """)
     List<Object[]> findDiseaseSymptomMappings(@Param("diseaseIds") List<Long> diseaseIds);
+
+    @Query("""
+    SELECT d.id, d.name, dvs.symptom.id, s.name, COALESCE(dvs.weightScore, 1)
+    FROM Disease d
+    JOIN DiseaseVersionSymptom dvs ON dvs.diseaseVersion.id = d.currentVersion.id
+    JOIN dvs.symptom s
+    WHERE d.id IN :diseaseIds
+      AND d.currentVersion IS NOT NULL
+      AND d.currentVersion.status = 'APPROVED'
+      AND d.currentVersion.deletedAt IS NULL
+      AND d.deletedAt IS NULL
+    """)
+    List<Object[]> findDiseaseSymptomDetailsForV2(@Param("diseaseIds") List<Long> diseaseIds);
 }

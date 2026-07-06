@@ -7,9 +7,9 @@ import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
 import com.duoq.medlearn.domain.dto.section.SectionOrderRequest;
 import com.duoq.medlearn.domain.dto.section.UpdateDiseaseSectionRequest;
-import com.duoq.medlearn.domain.dto.section.DiseaseSectionDTO;
-import com.duoq.medlearn.domain.dto.section.SectionTemplateDTO;
-import com.duoq.medlearn.domain.dto.section.SectionTypeDTO;
+import com.duoq.medlearn.domain.dto.section.DiseaseSectionResponse;
+import com.duoq.medlearn.domain.dto.section.SectionTemplateResponse;
+import com.duoq.medlearn.domain.dto.section.SectionTypeResponse;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.mapper.DiseaseMapper;
 import com.duoq.medlearn.repository.DiseaseSectionRepository;
@@ -43,7 +43,7 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
 
     @Override
     @Transactional
-    public DiseaseSectionDTO createSection(Long versionId, CreateDiseaseSectionRequest request) {
+    public DiseaseSectionResponse createSection(Long versionId, CreateDiseaseSectionRequest request) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
         validateVersionEditable(version);
@@ -58,45 +58,45 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
                 .orderIndex(request.getOrderIndex() == null ? 0 : request.getOrderIndex())
                 .build();
 
-        return diseaseMapper.toDiseaseSectionDTO(diseaseSectionRepository.save(section));
+        return diseaseMapper.toDiseaseSectionResponse(diseaseSectionRepository.save(section));
     }
 
     @Override
     @Transactional
-    public List<DiseaseSectionDTO> createSections(Long versionId, List<CreateDiseaseSectionRequest> requests) {
+    public List<DiseaseSectionResponse> createSections(Long versionId, List<CreateDiseaseSectionRequest> requests) {
         return requests.stream()
                 .map(req -> createSection(versionId, req))
                 .toList();
     }
 
     @Override
-    public DiseaseSectionDTO getSectionById(Long sectionId) {
+    public DiseaseSectionResponse getSectionById(Long sectionId) {
         DiseaseSection section = diseaseSectionRepository.findById(sectionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease section not found"));
-        return diseaseMapper.toDiseaseSectionDTO(section);
+        return diseaseMapper.toDiseaseSectionResponse(section);
     }
 
     @Override
-    public List<DiseaseSectionDTO> getSectionsByVersion(Long versionId) {
+    public List<DiseaseSectionResponse> getSectionsByVersion(Long versionId) {
         return diseaseSectionRepository.findAllByDiseaseVersionIdAndDeletedAtIsNullOrderByOrderIndexAsc(versionId)
                 .stream()
-                .map(diseaseMapper::toDiseaseSectionDTO)
+                .map(diseaseMapper::toDiseaseSectionResponse)
                 .toList();
     }
 
     @Override
-    public DiseaseSectionDTO getSectionByType(Long versionId, String sectionType) {
+    public DiseaseSectionResponse getSectionByType(Long versionId, String sectionType) {
         return diseaseSectionRepository.findAllByVersionIdWithType(versionId).stream()
                 .filter(section -> section.getSectionType() != null
                         && sectionType.equalsIgnoreCase(section.getSectionType().getName()))
                 .findFirst()
-                .map(diseaseMapper::toDiseaseSectionDTO)
+                .map(diseaseMapper::toDiseaseSectionResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Section type not found"));
     }
 
     @Override
     @Transactional
-    public DiseaseSectionDTO updateSection(Long sectionId, UpdateDiseaseSectionRequest request) {
+    public DiseaseSectionResponse updateSection(Long sectionId, UpdateDiseaseSectionRequest request) {
         DiseaseSection section = diseaseSectionRepository.findById(sectionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease section not found"));
         validateVersionEditable(section.getDiseaseVersion());
@@ -116,7 +116,7 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
             section.setOrderIndex(request.getOrderIndex());
         }
 
-        return diseaseMapper.toDiseaseSectionDTO(diseaseSectionRepository.save(section));
+        return diseaseMapper.toDiseaseSectionResponse(diseaseSectionRepository.save(section));
     }
 
     @Override
@@ -165,9 +165,9 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
     }
 
     @Override
-    public List<SectionTypeDTO> getAllSectionTypes() {
+    public List<SectionTypeResponse> getAllSectionTypes() {
         return sectionTypeRepository.findAll().stream()
-                .map(type -> SectionTypeDTO.builder()
+                .map(type -> SectionTypeResponse.builder()
                         .id(type.getId())
                         .name(type.getName())
                         .description(type.getDescription())
@@ -176,14 +176,14 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
     }
 
     @Override
-    public List<SectionTemplateDTO> getDefaultTemplates() {
+    public List<SectionTemplateResponse> getDefaultTemplates() {
         return List.of(
-                SectionTemplateDTO.builder().sectionType("definition").title("Definition").template("Định nghĩa bệnh...").build(),
-                SectionTemplateDTO.builder().sectionType("symptoms").title("Symptoms").template("Triệu chứng chính...").build(),
-                SectionTemplateDTO.builder().sectionType("causes").title("Causes").template("Nguyên nhân...").build(),
-                SectionTemplateDTO.builder().sectionType("diagnosis").title("Diagnosis").template("Chẩn đoán...").build(),
-                SectionTemplateDTO.builder().sectionType("treatment").title("Treatment").template("Điều trị...").build(),
-                SectionTemplateDTO.builder().sectionType("prevention").title("Prevention").template("Phòng ngừa...").build()
+                SectionTemplateResponse.builder().sectionType("definition").title("Definition").template("膼峄媙h ngh末a b峄噉h...").build(),
+                SectionTemplateResponse.builder().sectionType("symptoms").title("Symptoms").template("Tri峄噓 ch峄﹏g ch铆nh...").build(),
+                SectionTemplateResponse.builder().sectionType("causes").title("Causes").template("Nguy锚n nh芒n...").build(),
+                SectionTemplateResponse.builder().sectionType("diagnosis").title("Diagnosis").template("Ch岷﹏ 膽o谩n...").build(),
+                SectionTemplateResponse.builder().sectionType("treatment").title("Treatment").template("膼i峄乽 tr峄?..").build(),
+                SectionTemplateResponse.builder().sectionType("prevention").title("Prevention").template("Ph貌ng ng峄玜...").build()
         );
     }
 

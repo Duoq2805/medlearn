@@ -10,7 +10,7 @@ import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.domain.dto.version.CreateDiseaseVersionRequest;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
 import com.duoq.medlearn.domain.dto.version.UpdateDiseaseVersionRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.repository.*;
 import com.duoq.medlearn.mapper.DiseaseMapper;
@@ -47,7 +47,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
 
     @Override
     @Transactional
-    public DiseaseVersionDTO createDraftVersion(Long diseaseId, CreateDiseaseVersionRequest request) {
+    public DiseaseVersionResponse createDraftVersion(Long diseaseId, CreateDiseaseVersionRequest request) {
         Disease disease = diseaseRepository.findById(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease not found"));
         User currentUser = findCurrentUser();
@@ -60,12 +60,12 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
                 .moderationNote(request != null ? request.getNote() : null)
                 .build();
 
-        return diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        return diseaseMapper.toDiseaseVersionResponse(diseaseVersionRepository.save(version));
     }
 
     @Override
     @Transactional
-    public DiseaseVersionDTO cloneApprovedVersion(Long diseaseId) {
+    public DiseaseVersionResponse cloneApprovedVersion(Long diseaseId) {
         DiseaseVersion approved = diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Current approved version not found"));
 
@@ -89,55 +89,55 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         cloneSections(approved, clone);
         cloneSymptoms(approved, clone);
 
-        return diseaseMapper.toDiseaseVersionDTO(clone);
+        return diseaseMapper.toDiseaseVersionResponse(clone);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DiseaseVersionDTO getVersionById(Long versionId) {
+    public DiseaseVersionResponse getVersionById(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
-        return diseaseMapper.toDiseaseVersionDTO(version);
+        return diseaseMapper.toDiseaseVersionResponse(version);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<DiseaseVersionDTO> getDiseaseVersions(Long diseaseId) {
+    public List<DiseaseVersionResponse> getDiseaseVersions(Long diseaseId) {
         return diseaseVersionRepository.findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(diseaseId)
                 .stream()
-                .map(diseaseMapper::toDiseaseVersionDTO)
+                .map(diseaseMapper::toDiseaseVersionResponse)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DiseaseVersionDTO getCurrentApprovedVersion(Long diseaseId) {
+    public DiseaseVersionResponse getCurrentApprovedVersion(Long diseaseId) {
         DiseaseVersion version = diseaseVersionRepository.findCurrentVersionByDiseaseId(diseaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Current approved version not found"));
-        return diseaseMapper.toDiseaseVersionDTO(version);
+        return diseaseMapper.toDiseaseVersionResponse(version);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public DiseaseVersionDTO getLatestDraftVersion(Long diseaseId) {
+    public DiseaseVersionResponse getLatestDraftVersion(Long diseaseId) {
         return diseaseVersionRepository.findAllByDiseaseIdAndDeletedAtIsNullOrderByVersionNumberDesc(diseaseId)
                 .stream()
                 .filter(v -> v.getStatus() == VersionStatus.DRAFT)
                 .findFirst()
-                .map(diseaseMapper::toDiseaseVersionDTO)
+                .map(diseaseMapper::toDiseaseVersionResponse)
                 .orElseThrow(() -> new ResourceNotFoundException("Draft version not found"));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<DiseaseVersionDTO> getPendingReviewVersions(Pageable pageable) {
+    public Page<DiseaseVersionResponse> getPendingReviewVersions(Pageable pageable) {
         return diseaseVersionRepository.findAllByStatusAndDeletedAtIsNull(VersionStatus.PENDING_REVIEW, pageable)
-                .map(diseaseMapper::toDiseaseVersionDTO);
+                .map(diseaseMapper::toDiseaseVersionResponse);
     }
 
     @Override
     @Transactional
-    public DiseaseVersionDTO updateDraftVersion(Long versionId, UpdateDiseaseVersionRequest request) {
+    public DiseaseVersionResponse updateDraftVersion(Long versionId, UpdateDiseaseVersionRequest request) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
 
@@ -148,12 +148,12 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         validateVersionOwnership(versionId);
         version.setModerationNote(request.getModerationNote());
 
-        return diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        return diseaseMapper.toDiseaseVersionResponse(diseaseVersionRepository.save(version));
     }
 
     @Override
     @Transactional
-    public DiseaseVersionDTO submitForReview(Long versionId) {
+    public DiseaseVersionResponse submitForReview(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
 
@@ -167,7 +167,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         diseaseSectionService.validateRequiredSections(versionId);
 
         version.submitForReview();
-        DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        DiseaseVersionResponse result = diseaseMapper.toDiseaseVersionResponse(diseaseVersionRepository.save(version));
         auditService.log(findCurrentUser(), AuditAction.VERSION_SUBMITTED,
                 "DiseaseVersion", versionId,
                 Map.of("diseaseId", version.getDisease().getId(),
@@ -177,7 +177,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
 
     @Override
     @Transactional
-    public DiseaseVersionDTO approveVersion(Long versionId, ModerationRequest request) {
+    public DiseaseVersionResponse approveVersion(Long versionId, ModerationRequest request) {
         validateReviewerPermission();
 
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
@@ -203,7 +203,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         disease.setCurrentVersion(version);
         diseaseRepository.save(disease);
 
-        DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        DiseaseVersionResponse result = diseaseMapper.toDiseaseVersionResponse(diseaseVersionRepository.save(version));
         auditService.log(reviewer, AuditAction.VERSION_APPROVED,
                 "DiseaseVersion", versionId,
                 Map.of("diseaseId", disease.getId(),
@@ -215,7 +215,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
 
     @Override
     @Transactional
-    public DiseaseVersionDTO rejectVersion(Long versionId, ModerationRequest request) {
+    public DiseaseVersionResponse rejectVersion(Long versionId, ModerationRequest request) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
 
@@ -226,7 +226,7 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
         String note = request != null ? request.getNote() : null;
         version.reject(reviewer, note);
 
-        DiseaseVersionDTO result = diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        DiseaseVersionResponse result = diseaseMapper.toDiseaseVersionResponse(diseaseVersionRepository.save(version));
         auditService.log(reviewer, AuditAction.VERSION_REJECTED,
                 "DiseaseVersion", versionId,
                 Map.of("diseaseId", version.getDisease().getId(),
@@ -238,14 +238,14 @@ public class DiseaseVersionServiceImpl implements DiseaseVersionService {
 
     @Override
     @Transactional
-    public DiseaseVersionDTO archiveVersion(Long versionId) {
+    public DiseaseVersionResponse archiveVersion(Long versionId) {
         DiseaseVersion version = diseaseVersionRepository.findById(versionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Disease version not found"));
 
         validateReviewerPermission();
         validateWorkflowTransition(version.getStatus(), VersionStatus.ARCHIVED);
         version.setStatus(VersionStatus.ARCHIVED);
-        return diseaseMapper.toDiseaseVersionDTO(diseaseVersionRepository.save(version));
+        return diseaseMapper.toDiseaseVersionResponse(diseaseVersionRepository.save(version));
     }
 
     @Override

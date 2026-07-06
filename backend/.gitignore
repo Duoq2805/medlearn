@@ -39,3 +39,10 @@ test-output.txt
 
 ### Project documentation (not for commit) ###
 Medvora/
+.codegraph
+.omo
+docs
+thoughts
+uploads
+oglevel=ERROR
+

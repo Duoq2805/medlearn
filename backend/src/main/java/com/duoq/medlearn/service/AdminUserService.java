@@ -1,14 +1,14 @@
 package com.duoq.medlearn.service;
 
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface AdminUserService {
 
-    Page<UserDTO> getAllUsers(Pageable pageable);
+    Page<UserResponse> getAllUsers(Pageable pageable);
 
-    UserDTO getUserById(Long id);
+    UserResponse getUserById(Long id);
 
     void deactivateUser(Long id);
 

@@ -1,6 +1,6 @@
 package com.duoq.medlearn.service.impl;
 
-import com.duoq.medlearn.domain.dto.category.CategoryDTO;
+import com.duoq.medlearn.domain.dto.category.CategoryResponse;
 import com.duoq.medlearn.domain.dto.category.CreateCategoryRequest;
 import com.duoq.medlearn.domain.dto.category.UpdateCategoryRequest;
 import com.duoq.medlearn.domain.entity.Category;
@@ -23,28 +23,28 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CategoryDTO> getAllCategories() {
+    public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAllByOrderByNameAsc(Pageable.unpaged()).getContent().stream()
-                .map(categoryMapper::toCategoryDTO)
+                .map(categoryMapper::toCategoryResponse)
                 .toList();
     }
 
     @Override
     @Transactional(readOnly = true)
-    public CategoryDTO getCategoryById(Long id) {
-        return categoryMapper.toCategoryDTO(findCategory(id));
+    public CategoryResponse getCategoryById(Long id) {
+        return categoryMapper.toCategoryResponse(findCategory(id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public CategoryDTO getCategoryBySlug(String slug) {
-        return categoryMapper.toCategoryDTO(categoryRepository.findBySlug(slug)
+    public CategoryResponse getCategoryBySlug(String slug) {
+        return categoryMapper.toCategoryResponse(categoryRepository.findBySlug(slug)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found")));
     }
 
     @Override
     @Transactional
-    public CategoryDTO createCategory(CreateCategoryRequest request) {
+    public CategoryResponse createCategory(CreateCategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
             throw new IllegalStateException("Category name already exists");
         }
@@ -58,12 +58,12 @@ public class CategoryServiceImpl implements CategoryService {
                 .slug(slug)
                 .description(request.getDescription())
                 .build();
-        return categoryMapper.toCategoryDTO(categoryRepository.save(category));
+        return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
 
     @Override
     @Transactional
-    public CategoryDTO updateCategory(Long id, UpdateCategoryRequest request) {
+    public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
         Category category = findCategory(id);
         if (request.getName() != null) {
             if (!request.getName().equals(category.getName()) && categoryRepository.existsByName(request.getName())) {
@@ -74,7 +74,7 @@ public class CategoryServiceImpl implements CategoryService {
         if (request.getDescription() != null) {
             category.setDescription(request.getDescription());
         }
-        return categoryMapper.toCategoryDTO(categoryRepository.save(category));
+        return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.duoq.medlearn.domain.entity.User;
 import com.duoq.medlearn.domain.entity.VerificationToken;
 import com.duoq.medlearn.domain.enums.UserStatus;
 import com.duoq.medlearn.domain.dto.user.UpdateProfileRequest;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 import com.duoq.medlearn.exception.EmailAlreadyExistsException;
 import com.duoq.medlearn.exception.ResourceNotFoundException;
 import com.duoq.medlearn.exception.UsernameAlreadyExistsException;
@@ -41,14 +41,14 @@ public class UserServiceImpl implements UserService {
     private int expiryHours;
 
     @Override
-    public UserDTO getCurrentUser() {
+    public UserResponse getCurrentUser() {
         User user = resolveCurrentUserEntity();
-        return userMapper.toUserDTO(user);
+        return userMapper.toUserResponse(user);
     }
 
     @Override
     @Transactional
-    public UserDTO updateProfile(UpdateProfileRequest request) {
+    public UserResponse updateProfile(UpdateProfileRequest request) {
         User user = resolveCurrentUserEntity();
 
         // Username change
@@ -61,14 +61,14 @@ public class UserServiceImpl implements UserService {
             user.setUsername(request.getUsername());
         }
 
-        // Email change — requires re-verification
+        // Email change 鈥?requires re-verification
         if (request.getEmail() != null && !request.getEmail().isBlank()
                 && !request.getEmail().equalsIgnoreCase(user.getEmail())) {
             if (userRepository.existsByEmail(request.getEmail())) {
                 throw new EmailAlreadyExistsException();
             }
 
-            log.info("User [{}] changing email: {} -> {} — re-verification required",
+            log.info("User [{}] changing email: {} -> {} 鈥?re-verification required",
                     user.getId(), user.getEmail(), request.getEmail());
 
             user.setEmail(request.getEmail());
@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
         if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
 
         User updatedUser = userRepository.save(user);
-        return userMapper.toUserDTO(updatedUser);
+        return userMapper.toUserResponse(updatedUser);
     }
 
     private User resolveCurrentUserEntity() {

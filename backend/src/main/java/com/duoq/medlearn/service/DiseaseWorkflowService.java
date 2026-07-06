@@ -2,23 +2,23 @@ package com.duoq.medlearn.service;
 
 import com.duoq.medlearn.domain.enums.VersionStatus;
 import com.duoq.medlearn.domain.dto.version.ModerationRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionDTO;
+import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
 
 public interface DiseaseWorkflowService {
 
-    DiseaseVersionDTO submit(Long versionId);
+    DiseaseVersionResponse submit(Long versionId);
 
-    DiseaseVersionDTO approve(
+    DiseaseVersionResponse approve(
             Long versionId,
             ModerationRequest request
     );
 
-    DiseaseVersionDTO reject(
+    DiseaseVersionResponse reject(
             Long versionId,
             ModerationRequest request
     );
 
-    DiseaseVersionDTO rollback(
+    DiseaseVersionResponse rollback(
             Long diseaseId,
             Long targetVersionId
     );

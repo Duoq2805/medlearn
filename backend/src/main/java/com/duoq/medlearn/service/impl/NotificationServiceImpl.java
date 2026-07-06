@@ -1,6 +1,6 @@
 package com.duoq.medlearn.service.impl;
 
-import com.duoq.medlearn.domain.dto.ai.AiStreamChunkResponse;
+import com.duoq.medlearn.ai.dto.response.AiStreamChunkResponse;
 import com.duoq.medlearn.domain.dto.notification.NotificationEventResponse;
 import com.duoq.medlearn.security.CurrentUserResolver;
 import com.duoq.medlearn.service.NotificationService;

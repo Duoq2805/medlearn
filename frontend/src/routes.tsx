@@ -17,8 +17,6 @@ import MyDraftsPage from './pages/disease/MyDraftsPage';
 import SymptomCheckerPage from './pages/symptom-checker/SymptomCheckerPage';
 import CaseStudyListPage from './pages/cases/CaseStudyListPage';
 import CaseStudyDetailPage from './pages/cases/CaseStudyDetailPage';
-import ReviewerDashboardPage from './pages/reviewer/ReviewerDashboardPage';
-import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import FlashcardsPage from './pages/flashcards/FlashcardsPage';
 import QuizPage from './pages/quiz/QuizPage';
 import BookmarkPage from './pages/bookmarks/BookmarkPage';
@@ -27,6 +25,23 @@ import ProgressPage from './pages/progress/ProgressPage';
 import ProfilePage from './pages/settings/ProfilePage';
 import ThemingDashboardPage from './pages/settings/ThemingDashboardPage';
 import NotFoundPage from './pages/NotFoundPage';
+
+// Reviewer pages
+import ReviewerDashboardPage from './pages/reviewer/ReviewerDashboardPage';
+import ReviewerQueuePage from './pages/reviewer/ReviewerQueuePage';
+import ReviewerReviewPage from './pages/reviewer/ReviewerReviewPage';
+import ReviewerHistoryPage from './pages/reviewer/ReviewerHistoryPage';
+import ReviewerReportsPage from './pages/reviewer/ReviewerReportsPage';
+
+// Admin pages
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminDiseasesPage from './pages/admin/AdminDiseasesPage';
+import AdminCategoriesPage from './pages/admin/AdminCategoriesPage';
+import AdminSymptomsPage from './pages/admin/AdminSymptomsPage';
+import AdminCasesPage from './pages/admin/AdminCasesPage';
+import AdminReportsPage from './pages/admin/AdminReportsPage';
+import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
 
 const router = createBrowserRouter([
   {
@@ -41,6 +56,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
+      // USER workspace
       { path: 'dashboard', element: <UserDashboardPage /> },
       { path: 'explorer', element: <DiseaseExplorerPage /> },
       { path: 'disease/:id', element: <DiseaseDetailPage /> },
@@ -57,8 +73,21 @@ const router = createBrowserRouter([
       { path: 'progress', element: <ProgressPage /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'settings', element: <ThemingDashboardPage /> },
-      { path: 'reviewer', element: <ReviewerDashboardPage /> },
-      { path: 'admin', element: <AdminDashboardPage /> },
+      // REVIEWER workspace
+      { path: 'reviewer/dashboard', element: <ReviewerDashboardPage /> },
+      { path: 'reviewer/queue', element: <ReviewerQueuePage /> },
+      { path: 'reviewer/review/:id', element: <ReviewerReviewPage /> },
+      { path: 'reviewer/history', element: <ReviewerHistoryPage /> },
+      { path: 'reviewer/reports', element: <ReviewerReportsPage /> },
+      // ADMIN workspace
+      { path: 'admin/dashboard', element: <AdminDashboardPage /> },
+      { path: 'admin/users', element: <AdminUsersPage /> },
+      { path: 'admin/diseases', element: <AdminDiseasesPage /> },
+      { path: 'admin/categories', element: <AdminCategoriesPage /> },
+      { path: 'admin/symptoms', element: <AdminSymptomsPage /> },
+      { path: 'admin/cases', element: <AdminCasesPage /> },
+      { path: 'admin/reports', element: <AdminReportsPage /> },
+      { path: 'admin/audit-logs', element: <AdminAuditLogsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

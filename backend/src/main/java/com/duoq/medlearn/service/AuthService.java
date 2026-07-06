@@ -7,7 +7,7 @@ import com.duoq.medlearn.domain.dto.auth.ResendVerificationRequest;
 import com.duoq.medlearn.domain.dto.auth.ResetPasswordRequest;
 import com.duoq.medlearn.domain.dto.auth.AuthResponse;
 import com.duoq.medlearn.domain.dto.auth.MessageResponse;
-import com.duoq.medlearn.domain.dto.user.UserDTO;
+import com.duoq.medlearn.domain.dto.user.UserResponse;
 
 public interface AuthService {
     MessageResponse register(RegisterRequest request);
@@ -16,7 +16,7 @@ public interface AuthService {
     AuthResponse login(LoginRequest request);
     AuthResponse refreshToken(String refreshToken);
     void logout(String refreshToken, String accessToken);
-    UserDTO getCurrentUser();
+    UserResponse getCurrentUser();
     MessageResponse forgotPassword(ForgotPasswordRequest request);
     MessageResponse resetPassword(ResetPasswordRequest request);
 }

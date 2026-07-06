@@ -4,6 +4,13 @@ import { User, AuthResponse } from '../types';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
+function getDashboardPath(role?: string): string {
+  const r = (role || 'USER').toUpperCase();
+  if (r === 'ADMIN') return '/admin/dashboard';
+  if (r === 'REVIEWER') return '/reviewer/dashboard';
+  return '/dashboard';
+}
+
 export const useAuth = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -35,7 +42,9 @@ export const useAuth = () => {
       localStorage.setItem('refreshToken', data.refreshToken);
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       setLoginError(null);
-      navigate('/dashboard');
+      // Redirect based on role
+      const userRole = data.roles?.[0] || 'USER';
+      navigate(getDashboardPath(userRole), { replace: true });
     },
     onError: (error: any) => {
       const msg = error?.response?.data?.message || error?.message || 'Invalid email/username or password.';
@@ -52,7 +61,8 @@ export const useAuth = () => {
       localStorage.setItem('refreshToken', data.refreshToken);
       queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
       setRegisterError(null);
-      navigate('/verify-email');
+      const userRole = data.roles?.[0] || 'USER';
+      navigate(getDashboardPath(userRole), { replace: true });
     },
     onError: (error: any) => {
       const msg = error?.response?.data?.message || error?.message || 'Registration failed. Please try again.';
