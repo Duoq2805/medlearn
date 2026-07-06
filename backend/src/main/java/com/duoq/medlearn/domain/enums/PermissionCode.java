@@ -36,5 +36,18 @@ public enum PermissionCode {
     AI_USE,
     AI_SUMMARY,
     AI_MANAGE,
-    AI_VIEW_USAGE
+    AI_VIEW_USAGE,
+
+    // Document domain
+    DOCUMENT_UPLOAD,
+    DOCUMENT_VIEW,
+    DOCUMENT_DELETE,
+    DOCUMENT_MANAGE,
+
+    // Draft domain
+    DRAFT_CREATE,
+    DRAFT_VIEW,
+    DRAFT_DELETE,
+    DRAFT_REVIEW,
+    AI_DRAFT
 }

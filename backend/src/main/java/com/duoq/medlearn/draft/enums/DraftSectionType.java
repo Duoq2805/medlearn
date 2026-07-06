@@ -1,0 +1,21 @@
+package com.duoq.medlearn.draft.enums;
+
+public enum DraftSectionType {
+    OVERVIEW,
+    DEFINITION,
+    CAUSES,
+    SYMPTOMS,
+    DIAGNOSIS,
+    TREATMENT,
+    PROGNOSIS,
+    COMPLICATIONS,
+    PREVENTION,
+    EPIDEMIOLOGY,
+    PATHOPHYSIOLOGY,
+    RISK_FACTORS,
+    CLINICAL_FEATURES,
+    INVESTIGATIONS,
+    MANAGEMENT,
+    DIFFERENTIAL_DIAGNOSIS,
+    REFERENCE
+}
