@@ -9,13 +9,17 @@ import {
 import { AnimatedSection } from '../../components/motion/MotionWrappers';
 import { diseaseApi } from '../../api/disease';
 
+import type { DiseaseVersionResponse } from '../../types/diseaseVersion';
+
+type QueueItem = DiseaseVersionResponse & { diseaseName: string; diseaseCategory: string; diseaseSlug: string };
+
 export default function ReviewerQueuePage() {
   const { user } = useAuth();
   const role = (user?.roles?.[0] || user?.role || '').toUpperCase();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('All');
   const [statusFilter, setStatusFilter] = useState('All');
-  const [queue, setQueue] = useState([]);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,15 +32,13 @@ export default function ReviewerQueuePage() {
       setLoading(true);
       setError(null);
       try {
-        // Fetch pending review versions (first page, size 20)
         const response = await diseaseApi.getPendingReviewVersions(0, 20);
-        const versions = response.data.content || []; // Assuming PagedResponse has content array
-        // For each version, fetch disease details
+        const versions = response.content || [];
         const queueWithDetails = await Promise.all(
-          versions.map(async (version: any) => {
+          versions.map(async (version: DiseaseVersionResponse): Promise<QueueItem> => {
             try {
               const diseaseResponse = await diseaseApi.fetchDisease(version.diseaseId.toString());
-              const disease = diseaseResponse.data;
+              const disease = diseaseResponse;
               return {
                 ...version,
                 diseaseName: disease.name,
