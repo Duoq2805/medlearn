@@ -1,13 +1,13 @@
-import { ArrowLeft, useState, useEffect } from 'react';
-import { ArrowLeft, Link } from 'react-router-dom';
-import { ArrowLeft, useAuth } from '../../hooks/useAuth';
-import { ArrowLeft,
-  ShieldClose, FolderKanban, Search, Filter, Eye,
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import {
+  ArrowLeft, ShieldClose, FolderKanban, Search, Filter, Eye,
   ChevronRight, Clock, User, FileText, AlertCircle,
   CheckCircle2, X, Check
 } from 'lucide-react';
-import { ArrowLeft, AnimatedSection } from '../../components/motion/MotionWrappers';
-import { ArrowLeft, diseaseApi } from '../../api/disease';
+import { AnimatedSection } from '../../components/motion/MotionWrappers';
+import { diseaseApi } from '../../api/disease';
 
 export default function ReviewerQueuePage() {
   const { user } = useAuth();
