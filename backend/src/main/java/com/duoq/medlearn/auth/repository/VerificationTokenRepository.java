@@ -1,7 +1,7 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.auth.repository;
 
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.entity.VerificationToken;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.entity.VerificationToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

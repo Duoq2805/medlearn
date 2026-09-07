@@ -1,6 +1,6 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.category.repository;
 
-import com.duoq.medlearn.domain.entity.Category;
+import com.duoq.medlearn.knowledge.category.entity.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

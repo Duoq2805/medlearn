@@ -1,4 +1,4 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.common.email;
 
 public interface EmailService {
     void sendVerificationEmail(String to, String username, String token);

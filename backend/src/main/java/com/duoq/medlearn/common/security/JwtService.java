@@ -1,6 +1,6 @@
-package com.duoq.medlearn.security;
+package com.duoq.medlearn.common.security;
 
-import com.duoq.medlearn.exception.InvalidTokenException;
+import com.duoq.medlearn.common.exception.InvalidTokenException;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

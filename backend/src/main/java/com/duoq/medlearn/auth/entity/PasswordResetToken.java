@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.entity;
+package com.duoq.medlearn.auth.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

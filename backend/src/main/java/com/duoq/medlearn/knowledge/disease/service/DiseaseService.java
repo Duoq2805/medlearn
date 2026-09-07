@@ -1,13 +1,13 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.knowledge.disease.service;
 
-import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection;
-import com.duoq.medlearn.domain.dto.disease.CreateDiseaseDraftRequest;
-import com.duoq.medlearn.domain.dto.disease.CreateDiseaseRequest;
-import com.duoq.medlearn.domain.dto.disease.DiseaseSearchRequest;
-import com.duoq.medlearn.domain.dto.disease.UpdateDiseaseRequest;
-import com.duoq.medlearn.domain.dto.disease.DiseaseResponse;
-import com.duoq.medlearn.domain.dto.disease.DiseaseDetailResponse;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
+import com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection;
+import com.duoq.medlearn.knowledge.disease.dto.request.CreateDiseaseDraftRequest;
+import com.duoq.medlearn.knowledge.disease.dto.request.CreateDiseaseRequest;
+import com.duoq.medlearn.knowledge.disease.dto.request.DiseaseSearchRequest;
+import com.duoq.medlearn.knowledge.disease.dto.request.UpdateDiseaseRequest;
+import com.duoq.medlearn.knowledge.disease.dto.response.DiseaseResponse;
+import com.duoq.medlearn.knowledge.disease.dto.response.DiseaseDetailResponse;
+import com.duoq.medlearn.knowledge.version.dto.response.DiseaseVersionResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

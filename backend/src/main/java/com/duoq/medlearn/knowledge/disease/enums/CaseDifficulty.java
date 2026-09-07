@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.enums;
+package com.duoq.medlearn.knowledge.disease.enums;
 
 public enum CaseDifficulty {
     EASY,

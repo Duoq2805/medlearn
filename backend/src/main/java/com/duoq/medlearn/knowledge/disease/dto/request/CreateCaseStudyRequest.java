@@ -1,6 +1,6 @@
-package com.duoq.medlearn.domain.dto.casestudy;
+package com.duoq.medlearn.knowledge.disease.dto.request;
 
-import com.duoq.medlearn.domain.enums.CaseDifficulty;
+import com.duoq.medlearn.knowledge.disease.enums.CaseDifficulty;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

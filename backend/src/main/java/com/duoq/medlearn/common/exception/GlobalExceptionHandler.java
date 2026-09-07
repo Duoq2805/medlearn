@@ -1,4 +1,4 @@
-package com.duoq.medlearn.exception;
+package com.duoq.medlearn.common.exception;
 
 import com.duoq.medlearn.ai.exception.AiConfigurationException;
 import com.duoq.medlearn.ai.exception.AiInjectionDetectedException;
@@ -8,7 +8,7 @@ import com.duoq.medlearn.ai.exception.AiProviderUnavailableException;
 import com.duoq.medlearn.ai.exception.AiQuotaExceededException;
 import com.duoq.medlearn.ai.exception.AiRateLimitException;
 import com.duoq.medlearn.ai.exception.AiContextExceededException;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
+import com.duoq.medlearn.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;

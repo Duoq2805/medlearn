@@ -1,11 +1,12 @@
 package com.duoq.medlearn.draft.controller;
 
-import com.duoq.medlearn.draft.dto.*;
+import com.duoq.medlearn.draft.dto.request.*;
+import com.duoq.medlearn.draft.dto.response.*;
 import com.duoq.medlearn.draft.service.DraftLifecycleService;
 import com.duoq.medlearn.draft.service.DraftService;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.common.PagedResponse;
-import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.common.dto.PagedResponse;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

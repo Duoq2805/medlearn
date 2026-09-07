@@ -1,4 +1,4 @@
-package com.duoq.medlearn.draft.dto;
+package com.duoq.medlearn.draft.dto.request;
 
 import com.duoq.medlearn.draft.enums.DraftSectionType;
 import jakarta.validation.constraints.NotBlank;

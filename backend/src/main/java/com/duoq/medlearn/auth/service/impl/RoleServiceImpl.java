@@ -1,10 +1,10 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service.impl;
 
-import com.duoq.medlearn.domain.entity.Role;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.repository.RoleRepository;
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.service.RoleService;
+import com.duoq.medlearn.auth.entity.Role;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.repository.RoleRepository;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.auth.service.RoleService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;

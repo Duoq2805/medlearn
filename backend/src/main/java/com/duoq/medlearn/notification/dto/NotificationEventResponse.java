@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.notification;
+package com.duoq.medlearn.notification.dto;
 
 import lombok.Builder;
 import lombok.Data;

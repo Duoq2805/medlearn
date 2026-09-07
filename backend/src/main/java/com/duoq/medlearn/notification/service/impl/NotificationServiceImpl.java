@@ -1,9 +1,9 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.notification.service.impl;
 
 import com.duoq.medlearn.ai.dto.response.AiStreamChunkResponse;
-import com.duoq.medlearn.domain.dto.notification.NotificationEventResponse;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.service.NotificationService;
+import com.duoq.medlearn.notification.dto.NotificationEventResponse;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

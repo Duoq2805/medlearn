@@ -22,6 +22,12 @@ spring:
 server:
   port: 6060
 
+medlearn:
+  dev-admin:
+    email: ${MEDLEARN_DEV_ADMIN_EMAIL:}
+    username: ${MEDLEARN_DEV_ADMIN_USERNAME:}
+    password: ${MEDLEARN_DEV_ADMIN_PASSWORD:}
+
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}

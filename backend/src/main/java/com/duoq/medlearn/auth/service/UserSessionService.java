@@ -1,4 +1,4 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.auth.service;
 
 /**
  * Handles UserSession lifecycle operations that require

@@ -9,6 +9,7 @@ import type {
   DraftCreationMethod,
   DraftCreationMetadata,
   DraftGenerationResponse,
+  DiseaseDraftResponse,
 } from '../../types/diseaseDraft';
 
 interface DraftCreationFlowProps {
@@ -53,31 +54,31 @@ export default function DraftCreationFlow({ open, onClose }: DraftCreationFlowPr
     }
   };
 
-  const handleTextExtracted = (_text: string, filename: string) => {
+  const handleDocumentUploaded = (document: import("../../api/document").Document) => {
     setMetadata({
       method: 'upload',
-      sourceLabel: filename,
-      originalFilename: filename,
+      sourceLabel: document.fileName,
+      originalFilename: document.fileName,
     });
     // For now, skip to editor since no backend
-    // In future: extract text → generate draft → preview
+    // In future: extract text -> generate draft -> preview
     handleClose();
     navigate('/diseases/new');
   };
 
-  const handleContentImported = (_content: string, source: string) => {
+  const handleDocumentImported = (document: import("../../api/document").Document) => {
     setMetadata({
       method: 'import-url',
-      sourceLabel: source,
-      sourceUrl: source,
+      sourceLabel: document.title || document.fileName,
+      sourceUrl: document.sourceUrl || undefined,
     });
     handleClose();
     navigate('/diseases/new');
   };
 
-  const handleDraftGenerated = (response: DraftGenerationResponse) => {
-    setGeneratedDraft(response);
-    setStep('preview');
+  const handleDraftGenerated = (response: DiseaseDraftResponse) => {
+    handleClose();
+    navigate('/drafts');
   };
 
   const handleAcceptDraft = () => {
@@ -118,7 +119,7 @@ export default function DraftCreationFlow({ open, onClose }: DraftCreationFlowPr
             <div className="relative w-full max-w-lg mx-4 card-neumorphic p-6 max-h-[80vh] overflow-y-auto">
               <UploadDocumentView
                 onBack={() => setStep('choose-method')}
-                onTextExtracted={handleTextExtracted}
+                onDocumentUploaded={handleDocumentUploaded}
               />
             </div>
           </div>
@@ -131,7 +132,7 @@ export default function DraftCreationFlow({ open, onClose }: DraftCreationFlowPr
             <div className="relative w-full max-w-lg mx-4 card-neumorphic p-6 max-h-[80vh] overflow-y-auto">
               <ImportUrlView
                 onBack={() => setStep('choose-method')}
-                onContentImported={handleContentImported}
+                onDocumentImported={handleDocumentImported}
               />
             </div>
           </div>
@@ -172,3 +173,4 @@ export default function DraftCreationFlow({ open, onClose }: DraftCreationFlowPr
 
   return renderStep();
 }
+

@@ -1,6 +1,6 @@
 package com.duoq.medlearn.ai.repository;
 
-import com.duoq.medlearn.ai.dto.enums.SummaryType;
+import com.duoq.medlearn.ai.enums.SummaryType;
 import com.duoq.medlearn.ai.summary.entity.AiSummary;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

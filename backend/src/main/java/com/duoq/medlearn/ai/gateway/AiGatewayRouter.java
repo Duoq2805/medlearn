@@ -46,15 +46,16 @@ public class AiGatewayRouter {
     }
 
     public AiChatResponse chat(AiChatRequest request, AiModel model) {
-        return resolveProvider(model).chat(request, model);
+        var gateway = resolve(null); // use default provider; model is forwarded inside request.model
+        return gateway.chat(request);
     }
 
     public void chatStream(AiChatRequest request, AiModel model,
                            Consumer<AiStreamChunkAdapter> onChunk,
                            Runnable onComplete, Consumer<Throwable> onError) {
-        var provider = resolveProvider(model);
-        provider.chatStream(request, model,
-                chunk -> onChunk.accept(new AiStreamChunkAdapter(chunk, provider.getProviderName())),
+        var gateway = resolve(null); // use default provider
+        gateway.chatStream(request,
+                chunk -> onChunk.accept(new AiStreamChunkAdapter(chunk, gateway.getProviderName())),
                 onComplete, onError);
     }
 

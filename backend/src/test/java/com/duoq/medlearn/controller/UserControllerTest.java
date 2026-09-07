@@ -1,10 +1,11 @@
 package com.duoq.medlearn.controller;
+import com.duoq.medlearn.auth.controller.UserController;
 
-import com.duoq.medlearn.domain.dto.user.UpdateProfileRequest;
-import com.duoq.medlearn.domain.dto.user.UserResponse;
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.security.OAuth2LoginSuccessHandler;
-import com.duoq.medlearn.service.UserService;
+import com.duoq.medlearn.auth.dto.request.UpdateProfileRequest;
+import com.duoq.medlearn.auth.dto.response.UserResponse;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.auth.security.OAuth2LoginSuccessHandler;
+import com.duoq.medlearn.auth.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

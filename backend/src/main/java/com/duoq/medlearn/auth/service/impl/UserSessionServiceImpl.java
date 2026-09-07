@@ -1,7 +1,7 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service.impl;
 
-import com.duoq.medlearn.repository.UserSessionRepository;
-import com.duoq.medlearn.service.UserSessionService;
+import com.duoq.medlearn.auth.repository.UserSessionRepository;
+import com.duoq.medlearn.auth.service.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

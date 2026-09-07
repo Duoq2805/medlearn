@@ -1,6 +1,6 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.section.repository;
 
-import com.duoq.medlearn.domain.entity.SectionType;
+import com.duoq.medlearn.knowledge.section.entity.SectionType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

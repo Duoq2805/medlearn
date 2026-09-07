@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth } from '../../hooks/useAuth';
 import { MedvoraLogo } from '../MedvoraLogo';
+import { NotificationBell } from './NotificationBell';
 import {
   Menu, Moon, Sun, LogOut, Settings, Bell, User, BookOpen,
   Brain, Sparkles, BarChart3, Search,
@@ -207,51 +208,7 @@ export const Navigation: React.FC = () => {
 
             {user ? (
               <>
-                <div ref={notifRef} className="relative">
-                  <button onClick={() => setIsNotifOpen(!isNotifOpen)} className="p-2.5 rounded-full border border-[var(--border)] bg-[--surface-white] dark:bg-[var(--surface-secondary)] text-[var(--text-primary)] hover:bg-gray-100 dark:hover:bg-[var(--surface-hover)] transition-colors relative" aria-label="Notifications">
-                    <Bell size={18} />
-                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-bold">3</span>
-                  </button>
-                  {isNotifOpen && (
-                    <div className="absolute right-0 mt-2 w-72 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-xl shadow-lg z-50 overflow-hidden depth-layer-1">
-                      <div className="p-3 border-b border-[var(--shadow-dark)]"><p className="text-sm font-semibold text-[var(--text-primary)]">Notifications</p></div>
-                      <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
-                        <div className="flex items-start gap-2 p-2 rounded-lg hover:bg-[var(--surface-hover)] transition-colors cursor-pointer">
-                          <span className="w-2 h-2 mt-1.5 rounded-full bg-[var(--accent-primary)] shrink-0" />
-                          <div><p className="text-xs text-[var(--text-primary)]">New user registered: Dr. Chen</p><p className="text-[10px] text-[var(--text-tertiary)]">5m ago</p></div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div ref={avatarRef} className="relative">
-                  <button onClick={() => setIsAvatarOpen(!isAvatarOpen)} className="p-1.5 rounded-full border border-[var(--border)] bg-[var(--accent-primary)]/10 hover:bg-[var(--accent-primary)]/20 transition-all flex items-center gap-1.5 pr-3" aria-label="User menu">
-                    <div className="w-7 h-7 rounded-full bg-[var(--accent-primary)] flex items-center justify-center text-white text-xs font-bold">{userInitial}</div>
-                    <ChevronDown size={14} className="text-[var(--text-secondary)]" />
-                  </button>
-                  {isAvatarOpen && (
-                    <div className="absolute right-0 mt-2 w-56 rounded-xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-xl shadow-lg z-50 overflow-hidden depth-layer-1">
-                      <div className="p-3 border-b border-[var(--shadow-dark)]">
-                        <p className="text-sm font-semibold text-[var(--text-primary)]">{user.fullName || user.username}</p>
-                        <p className="text-xs text-[var(--text-secondary)]">{user.email}</p>
-                        <p className="text-[10px] text-[var(--text-tertiary)] mt-0.5">{role}</p>
-                      </div>
-                      <div className="p-1.5 space-y-0.5">
-                        {avatarItems.map((item) => (
-                          <Link key={item.label} to={item.to} onClick={() => setIsAvatarOpen(false)}
-                            className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] transition-colors">
-                            <item.icon size={16} /> {item.label}
-                          </Link>
-                        ))}
-                        <hr className="border-[var(--shadow-dark)] my-1" />
-                        <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg text-red-600 hover:bg-red-500/10 transition-colors">
-                          <LogOut size={16} /> Logout
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                <NotificationBell />
               </>
             ) : (
               <>
@@ -273,20 +230,20 @@ export const Navigation: React.FC = () => {
             </nav>
           </div>
         )}
-      </div>
 
-      {isSearchOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setIsSearchOpen(false)}>
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-lg shadow-xl overflow-hidden p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center gap-3 mb-4">
-              <Search size={18} className="text-[var(--text-tertiary)]" />
-              <input ref={searchInputRef} type="text" autoFocus placeholder="Search..." className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-[var(--text-tertiary)]" />
-              <kbd className="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]">⌘ K</kbd>
+        {isSearchOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setIsSearchOpen(false)}>
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+            <div className="relative w-full max-w-2xl rounded-2xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-lg shadow-xl overflow-hidden p-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-3 mb-4">
+                <Search size={18} className="text-[var(--text-tertiary)]" />
+                <input ref={searchInputRef} type="text" autoFocus placeholder="Search..." className="flex-1 bg-transparent border-none outline-none text-sm placeholder:text-[var(--text-tertiary)]" />
+                <kbd className="text-xs px-1.5 py-0.5 rounded border border-[var(--border)]">⌘ K</kbd>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 };

@@ -1,11 +1,11 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.knowledge.symptom.service;
 
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisResponse;
-import com.duoq.medlearn.symptom.service.impl.SymptomCheckerServiceImplV1;
-import com.duoq.medlearn.domain.entity.Symptom;
-import com.duoq.medlearn.repository.DiseaseRepository;
-import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
-import com.duoq.medlearn.repository.SymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisResponse;
+import com.duoq.medlearn.knowledge.symptom.service.impl.SymptomCheckerServiceImplV1;
+import com.duoq.medlearn.knowledge.symptom.entity.Symptom;
+import com.duoq.medlearn.knowledge.disease.repository.DiseaseRepository;
+import com.duoq.medlearn.knowledge.version.repository.DiseaseVersionSymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.repository.SymptomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

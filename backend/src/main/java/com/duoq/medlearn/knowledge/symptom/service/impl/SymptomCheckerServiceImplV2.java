@@ -1,9 +1,9 @@
-package com.duoq.medlearn.symptom.service.impl;
+package com.duoq.medlearn.knowledge.symptom.service.impl;
 
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisV2Response;
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisV2Response.SymptomInfo;
-import com.duoq.medlearn.symptom.service.SymptomCheckerServiceV2;
-import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisV2Response;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisV2Response.SymptomInfo;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomCheckerServiceV2;
+import com.duoq.medlearn.knowledge.version.repository.DiseaseVersionSymptomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

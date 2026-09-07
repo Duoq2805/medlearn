@@ -1,12 +1,13 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.knowledge.symptom.service;
+import com.duoq.medlearn.knowledge.symptom.service.impl.SymptomServiceImpl;
 
-import com.duoq.medlearn.domain.dto.symptom.CreateSymptomRequest;
-import com.duoq.medlearn.domain.dto.symptom.SymptomResponse;
-import com.duoq.medlearn.domain.dto.symptom.UpdateSymptomRequest;
-import com.duoq.medlearn.domain.entity.Symptom;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.mapper.SymptomMapper;
-import com.duoq.medlearn.repository.SymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.dto.request.CreateSymptomRequest;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomResponse;
+import com.duoq.medlearn.knowledge.symptom.dto.request.UpdateSymptomRequest;
+import com.duoq.medlearn.knowledge.symptom.entity.Symptom;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.knowledge.symptom.mapper.SymptomMapper;
+import com.duoq.medlearn.knowledge.symptom.repository.SymptomRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

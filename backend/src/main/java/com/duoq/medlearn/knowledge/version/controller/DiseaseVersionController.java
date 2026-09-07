@@ -1,12 +1,12 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.knowledge.version.controller;
 
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.common.PagedResponse;
-import com.duoq.medlearn.domain.dto.version.CreateDiseaseVersionRequest;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
-import com.duoq.medlearn.domain.dto.version.ModerationRequest;
-import com.duoq.medlearn.domain.dto.version.UpdateDiseaseVersionRequest;
-import com.duoq.medlearn.service.DiseaseVersionService;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.common.dto.PagedResponse;
+import com.duoq.medlearn.knowledge.version.dto.request.CreateDiseaseVersionRequest;
+import com.duoq.medlearn.knowledge.version.dto.response.DiseaseVersionResponse;
+import com.duoq.medlearn.knowledge.version.dto.request.ModerationRequest;
+import com.duoq.medlearn.knowledge.version.dto.request.UpdateDiseaseVersionRequest;
+import com.duoq.medlearn.knowledge.version.service.DiseaseVersionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

@@ -1,11 +1,11 @@
 package com.duoq.medlearn.document.controller;
 
-import com.duoq.medlearn.document.dto.DocumentChunkResponse;
-import com.duoq.medlearn.document.dto.DocumentResponse;
+import com.duoq.medlearn.document.dto.response.DocumentChunkResponse;
+import com.duoq.medlearn.document.dto.response.DocumentResponse;
 import com.duoq.medlearn.document.service.DocumentService;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.common.PagedResponse;
-import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.common.dto.PagedResponse;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotBlank;

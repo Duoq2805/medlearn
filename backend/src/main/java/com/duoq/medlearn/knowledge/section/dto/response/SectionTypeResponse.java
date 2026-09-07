@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.section;
+package com.duoq.medlearn.knowledge.section.dto.response;
 
 import lombok.Builder;
 import lombok.Data;

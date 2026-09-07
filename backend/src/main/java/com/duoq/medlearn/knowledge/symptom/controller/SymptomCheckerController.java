@@ -1,13 +1,13 @@
-package com.duoq.medlearn.symptom.controller;
+package com.duoq.medlearn.knowledge.symptom.controller;
 
-import com.duoq.medlearn.symptom.dto.request.SymptomCheckerRequest;
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisResponse;
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisV2Response;
-import com.duoq.medlearn.symptom.dto.response.SymptomMatchResult;
-import com.duoq.medlearn.symptom.service.SymptomCheckerService;
-import com.duoq.medlearn.symptom.service.SymptomCheckerServiceV1;
-import com.duoq.medlearn.symptom.service.SymptomCheckerServiceV2;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
+import com.duoq.medlearn.knowledge.symptom.dto.request.SymptomCheckerRequest;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisResponse;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisV2Response;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomMatchResult;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomCheckerService;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomCheckerServiceV1;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomCheckerServiceV2;
+import com.duoq.medlearn.common.dto.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

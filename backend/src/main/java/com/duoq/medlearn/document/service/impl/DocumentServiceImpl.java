@@ -1,7 +1,7 @@
 package com.duoq.medlearn.document.service.impl;
 
-import com.duoq.medlearn.document.dto.DocumentChunkResponse;
-import com.duoq.medlearn.document.dto.DocumentResponse;
+import com.duoq.medlearn.document.dto.response.DocumentChunkResponse;
+import com.duoq.medlearn.document.dto.response.DocumentResponse;
 import com.duoq.medlearn.document.entity.Document;
 import com.duoq.medlearn.document.entity.DocumentChunk;
 import com.duoq.medlearn.document.exception.DocumentProcessingException;
@@ -9,9 +9,9 @@ import com.duoq.medlearn.document.mapper.DocumentMapper;
 import com.duoq.medlearn.document.repository.DocumentChunkRepository;
 import com.duoq.medlearn.document.repository.DocumentRepository;
 import com.duoq.medlearn.document.service.DocumentService;
-import com.duoq.medlearn.document.service.LocalFileStorageService;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
+import com.duoq.medlearn.document.storage.LocalFileStorageService;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

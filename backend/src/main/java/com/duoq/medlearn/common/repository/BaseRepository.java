@@ -1,4 +1,4 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.common.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

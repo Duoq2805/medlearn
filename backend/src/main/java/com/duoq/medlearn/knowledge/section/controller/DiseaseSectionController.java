@@ -1,8 +1,9 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.knowledge.section.controller;
 
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.section.*;
-import com.duoq.medlearn.service.DiseaseSectionService;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.knowledge.section.dto.request.*;
+import com.duoq.medlearn.knowledge.section.dto.response.*;
+import com.duoq.medlearn.knowledge.section.service.DiseaseSectionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

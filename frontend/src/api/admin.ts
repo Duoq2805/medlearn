@@ -1,38 +1,46 @@
 import apiClient from './client';
-import { User } from '../types';
+import type { RoleRequest, UserStatusRequest, AnalyticsResponse } from '../types/admin';
+import type { UserProfileResponse } from '../types/user';
+import type { PageResponse, ApiResponse } from '../types/api';
+
+const unwrap = <T>(r: { data: ApiResponse<T> }): T => r.data.data;
 
 export const adminApi = {
   // Get all users
-  fetchUsers: async (page: number = 0, size: number = 50) => {
-    const response = await apiClient.get<any>('/admin/users', {
+  fetchUsers: async (page: number = 0, size: number = 20): Promise<PageResponse<UserProfileResponse>> => {
+    const response = await apiClient.get<ApiResponse<PageResponse<UserProfileResponse>>>('/admin/users', {
       params: { page, size },
     });
-    return response.data.data;
+    return unwrap(response);
   },
 
-  // Update user role
-  updateUserRole: async (userId: string, role: 'student' | 'reviewer' | 'admin') => {
-    const response = await apiClient.patch<any>(`/admin/users/${userId}/role`, { roleName: role });
-    return response.data.data;
+  // Get user by ID
+  getUserById: async (id: number): Promise<UserProfileResponse> => {
+    const response = await apiClient.get<ApiResponse<UserProfileResponse>>(`/admin/users/${id}`);
+    return unwrap(response);
+  },
+
+  // Update user role ('ADMIN' | 'REVIEWER' | 'USER')
+  updateUserRole: async (userId: string | number, roleName: string): Promise<void> => {
+    const request: RoleRequest = { roleName };
+    await apiClient.patch<ApiResponse<void>>(`/admin/users/${userId}/role`, request);
   },
 
   // Deactivate/activate user
-  toggleUserStatus: async (userId: string, isActive: boolean) => {
-    const response = await apiClient.patch<any>(`/admin/users/${userId}/status`, { isActive });
-    return response.data.data;
+  toggleUserStatus: async (userId: string | number, isActive: boolean): Promise<void> => {
+    const request: UserStatusRequest = { isActive };
+    await apiClient.patch<ApiResponse<void>>(`/admin/users/${userId}/status`, request);
   },
 
   // Get system analytics
-  fetchAnalytics: async () => {
-    const response = await apiClient.get<any>('/admin/analytics');
-    return response.data.data;
+  fetchAnalytics: async (): Promise<AnalyticsResponse> => {
+    const response = await apiClient.get<ApiResponse<AnalyticsResponse>>('/admin/analytics');
+    return unwrap(response);
   },
 
-  // Get pending reviews queue
-  fetchPendingReviews: async (page: number = 0, size: number = 20) => {
-    const response = await apiClient.get<any>('/admin/pending-reviews', {
-      params: { page, size },
-    });
-    return response.data.data;
+  // Get pending reviews notice message (Note: Full list is GET /versions/pending-review)
+  fetchPendingReviews: async (): Promise<string> => {
+    const response = await apiClient.get<ApiResponse<string>>('/admin/pending-reviews');
+    return unwrap(response);
   },
 };

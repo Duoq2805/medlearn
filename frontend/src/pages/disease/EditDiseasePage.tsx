@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, ChevronRight, FileText, Save, Eye, Send, Clock, Sparkles, BookOpen, AlertTriangle, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -76,14 +76,14 @@ export default function EditDiseasePage() {
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [reviewerComments, setReviewerComments] = useState<string | null>(null);
   const sections = [
-    { label: 'Definition', key: 'definition', hint: 'Gi岷 th铆ch b峄噉h l脿 g矛, c啤 ch岷?ch铆nh v脿 ph岷 vi 岷h h瓢峄焠g.', placeholder: 'M么 t岷?膽峄媙h ngh末a, b岷 ch岷 v脿 膽岷穋 膽i峄僲 c峄憈 l玫i c峄 b峄噉h...' },
-    { label: 'Etiology', key: 'etiology', hint: 'N锚u nguy锚n nh芒n, y岷縰 t峄?nguy c啤 v脿 t谩c nh芒n li锚n quan.', placeholder: 'Li峄噒 k锚 nguy锚n nh芒n, t谩c nh芒n v脿 y岷縰 t峄?nguy c啤...' },
-    { label: 'Symptoms', key: 'symptoms', hint: 'M么 t岷?tri峄噓 ch峄﹏g 膽i峄僴 h矛nh, th峄漣 膽i峄僲 kh峄焛 ph谩t v脿 m峄ヽ 膽峄?', placeholder: 'M么 t岷?tri峄噓 ch峄﹏g th瓢峄漬g g岷穚, d岷 hi峄噓 c岷h b谩o...' },
-    { label: 'Diagnosis', key: 'diagnosis', hint: 'Tr矛nh b脿y ti锚u chu岷﹏, x茅t nghi峄噈 v脿 ch岷﹏ 膽o谩n ph芒n bi峄噒.', placeholder: 'N锚u quy tr矛nh ch岷﹏ 膽o谩n, x茅t nghi峄噈 v脿 ch岷﹏ 膽o谩n ph芒n bi峄噒...' },
-    { label: 'Treatment', key: 'treatment', hint: 'Ghi h瓢峄沶g 膽i峄乽 tr峄? thu峄慶, li峄乽 d霉ng v脿 theo d玫i.', placeholder: 'Tr矛nh b脿y m峄 ti锚u 膽i峄乽 tr峄? ph瓢啤ng ph谩p v脿 theo d玫i...' },
-    { label: 'Complications', key: 'complications', hint: 'N锚u bi岷縩 ch峄﹏g c贸 th峄?x岷 ra v脿 d岷 hi峄噓 c岷 x峄?tr铆.', placeholder: 'M么 t岷?bi岷縩 ch峄﹏g, m峄ヽ 膽峄?nguy hi峄僲 v脿 x峄?tr铆...' },
-    { label: 'Prevention', key: 'prevention', hint: 'H瓢峄沶g d岷玭 ph貌ng b峄噉h, gi岷 nguy c啤 v脿 t谩i ph谩t.', placeholder: 'N锚u bi峄噉 ph谩p ph貌ng ng峄玜, s脿ng l峄峜 v脿 thay 膽峄昳 l峄慽 s峄憂g...' },
-    { label: 'References', key: 'references', hint: 'Ghi ngu峄搉 t脿i li峄噓 y khoa d霉ng 膽峄?x芒y d峄眓g n峄檌 dung.', placeholder: 'Nh岷璸 t脿i li峄噓 tham kh岷, DOI ho岷穋 URL ngu峄搉...' },
+    { label: 'Definition', key: 'definition', hint: 'Giải thích bệnh là gì, cơ chế chính và phạm vi ảnh hưởng.', placeholder: 'Mô tả định nghĩa, bản chất và đặc điểm cốt lõi của bệnh...' },
+    { label: 'Etiology', key: 'etiology', hint: 'Nêu nguyên nhân, yếu tố nguy cơ và tác nhân liên quan.', placeholder: 'Liệt kê nguyên nhân, tác nhân và yếu tố nguy cơ...' },
+    { label: 'Symptoms', key: 'symptoms', hint: 'Mô tả triệu chứng điển hình, thời điểm khởi phát và mức độ.', placeholder: 'Mô tả triệu chứng thường gặp, dấu hiệu cảnh báo...' },
+    { label: 'Diagnosis', key: 'diagnosis', hint: 'Trình bày tiêu chuẩn, xét nghiệm và chẩn đoán phân biệt.', placeholder: 'Nêu quy trình chẩn đoán, xét nghiệm và chẩn đoán phân biệt...' },
+    { label: 'Treatment', key: 'treatment', hint: 'Ghi hướng điều trị, thuốc, liều dùng và theo dõi.', placeholder: 'Trình bày mục tiêu điều trị, phương pháp và theo dõi...' },
+    { label: 'Complications', key: 'complications', hint: 'Nêu biến chứng có thể xảy ra và dấu hiệu cần xử trí.', placeholder: 'Mô tả biến chứng, mức độ nguy hiểm và xử trí...' },
+    { label: 'Prevention', key: 'prevention', hint: 'Hướng dẫn phòng bệnh, giảm nguy cơ và tái phát.', placeholder: 'Nêu biện pháp phòng ngừa, sàng lọc và thay đổi lối sống...' },
+    { label: 'References', key: 'references', hint: 'Ghi nguồn tài liệu y khoa dùng để xây dựng nội dung.', placeholder: 'Nhập tài liệu tham khảo, DOI hoặc URL nguồn...' },
   ];
 
   const completedSections = sections.filter(({ key }) => (sectionContents[key] ?? '').trim().length > 0).length;
@@ -139,8 +139,8 @@ export default function EditDiseasePage() {
         setSectionContents(initialContents);
         // Set disease metadata
         setTitle(diseaseResponse?.name || diseaseResponse.name || '');
-        setCategory(diseaseResponse?.categoryName || diseaseResponse.categoryName || '');
-        setIcd(diseaseResponse?.icdCode || diseaseResponse.icdCode || '');
+        setCategory(diseaseResponse?.categoryName || '');
+        setIcd('');
         setStatus(versionData.status || 'Draft');
         setVersion(versionData.versionNumber || 1);
         setLastEdited(versionData.updatedAt ? new Date(versionData.updatedAt).toLocaleString() : 'Just now');
@@ -202,14 +202,26 @@ export default function EditDiseasePage() {
           'references': 'References',
         };
         const label = labelMap[key];
+        // Mapping section key -> fallback DB SectionType ID if API lookup fails
+        const FALLBACK_SECTION_TYPE_MAP: Record<string, number> = {
+          'definition': 1,
+          'etiology': 2,
+          'symptoms': 3,
+          'diagnosis': 4,
+          'treatment': 5,
+          'complications': 6,
+          'prevention': 7,
+          'references': 8,
+        };
+
         // Case-insensitive lookup for section type ID
         const sectionTypeEntry = Object.entries(sectionTypesMap).find(([name]) => 
           name.toLowerCase() === label.toLowerCase()
         );
-        const sectionTypeId = sectionTypeEntry ? sectionTypeEntry[1] : null;
+        const sectionTypeId = sectionTypeEntry ? sectionTypeEntry[1] : (FALLBACK_SECTION_TYPE_MAP[key] ?? 1);
         const orderIndex = ['definition', 'etiology', 'symptoms', 'diagnosis', 'treatment', 'complications', 'prevention', 'references'].indexOf(key);
         return {
-          sectionTypeId: sectionTypeId ?? 0,
+          sectionTypeId: sectionTypeId,
           title: label,
           content: content,
           orderIndex: orderIndex >= 0 ? orderIndex : 0,
@@ -219,12 +231,12 @@ export default function EditDiseasePage() {
       // 1. Update disease metadata
       await diseaseApi.updateDiseaseMetadata(diseaseId.toString(), {
         name: title,
-        categoryId: categoryId,
+        categoryId: categoryId || undefined,
       });
 
       // 2. Delete all existing sections for this version
       const existingSectionsResponse = await diseaseSectionApi.getSectionsByVersion(diseaseVersionId);
-      const existingSections = existingSectionsResponse.data || existingSectionsResponse;
+      const existingSections = existingSectionsResponse;
       for (const section of existingSections) {
         await diseaseSectionApi.deleteSection(section.id);
       }
@@ -245,7 +257,7 @@ export default function EditDiseasePage() {
       sections.forEach((section: any) => {
         const labelMap: Record<string, string> = {
           'Definition': 'definition',
-          'Etiology': 'etiola',
+          'Etiology': 'etiology',
           'Symptoms': 'symptoms',
           'Diagnosis': 'diagnosis',
           'Treatment': 'treatment',
@@ -343,7 +355,7 @@ export default function EditDiseasePage() {
     setPreviewError(null);
     try {
       const diseaseResponse = await diseaseApi.fetchDisease(diseaseId.toString());
-      const disease = diseaseResponse.data || diseaseResponse;
+      const disease = diseaseResponse;
       const versionResponse = await diseaseApi.getLatestDraftVersion(diseaseId);
       const version = versionResponse;
       const sectionsResponse = await diseaseSectionApi.getSectionsByVersion(diseaseVersionId);
@@ -355,8 +367,6 @@ export default function EditDiseasePage() {
           name: disease.name,
           slug: disease.slug,
           categoryName: disease.categoryName,
-          icdCode: disease.icdCode,
-          description: disease.description,
         },
         currentVersion: {
           id: version.id,
@@ -507,8 +517,8 @@ export default function EditDiseasePage() {
                         disabled={isPreviewing}
                       />
                       <div className="mt-2 flex justify-between text-xs text-[var(--text-tertiary)]">
-                        <span>{content.trim() ? 'N峄檌 dung 膽茫 膽瓢峄 ghi nh岷璶' : 'B岷痶 膽岷 nh岷璸 n峄檌 dung section'}</span>
-                        <span>{content.length} kết tự</span>
+                        <span>{content.trim() ? 'Nội dung đã được ghi nhận' : 'Bắt đầu nhập nội dung section'}</span>
+                        <span>{content.length} ký tự</span>
                       </div>
                     </section>
                   );

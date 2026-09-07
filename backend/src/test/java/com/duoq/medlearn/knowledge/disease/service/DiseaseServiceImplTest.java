@@ -1,15 +1,23 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.knowledge.disease.service;
+import com.duoq.medlearn.knowledge.disease.service.impl.DiseaseServiceImpl;
+import com.duoq.medlearn.knowledge.version.repository.DiseaseVersionRepository;
+import com.duoq.medlearn.knowledge.category.repository.CategoryRepository;
+import com.duoq.medlearn.knowledge.disease.repository.DiseaseRepository;
+import com.duoq.medlearn.knowledge.category.entity.Category;
+import com.duoq.medlearn.knowledge.disease.entity.Disease;
 
-import com.duoq.medlearn.domain.entity.*;
-import com.duoq.medlearn.domain.dto.disease.*;
-import com.duoq.medlearn.domain.enums.PermissionCode;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.mapper.DiseaseMapper;
-import com.duoq.medlearn.repository.*;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.service.AuditService;
-import com.duoq.medlearn.service.DiseaseVersionService;
-import com.duoq.medlearn.service.PermissionService;
+import com.duoq.medlearn.auth.entity.*;
+import com.duoq.medlearn.knowledge.disease.dto.request.*;
+import com.duoq.medlearn.knowledge.disease.dto.response.*;
+import com.duoq.medlearn.knowledge.disease.dto.projection.*;
+import com.duoq.medlearn.auth.enums.PermissionCode;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.knowledge.disease.mapper.DiseaseMapper;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.audit.service.AuditService;
+import com.duoq.medlearn.knowledge.version.service.DiseaseVersionService;
+import com.duoq.medlearn.auth.service.PermissionService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,6 +110,36 @@ class DiseaseServiceImplTest {
     @Test void restoreDisease_shouldFail_whenNotFound() {
         when(diseaseRepository.findByIdIgnoreDeletedAt(999L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> diseaseService.restoreDisease(999L)).isInstanceOf(ResourceNotFoundException.class);
+    }
+
+    @Test void updateDiseaseMetadata_shouldUpdateNameAndCategory_withoutChangingSlug() {
+        when(diseaseRepository.findById(1L)).thenReturn(Optional.of(testDisease));
+        when(diseaseVersionRepository.existsByDiseaseIdAndCreatedByIdAndDeletedAtIsNull(1L, 1L)).thenReturn(true);
+        when(diseaseRepository.save(any(Disease.class))).thenReturn(testDisease);
+        when(diseaseMapper.toDiseaseResponse(any(Disease.class))).thenReturn(
+                DiseaseResponse.builder().id(1L).name("Diabetes Renamed").slug("diabetes").build());
+
+        UpdateDiseaseRequest req = new UpdateDiseaseRequest();
+        req.setName("Diabetes Renamed");
+        req.setSlug("new-slug-should-be-ignored"); // must NOT be applied
+
+        DiseaseResponse result = diseaseService.updateDiseaseMetadata(1L, req);
+
+        assertThat(testDisease.getSlug()).isEqualTo("diabetes"); // slug unchanged
+        assertThat(result.getName()).isEqualTo("Diabetes Renamed");
+    }
+
+    @Test void updateDiseaseMetadata_shouldFail_whenNameAlreadyExists() {
+        when(diseaseRepository.findById(1L)).thenReturn(Optional.of(testDisease));
+        when(diseaseVersionRepository.existsByDiseaseIdAndCreatedByIdAndDeletedAtIsNull(1L, 1L)).thenReturn(true);
+        when(diseaseRepository.existsByName("Other Disease")).thenReturn(true);
+
+        UpdateDiseaseRequest req = new UpdateDiseaseRequest();
+        req.setName("Other Disease");
+
+        assertThatThrownBy(() -> diseaseService.updateDiseaseMetadata(1L, req))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already exists");
     }
 
     @Test void restoreDisease_shouldFail_whenNoPermission() {

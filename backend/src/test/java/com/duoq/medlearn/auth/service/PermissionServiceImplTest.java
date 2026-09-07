@@ -1,10 +1,11 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service;
 
-import com.duoq.medlearn.domain.entity.*;
-import com.duoq.medlearn.domain.enums.PermissionCode;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.security.CurrentUserResolver;
+import com.duoq.medlearn.auth.entity.*;
+import com.duoq.medlearn.auth.enums.PermissionCode;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.auth.service.impl.PermissionServiceImpl;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

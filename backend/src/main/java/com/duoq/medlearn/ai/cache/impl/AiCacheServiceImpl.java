@@ -1,5 +1,6 @@
-package com.duoq.medlearn.ai.gateway;
+package com.duoq.medlearn.ai.cache.impl;
 
+import com.duoq.medlearn.ai.cache.AiCacheService;
 import com.duoq.medlearn.ai.config.AiProperties;
 import com.duoq.medlearn.ai.dto.request.AiChatRequest;
 import com.duoq.medlearn.ai.dto.response.AiChatResponse;

@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.symptom;
+package com.duoq.medlearn.knowledge.symptom.dto.request;
 
 import lombok.Data;
 

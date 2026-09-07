@@ -1,13 +1,13 @@
 package com.duoq.medlearn.document.controller;
 
-import com.duoq.medlearn.document.dto.DocumentChunkResponse;
-import com.duoq.medlearn.document.dto.DocumentResponse;
+import com.duoq.medlearn.document.dto.response.DocumentChunkResponse;
+import com.duoq.medlearn.document.dto.response.DocumentResponse;
 import com.duoq.medlearn.document.service.DocumentService;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.common.PagedResponse;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.security.OAuth2LoginSuccessHandler;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.common.dto.PagedResponse;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.auth.security.OAuth2LoginSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

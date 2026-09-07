@@ -1,11 +1,11 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.knowledge.section.service;
 
-import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
-import com.duoq.medlearn.domain.dto.section.SectionOrderRequest;
-import com.duoq.medlearn.domain.dto.section.UpdateDiseaseSectionRequest;
-import com.duoq.medlearn.domain.dto.section.DiseaseSectionResponse;
-import com.duoq.medlearn.domain.dto.section.SectionTemplateResponse;
-import com.duoq.medlearn.domain.dto.section.SectionTypeResponse;
+import com.duoq.medlearn.knowledge.section.dto.request.CreateDiseaseSectionRequest;
+import com.duoq.medlearn.knowledge.section.dto.request.SectionOrderRequest;
+import com.duoq.medlearn.knowledge.section.dto.request.UpdateDiseaseSectionRequest;
+import com.duoq.medlearn.knowledge.section.dto.response.DiseaseSectionResponse;
+import com.duoq.medlearn.knowledge.section.dto.response.SectionTemplateResponse;
+import com.duoq.medlearn.knowledge.section.dto.response.SectionTypeResponse;
 
 import java.util.List;
 

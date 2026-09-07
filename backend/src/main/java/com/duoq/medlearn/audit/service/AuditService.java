@@ -1,7 +1,7 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.audit.service;
 
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.enums.AuditAction;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.audit.enums.AuditAction;
 
 import java.util.Map;
 

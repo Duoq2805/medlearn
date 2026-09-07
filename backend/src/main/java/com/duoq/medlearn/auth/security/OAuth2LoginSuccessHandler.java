@@ -1,8 +1,9 @@
-package com.duoq.medlearn.security;
+package com.duoq.medlearn.auth.security;
 
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.entity.UserSession;
-import com.duoq.medlearn.repository.UserSessionRepository;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.entity.UserSession;
+import com.duoq.medlearn.auth.repository.UserSessionRepository;
+import com.duoq.medlearn.common.security.JwtService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

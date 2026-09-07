@@ -1,4 +1,4 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.notification.service;
 
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 

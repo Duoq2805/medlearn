@@ -1,10 +1,11 @@
-package com.duoq.medlearn.ai.gateway;
+package com.duoq.medlearn.ai.cache.impl;
 
 import com.duoq.medlearn.ai.config.AiProperties;
 import com.duoq.medlearn.ai.dto.request.AiChatRequest;
 import com.duoq.medlearn.ai.dto.response.AiChatResponse;
+import com.duoq.medlearn.ai.cache.impl.AiCacheServiceImpl;
 import com.duoq.medlearn.ai.dto.response.AiMessage;
-import com.duoq.medlearn.ai.dto.enums.AiRole;
+import com.duoq.medlearn.ai.enums.AiRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

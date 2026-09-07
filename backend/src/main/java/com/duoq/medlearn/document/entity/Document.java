@@ -1,6 +1,6 @@
 package com.duoq.medlearn.document.entity;
 
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

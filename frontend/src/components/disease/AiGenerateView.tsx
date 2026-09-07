@@ -1,37 +1,72 @@
 import { useState } from 'react';
-import { ArrowLeft, Sparkles, AlertCircle, Loader2, FileText, Info } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle, Loader2, Info } from 'lucide-react';
+import { aiApi } from '../../api/ai';
+import type { DraftSectionType } from '../../types/ai';
+import type { DiseaseDraftResponse } from '../../types/diseaseDraft';
 
 interface AiGenerateViewProps {
   onBack: () => void;
-  onDraftGenerated: (response: any) => void;
+  onDraftGenerated: (response: DiseaseDraftResponse) => void;
 }
 
+const ALL_SECTIONS: DraftSectionType[] = [
+  'OVERVIEW',
+  'DEFINITION',
+  'CAUSES',
+  'SYMPTOMS',
+  'DIAGNOSIS',
+  'TREATMENT',
+  'PROGNOSIS',
+  'COMPLICATIONS',
+  'PREVENTION',
+  'EPIDEMIOLOGY',
+  'PATHOPHYSIOLOGY',
+  'RISK_FACTORS',
+  'CLINICAL_FEATURES',
+  'INVESTIGATIONS',
+  'MANAGEMENT',
+  'DIFFERENTIAL_DIAGNOSIS',
+  'REFERENCE',
+];
+
+const DEFAULT_SECTIONS: DraftSectionType[] = [
+  'OVERVIEW',
+  'DEFINITION',
+  'CAUSES',
+  'SYMPTOMS',
+  'DIAGNOSIS',
+  'TREATMENT',
+];
+
 export default function AiGenerateView({ onBack, onDraftGenerated }: AiGenerateViewProps) {
-  const [diseaseName, setDiseaseName] = useState('');
+  const [title, setTitle] = useState('');
+  const [documentIdStr, setDocumentIdStr] = useState('');
+  const [selectedSections, setSelectedSections] = useState<DraftSectionType[]>(DEFAULT_SECTIONS);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const toggleSection = (sec: DraftSectionType) => {
+    setSelectedSections((prev) =>
+      prev.includes(sec) ? prev.filter((s) => s !== sec) : [...prev, sec]
+    );
+  };
+
   const handleGenerate = async () => {
-    if (!diseaseName.trim()) return;
+    if (!title.trim() || selectedSections.length === 0) return;
 
     setGenerating(true);
     setError(null);
 
     try {
-      // 🔄 TODO: Replace with real backend call when endpoint is ready
-      // const response = await generateAiDraft({
-      //   diseaseName: diseaseName.trim(),
-      //   documentIds: [],
-      // });
-      // onDraftGenerated(response);
-
-      throw new Error(
-        'TODO: POST /api/ai/draft/generate not implemented on backend. ' +
-        'Backend should accept source text/document IDs, ' +
-        'generate structured draft with sources, and return DraftGenerationResponse.'
-      );
+      const documentId = documentIdStr.trim() ? parseInt(documentIdStr.trim(), 10) : undefined;
+      const response = await aiApi.generateAiDraft({
+        title: title.trim(),
+        sections: selectedSections,
+        ...(documentId && !isNaN(documentId) ? { documentId } : {}),
+      });
+      onDraftGenerated(response);
     } catch (err: any) {
-      setError(err.message || 'Generation failed');
+      setError(err.response?.data?.message || err.message || 'Generation failed');
     } finally {
       setGenerating(false);
     }
@@ -49,55 +84,73 @@ export default function AiGenerateView({ onBack, onDraftGenerated }: AiGenerateV
             AI Generate Draft
           </h3>
           <p className="text-xs text-[var(--text-secondary)]">
-            Generate a structured disease draft from source documents
+            Generate a structured disease draft using AI
           </p>
         </div>
       </div>
 
-      {/* Grounding Notice */}
+      {/* Notice */}
       <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/5 border border-amber-500/10">
         <Info size={14} className="text-amber-600 mt-0.5 shrink-0" />
         <p className="text-[11px] text-amber-700 leading-relaxed">
-          This is a <strong>source-grounded draft assistant</strong>, not a medical expert.
-          Upload documents first — the AI only generates content from your provided sources.
-          It never uses general knowledge or fabricates medical information.
+          Specify a draft title and select sections to generate. Provide an optional Document ID for grounding.
         </p>
       </div>
 
-      {/* Disease Name */}
-      <div className="card-neumorphic p-4">
-        <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
-          Disease Name
-        </label>
-        <input
-          type="text"
-          value={diseaseName}
-          onChange={(e) => setDiseaseName(e.target.value)}
-          placeholder="e.g. Pneumonia"
-          className="input-neumorphic w-full text-sm"
-          disabled={generating}
-        />
+      {/* Inputs */}
+      <div className="card-neumorphic p-4 space-y-4">
+        <div>
+          <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+            Draft Title *
+          </label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Pneumonia"
+            className="input-neumorphic w-full text-sm"
+            disabled={generating}
+          />
+        </div>
 
-        <div className="mt-4 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
-          <div className="flex items-center gap-2 mb-2">
-            <FileText size={12} className="text-[var(--accent-primary)]" />
-            <span className="text-xs font-semibold text-[var(--text-primary)]">
-              RAG Workflow (Future)
-            </span>
+        <div>
+          <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+            Document ID (Optional)
+          </label>
+          <input
+            type="number"
+            value={documentIdStr}
+            onChange={(e) => setDocumentIdStr(e.target.value)}
+            placeholder="e.g. 1"
+            className="input-neumorphic w-full text-sm"
+            disabled={generating}
+          />
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">
+            Sections to Generate * ({selectedSections.length} selected)
+          </label>
+          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 bg-black/5 dark:bg-white/5 rounded-lg">
+            {ALL_SECTIONS.map((sec) => (
+              <label key={sec} className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={selectedSections.includes(sec)}
+                  onChange={() => toggleSection(sec)}
+                  disabled={generating}
+                  className="rounded text-[var(--accent-primary)] focus:ring-0"
+                />
+                <span className="text-[var(--text-primary)]">{sec}</span>
+              </label>
+            ))}
           </div>
-          <ol className="space-y-1 text-[11px] text-[var(--text-secondary)] list-decimal list-inside">
-            <li>Upload medical document</li>
-            <li>Backend extracts and chunks text</li>
-            <li>Backend generates embeddings</li>
-            <li>Backend retrieves relevant chunks</li>
-            <li>AI generates draft with source citations</li>
-          </ol>
         </div>
 
         <button
           onClick={handleGenerate}
-          disabled={!diseaseName.trim() || generating}
-          className="btn-neumorphic-primary py-2.5 px-5 w-full mt-4 text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+          disabled={!title.trim() || selectedSections.length === 0 || generating}
+          className="btn-neumorphic-primary py-2.5 px-5 w-full text-sm flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {generating ? (
             <Loader2 size={14} className="animate-spin" />

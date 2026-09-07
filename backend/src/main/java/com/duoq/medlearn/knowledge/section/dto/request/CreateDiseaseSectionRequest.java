@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.section;
+package com.duoq.medlearn.knowledge.section.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

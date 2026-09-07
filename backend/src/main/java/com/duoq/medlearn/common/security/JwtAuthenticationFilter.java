@@ -1,4 +1,4 @@
-package com.duoq.medlearn.security;
+package com.duoq.medlearn.common.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;

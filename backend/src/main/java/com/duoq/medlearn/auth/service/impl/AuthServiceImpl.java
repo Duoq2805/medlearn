@@ -1,39 +1,39 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service.impl;
 
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.domain.entity.PasswordResetToken;
-import com.duoq.medlearn.domain.entity.Role;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.entity.UserSession;
-import com.duoq.medlearn.domain.entity.VerificationToken;
-import com.duoq.medlearn.mapper.UserMapper;
-import com.duoq.medlearn.domain.dto.auth.ForgotPasswordRequest;
-import com.duoq.medlearn.domain.dto.auth.LoginRequest;
-import com.duoq.medlearn.domain.dto.auth.RegisterRequest;
-import com.duoq.medlearn.domain.dto.auth.ResendVerificationRequest;
-import com.duoq.medlearn.domain.dto.auth.ResetPasswordRequest;
-import com.duoq.medlearn.domain.dto.auth.AuthResponse;
-import com.duoq.medlearn.domain.dto.auth.MessageResponse;
-import com.duoq.medlearn.domain.dto.user.UserResponse;
-import com.duoq.medlearn.exception.AccountDeactivatedException;
-import com.duoq.medlearn.exception.EmailAlreadyExistsException;
-import com.duoq.medlearn.exception.EmailNotVerifiedException;
-import com.duoq.medlearn.exception.InvalidCredentialsException;
-import com.duoq.medlearn.exception.InvalidTokenException;
-import com.duoq.medlearn.exception.RateLimitExceededException;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.exception.TokenReusedException;
-import com.duoq.medlearn.exception.UsernameAlreadyExistsException;
-import com.duoq.medlearn.repository.PasswordResetTokenRepository;
-import com.duoq.medlearn.repository.RoleRepository;
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.repository.UserSessionRepository;
-import com.duoq.medlearn.repository.VerificationTokenRepository;
-import com.duoq.medlearn.security.CustomUserDetails;
-import com.duoq.medlearn.service.AuditService;
-import com.duoq.medlearn.service.AuthService;
-import com.duoq.medlearn.service.EmailService;
-import com.duoq.medlearn.service.UserSessionService;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.auth.entity.PasswordResetToken;
+import com.duoq.medlearn.auth.entity.Role;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.entity.UserSession;
+import com.duoq.medlearn.auth.entity.VerificationToken;
+import com.duoq.medlearn.auth.mapper.UserMapper;
+import com.duoq.medlearn.auth.dto.request.ForgotPasswordRequest;
+import com.duoq.medlearn.auth.dto.request.LoginRequest;
+import com.duoq.medlearn.auth.dto.request.RegisterRequest;
+import com.duoq.medlearn.auth.dto.request.ResendVerificationRequest;
+import com.duoq.medlearn.auth.dto.request.ResetPasswordRequest;
+import com.duoq.medlearn.auth.dto.response.AuthResponse;
+import com.duoq.medlearn.auth.dto.response.MessageResponse;
+import com.duoq.medlearn.auth.dto.response.UserResponse;
+import com.duoq.medlearn.common.exception.AccountDeactivatedException;
+import com.duoq.medlearn.common.exception.EmailAlreadyExistsException;
+import com.duoq.medlearn.common.exception.EmailNotVerifiedException;
+import com.duoq.medlearn.common.exception.InvalidCredentialsException;
+import com.duoq.medlearn.common.exception.InvalidTokenException;
+import com.duoq.medlearn.common.exception.RateLimitExceededException;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.common.exception.TokenReusedException;
+import com.duoq.medlearn.common.exception.UsernameAlreadyExistsException;
+import com.duoq.medlearn.auth.repository.PasswordResetTokenRepository;
+import com.duoq.medlearn.auth.repository.RoleRepository;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.auth.repository.UserSessionRepository;
+import com.duoq.medlearn.auth.repository.VerificationTokenRepository;
+import com.duoq.medlearn.auth.security.CustomUserDetails;
+import com.duoq.medlearn.audit.service.AuditService;
+import com.duoq.medlearn.auth.service.AuthService;
+import com.duoq.medlearn.common.email.EmailService;
+import com.duoq.medlearn.auth.service.UserSessionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -168,7 +168,7 @@ public class AuthServiceImpl implements AuthService {
             throw new RateLimitExceededException("Too many failed login attempts. Please try again later.");
         }
 
-        String invalidHash = "$2a$10$7EqJtq98hPqEX7fNZaFWoOHi6qVQ8Q8Q8Q8Q8Q8Q8Q8Q8Q8Q8Q8Q.";
+        String invalidHash = "$2a$10$N9qo8uLOickgx2ZMRZoMyeI3ZPhkgUj3Mt5FDyyf09d/5VHgVQEZe";
         User user = userRepository.findByEmail(request.getUsernameOrEmail())
                 .orElseGet(() -> userRepository.findByUsername(request.getUsernameOrEmail()).orElse(null));
 
@@ -205,7 +205,7 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         sessionRepository.save(session);
 
-        auditService.log(user, com.duoq.medlearn.domain.enums.AuditAction.LOGIN_SUCCESS,
+        auditService.log(user, com.duoq.medlearn.audit.enums.AuditAction.LOGIN_SUCCESS,
                 "User", user.getId(), Map.of("email", user.getEmail()));
 
         return userMapper.toAuthResponse(user, accessToken, refreshToken, "Bearer", 86400000L);
@@ -223,7 +223,7 @@ public class AuthServiceImpl implements AuthService {
         if (session.getRevokedAt() != null) {
             userSessionService.revokeAllSessionsImmediately(user.getId());
             log.warn("Token reuse detected for user: {}, revoking all sessions", user.getEmail());
-            auditService.logSystem(com.duoq.medlearn.domain.enums.AuditAction.TOKEN_REUSE_DETECTED,
+            auditService.logSystem(com.duoq.medlearn.audit.enums.AuditAction.TOKEN_REUSE_DETECTED,
                     "UserSession", session.getId(),
                     Map.of("userId", user.getId(), "email", user.getEmail()));
             throw new TokenReusedException();
@@ -377,7 +377,7 @@ public class AuthServiceImpl implements AuthService {
         // Revoke all sessions for security
         sessionRepository.revokeAllUserSessions(user.getId(), OffsetDateTime.now());
 
-        auditService.log(user, com.duoq.medlearn.domain.enums.AuditAction.PASSWORD_RESET_COMPLETED,
+        auditService.log(user, com.duoq.medlearn.audit.enums.AuditAction.PASSWORD_RESET_COMPLETED,
                 "User", user.getId(), Map.of("email", user.getEmail()));
 
         log.info("Password reset for user: {}", user.getEmail());
@@ -392,7 +392,7 @@ public class AuthServiceImpl implements AuthService {
         if (record.count >= maxAttempts) {
             record.blockedUntil = OffsetDateTime.now().plusMinutes(blockDurationMinutes);
             log.warn("Account/key [{}] blocked until {}", key, record.blockedUntil);
-            auditService.logSystem(com.duoq.medlearn.domain.enums.AuditAction.LOGIN_BLOCKED,
+            auditService.logSystem(com.duoq.medlearn.audit.enums.AuditAction.LOGIN_BLOCKED,
                     "User", null,
                     Map.of("attemptKey", key, "attemptCount", record.count,
                            "blockedUntil", record.blockedUntil.toString()));

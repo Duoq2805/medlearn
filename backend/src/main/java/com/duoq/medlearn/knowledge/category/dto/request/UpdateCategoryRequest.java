@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.category;
+package com.duoq.medlearn.knowledge.category.dto.request;
 
 import lombok.Data;
 

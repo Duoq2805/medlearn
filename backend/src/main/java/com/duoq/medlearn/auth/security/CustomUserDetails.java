@@ -1,7 +1,7 @@
-package com.duoq.medlearn.security;
+package com.duoq.medlearn.auth.security;
 
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.enums.UserStatus;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.enums.UserStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

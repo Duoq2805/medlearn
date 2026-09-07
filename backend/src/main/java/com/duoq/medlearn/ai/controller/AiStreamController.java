@@ -1,6 +1,6 @@
 package com.duoq.medlearn.ai.controller;
 
-import com.duoq.medlearn.service.NotificationService;
+import com.duoq.medlearn.notification.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

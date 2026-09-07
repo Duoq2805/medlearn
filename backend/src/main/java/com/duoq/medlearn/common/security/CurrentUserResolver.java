@@ -1,6 +1,8 @@
-package com.duoq.medlearn.security;
+package com.duoq.medlearn.common.security;
 
-import com.duoq.medlearn.exception.InvalidCredentialsException;
+import com.duoq.medlearn.auth.security.CustomOAuth2User;
+import com.duoq.medlearn.auth.security.CustomUserDetails;
+import com.duoq.medlearn.common.exception.InvalidCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;

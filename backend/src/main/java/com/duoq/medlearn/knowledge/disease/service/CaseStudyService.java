@@ -1,10 +1,10 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.knowledge.disease.service;
 
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudyDetailResponse;
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudySummaryProjection;
-import com.duoq.medlearn.domain.dto.casestudy.CreateCaseStudyRequest;
-import com.duoq.medlearn.domain.dto.casestudy.DiagnoseRequest;
-import com.duoq.medlearn.domain.dto.casestudy.DiagnoseResponse;
+import com.duoq.medlearn.knowledge.disease.dto.response.CaseStudyDetailResponse;
+import com.duoq.medlearn.knowledge.disease.dto.projection.CaseStudySummaryProjection;
+import com.duoq.medlearn.knowledge.disease.dto.request.CreateCaseStudyRequest;
+import com.duoq.medlearn.knowledge.disease.dto.request.DiagnoseRequest;
+import com.duoq.medlearn.knowledge.disease.dto.response.DiagnoseResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

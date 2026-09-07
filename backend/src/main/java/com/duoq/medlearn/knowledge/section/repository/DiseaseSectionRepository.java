@@ -1,6 +1,6 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.section.repository;
 
-import com.duoq.medlearn.domain.entity.DiseaseSection;
+import com.duoq.medlearn.knowledge.disease.entity.DiseaseSection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

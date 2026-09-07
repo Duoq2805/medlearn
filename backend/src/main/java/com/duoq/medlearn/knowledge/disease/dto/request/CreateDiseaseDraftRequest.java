@@ -1,8 +1,11 @@
-package com.duoq.medlearn.domain.dto.disease;
+package com.duoq.medlearn.knowledge.disease.dto.request;
 
+import com.duoq.medlearn.knowledge.section.dto.request.CreateDiseaseSectionRequest;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class CreateDiseaseDraftRequest {
@@ -16,4 +19,6 @@ public class CreateDiseaseDraftRequest {
     private String slug;
 
     private Long categoryId;
+
+    private List<CreateDiseaseSectionRequest> sections;
 }

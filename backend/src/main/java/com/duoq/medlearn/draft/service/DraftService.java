@@ -1,8 +1,8 @@
 package com.duoq.medlearn.draft.service;
 
-import com.duoq.medlearn.draft.dto.CreateDraftRequest;
-import com.duoq.medlearn.draft.dto.DiseaseDraftResponse;
-import com.duoq.medlearn.draft.dto.UpdateDraftRequest;
+import com.duoq.medlearn.draft.dto.request.CreateDraftRequest;
+import com.duoq.medlearn.draft.dto.response.DiseaseDraftResponse;
+import com.duoq.medlearn.draft.dto.request.UpdateDraftRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

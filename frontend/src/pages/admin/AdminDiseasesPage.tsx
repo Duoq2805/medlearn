@@ -18,7 +18,7 @@ export default function AdminDiseasesPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['diseases', page, pageSize],
-    queryFn: () => diseaseApi.fetchDiseases(page, pageSize),
+    queryFn: () => diseaseApi.fetchDiseases(undefined, undefined, undefined, page, pageSize),
     staleTime: 30000,
   });
 

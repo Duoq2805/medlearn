@@ -1,15 +1,15 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.auth.controller;
 
-import com.duoq.medlearn.domain.dto.auth.AuthResponse;
-import com.duoq.medlearn.domain.dto.auth.ForgotPasswordRequest;
-import com.duoq.medlearn.domain.dto.auth.LoginRequest;
-import com.duoq.medlearn.domain.dto.auth.RefreshTokenRequest;
-import com.duoq.medlearn.domain.dto.auth.RegisterRequest;
-import com.duoq.medlearn.domain.dto.auth.ResendVerificationRequest;
-import com.duoq.medlearn.domain.dto.auth.ResetPasswordRequest;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.user.UserResponse;
-import com.duoq.medlearn.service.AuthService;
+import com.duoq.medlearn.auth.dto.response.AuthResponse;
+import com.duoq.medlearn.auth.dto.request.ForgotPasswordRequest;
+import com.duoq.medlearn.auth.dto.request.LoginRequest;
+import com.duoq.medlearn.auth.dto.request.RefreshTokenRequest;
+import com.duoq.medlearn.auth.dto.request.RegisterRequest;
+import com.duoq.medlearn.auth.dto.request.ResendVerificationRequest;
+import com.duoq.medlearn.auth.dto.request.ResetPasswordRequest;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.auth.dto.response.UserResponse;
+import com.duoq.medlearn.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

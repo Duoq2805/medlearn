@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
+import { documentApi } from '../../api/document';
 import { Upload, FileText, X, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 
 interface UploadDocumentViewProps {
   onBack: () => void;
-  onTextExtracted: (text: string, filename: string) => void;
+  onDocumentUploaded: (document: import("../../api/document").Document) => void;
 }
 
 const ACCEPTED_TYPES = [
@@ -17,7 +18,7 @@ const ACCEPTED_EXTENSIONS = '.pdf,.docx,.txt,.md';
 
 export default function UploadDocumentView({
   onBack,
-  onTextExtracted,
+  onDocumentUploaded,
 }: UploadDocumentViewProps) {
   const [file, setFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -60,7 +61,6 @@ export default function UploadDocumentView({
     try {
       // 🔄 TODO: Replace with real backend call when endpoint is ready
       // const response = await uploadDocument(file);
-      // const extracted = await extractDocumentText(response.id);
       // onTextExtracted(extracted.text, extracted.filename);
 
       // For now, simulate text extraction failure to signal missing backend
@@ -69,8 +69,8 @@ export default function UploadDocumentView({
         'Backend should accept multipart upload, validate type, store file locally, ' +
         'extract text, and return ExtractedTextResponse.'
       );
-    } catch (err: any) {
-      setError(err.message || 'Upload failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
     }
@@ -197,3 +197,6 @@ export default function UploadDocumentView({
     </div>
   );
 }
+
+
+

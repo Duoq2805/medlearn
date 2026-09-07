@@ -1,7 +1,8 @@
-package com.duoq.medlearn.mapper;
+package com.duoq.medlearn.knowledge.symptom.mapper;
 
-import com.duoq.medlearn.domain.dto.symptom.SymptomResponse;
-import com.duoq.medlearn.domain.entity.Symptom;
+import com.duoq.medlearn.common.mapper.MapStructConfig;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomResponse;
+import com.duoq.medlearn.knowledge.symptom.entity.Symptom;
 import org.mapstruct.Mapper;
 
 @Mapper(config = MapStructConfig.class)

@@ -1,4 +1,4 @@
-package com.duoq.medlearn.document.dto;
+package com.duoq.medlearn.document.dto.response;
 
 import lombok.Builder;
 import lombok.Value;

@@ -1,7 +1,7 @@
 package com.duoq.medlearn.ai.draft;
 
-import com.duoq.medlearn.draft.dto.DiseaseDraftResponse;
-import com.duoq.medlearn.draft.dto.AiDraftRequest;
+import com.duoq.medlearn.draft.dto.response.DiseaseDraftResponse;
+import com.duoq.medlearn.draft.dto.request.AiDraftRequest;
 
 public interface AiDraftGenerator {
 

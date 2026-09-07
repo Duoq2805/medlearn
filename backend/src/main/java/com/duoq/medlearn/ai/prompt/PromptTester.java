@@ -6,7 +6,7 @@ import com.duoq.medlearn.ai.gateway.AiGatewayRouter;
 import com.duoq.medlearn.ai.model.AiModel;
 import com.duoq.medlearn.ai.prompt.entity.PromptTestResult;
 import com.duoq.medlearn.ai.repository.PromptTestResultRepository;
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.auth.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

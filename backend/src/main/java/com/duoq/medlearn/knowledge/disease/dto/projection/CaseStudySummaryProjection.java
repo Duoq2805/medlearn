@@ -1,6 +1,6 @@
-package com.duoq.medlearn.domain.dto.casestudy;
+package com.duoq.medlearn.knowledge.disease.dto.projection;
 
-import com.duoq.medlearn.domain.enums.CaseDifficulty;
+import com.duoq.medlearn.knowledge.disease.enums.CaseDifficulty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

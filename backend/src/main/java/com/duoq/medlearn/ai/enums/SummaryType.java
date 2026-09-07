@@ -1,4 +1,4 @@
-package com.duoq.medlearn.ai.dto.enums;
+package com.duoq.medlearn.ai.enums;
 
 public enum SummaryType {
     STUDENT,

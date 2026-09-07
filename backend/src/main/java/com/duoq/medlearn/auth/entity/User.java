@@ -1,6 +1,6 @@
-package com.duoq.medlearn.domain.entity;
+package com.duoq.medlearn.auth.entity;
 
-import com.duoq.medlearn.domain.enums.UserStatus;
+import com.duoq.medlearn.auth.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

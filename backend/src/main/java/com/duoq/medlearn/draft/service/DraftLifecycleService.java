@@ -1,6 +1,6 @@
 package com.duoq.medlearn.draft.service;
 
-import com.duoq.medlearn.draft.dto.DiseaseDraftResponse;
+import com.duoq.medlearn.draft.dto.response.DiseaseDraftResponse;
 
 public interface DraftLifecycleService {
 

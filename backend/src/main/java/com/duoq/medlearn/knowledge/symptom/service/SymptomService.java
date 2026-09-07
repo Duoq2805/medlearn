@@ -1,8 +1,8 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.knowledge.symptom.service;
 
-import com.duoq.medlearn.domain.dto.symptom.CreateSymptomRequest;
-import com.duoq.medlearn.domain.dto.symptom.SymptomResponse;
-import com.duoq.medlearn.domain.dto.symptom.UpdateSymptomRequest;
+import com.duoq.medlearn.knowledge.symptom.dto.request.CreateSymptomRequest;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomResponse;
+import com.duoq.medlearn.knowledge.symptom.dto.request.UpdateSymptomRequest;
 
 import java.util.List;
 

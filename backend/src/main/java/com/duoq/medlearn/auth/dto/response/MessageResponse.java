@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.auth;
+package com.duoq.medlearn.auth.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

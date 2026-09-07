@@ -1,8 +1,90 @@
 // ============================================
-// DISEASE DRAFT - Future-ready types
-// Designed for source-grounded AI draft generation
-// Backend-dependent fields marked with TBD
+// DISEASE DRAFT - Backend DTOs & Frontend Types
 // ============================================
+
+export type DraftStatus = 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED' | 'ARCHIVED';
+export type DraftMethod = 'MANUAL' | 'AI_FULL' | 'AI_ASSIST' | 'IMPORT';
+export type DraftSectionType =
+  | 'OVERVIEW'
+  | 'DEFINITION'
+  | 'CAUSES'
+  | 'SYMPTOMS'
+  | 'DIAGNOSIS'
+  | 'TREATMENT'
+  | 'PROGNOSIS'
+  | 'COMPLICATIONS'
+  | 'PREVENTION'
+  | 'EPIDEMIOLOGY'
+  | 'PATHOPHYSIOLOGY'
+  | 'RISK_FACTORS'
+  | 'CLINICAL_FEATURES'
+  | 'INVESTIGATIONS'
+  | 'MANAGEMENT'
+  | 'DIFFERENTIAL_DIAGNOSIS'
+  | 'REFERENCE';
+
+export interface CreateDraftSectionContent {
+  sectionType: DraftSectionType;
+  title: string;
+  content: string;
+  orderIndex?: number;
+}
+
+export interface CreateDraftRequest {
+  diseaseId?: number;
+  title: string;
+  sourceMethod?: DraftMethod;
+  sourceDocumentId?: number;
+  sections: CreateDraftSectionContent[];
+}
+
+export interface UpdateDraftSectionContent {
+  id?: number;
+  sectionType: DraftSectionType;
+  title: string;
+  content: string;
+  orderIndex?: number;
+}
+
+export interface UpdateDraftRequest {
+  title?: string;
+  sections: UpdateDraftSectionContent[];
+}
+
+export interface DraftReviewRequest {
+  action: string;
+  note?: string;
+}
+
+export interface DiseaseDraftSectionResponse {
+  id: number;
+  sectionType: DraftSectionType;
+  title: string;
+  content: string;
+  orderIndex?: number;
+  wordCount?: number;
+  aiGenerated?: boolean;
+}
+
+export interface DiseaseDraftResponse {
+  id: number;
+  diseaseId?: number;
+  diseaseName?: string;
+  title: string;
+  status: DraftStatus;
+  sourceMethod?: DraftMethod;
+  sourceDocumentId?: number;
+  aiModel?: string;
+  aiTotalTokens?: number;
+  aiLatencyMs?: number;
+  reviewNote?: string;
+  createdBy?: number;
+  reviewedBy?: number;
+  reviewedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  sections?: DiseaseDraftSectionResponse[];
+}
 
 /** Single source reference for a generated section */
 export interface SectionSource {
@@ -63,10 +145,6 @@ export interface ExtractedTextResponse {
   pageCount: number | null;
 }
 
-// ============================================
-// Draft creation method enum
-// ============================================
-
 export type DraftCreationMethod =
   | 'manual'
   | 'upload'
@@ -80,10 +158,6 @@ export interface DraftCreationMetadata {
   sourceUrl?: string;
   originalFilename?: string;
 }
-
-// ============================================
-// Section definitions (matches existing editor)
-// ============================================
 
 export const DRAFT_SECTIONS: { label: string; key: string }[] = [
   { label: 'Definition', key: 'definition' },

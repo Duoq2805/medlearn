@@ -1,9 +1,9 @@
 package com.duoq.medlearn.ai.summary.entity;
 
-import com.duoq.medlearn.ai.dto.enums.SummaryType;
-import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.ai.enums.SummaryType;
+import com.duoq.medlearn.knowledge.disease.entity.Disease;
+import com.duoq.medlearn.knowledge.version.entity.DiseaseVersion;
+import com.duoq.medlearn.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

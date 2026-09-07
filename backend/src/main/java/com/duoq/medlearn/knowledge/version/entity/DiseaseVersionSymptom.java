@@ -1,4 +1,6 @@
-package com.duoq.medlearn.domain.entity;
+package com.duoq.medlearn.knowledge.version.entity;
+import com.duoq.medlearn.knowledge.symptom.entity.Symptom;
+import com.duoq.medlearn.knowledge.version.entity.DiseaseVersion;
 
 import jakarta.persistence.*;
 import lombok.*;

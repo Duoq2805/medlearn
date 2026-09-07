@@ -1,6 +1,6 @@
 package com.duoq.medlearn.ai.prompt;
 
-import com.duoq.medlearn.ai.dto.enums.AiRole;
+import com.duoq.medlearn.ai.enums.AiRole;
 import com.duoq.medlearn.ai.exception.AiConfigurationException;
 import com.duoq.medlearn.ai.prompt.entity.PromptTemplate;
 import com.duoq.medlearn.ai.security.PromptInjectionFilter;

@@ -1,4 +1,4 @@
-package com.duoq.medlearn.symptom.dto.response;
+package com.duoq.medlearn.knowledge.symptom.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

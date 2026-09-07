@@ -1,6 +1,7 @@
-package com.duoq.medlearn.domain.entity;
+package com.duoq.medlearn.audit.entity;
+import com.duoq.medlearn.auth.entity.User;
 
-import com.duoq.medlearn.domain.enums.AuditAction;
+import com.duoq.medlearn.audit.enums.AuditAction;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

@@ -1,20 +1,21 @@
--- Seed AI permissions into role_permission for ADMIN role
--- Assumes ADMIN role exists with id = 1
-INSERT INTO role_permission (role_id, permission_code)
-SELECT 1, p
-FROM (VALUES
-    ('AI_USE'),
-    ('AI_SUMMARY'),
-    ('AI_FLASHCARD'),
-    ('AI_QUIZ'),
-    ('AI_CASE'),
-    ('AI_CHAT'),
-    ('AI_REPORT'),
-    ('AI_MANAGE'),
-    ('AI_VIEW_USAGE'),
-    ('AI_ADMIN')
-) AS perms(p)
-WHERE NOT EXISTS (
-    SELECT 1 FROM role_permission rp
-    WHERE rp.role_id = 1 AND rp.permission_code = perms.p
-);
+-- =========================================
+-- SEED AI PERMISSIONS
+-- Add AI domain permissions and map to ADMIN
+-- =========================================
+
+-- Insert AI permissions into permission table
+INSERT INTO permission (name, description, category)
+VALUES
+    ('AI_USE', 'Use AI features and prompt builder', 'AI'),
+    ('AI_SUMMARY', 'Generate and view AI summaries', 'AI'),
+    ('AI_MANAGE', 'Manage AI prompt templates and system configurations', 'AI'),
+    ('AI_VIEW_USAGE', 'View AI token usage logs and statistics', 'AI')
+ON CONFLICT (name) DO NOTHING;
+
+-- Map AI permissions to ADMIN role
+INSERT INTO role_permission (role_id, permission_id)
+SELECT r.id, p.id
+FROM role r, permission p
+WHERE r.name = 'ADMIN'
+AND p.name IN ('AI_USE', 'AI_SUMMARY', 'AI_MANAGE', 'AI_VIEW_USAGE')
+ON CONFLICT (role_id, permission_id) DO NOTHING;

@@ -1,15 +1,16 @@
 package com.duoq.medlearn.draft.controller;
 
 import com.duoq.medlearn.ai.draft.AiDraftGenerator;
-import com.duoq.medlearn.draft.dto.*;
+import com.duoq.medlearn.draft.dto.request.*;
+import com.duoq.medlearn.draft.dto.response.*;
 import com.duoq.medlearn.draft.enums.DraftMethod;
 import com.duoq.medlearn.draft.enums.DraftSectionType;
 import com.duoq.medlearn.draft.enums.DraftStatus;
 import com.duoq.medlearn.draft.service.DraftLifecycleService;
 import com.duoq.medlearn.draft.service.DraftService;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.security.OAuth2LoginSuccessHandler;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.auth.security.OAuth2LoginSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

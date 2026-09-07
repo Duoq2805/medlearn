@@ -1,13 +1,14 @@
 package com.duoq.medlearn.controller;
+import com.duoq.medlearn.knowledge.symptom.controller.SymptomController;
 
-import com.duoq.medlearn.domain.dto.symptom.CreateSymptomRequest;
-import com.duoq.medlearn.domain.dto.symptom.SymptomResponse;
-import com.duoq.medlearn.domain.dto.symptom.UpdateSymptomRequest;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.security.OAuth2LoginSuccessHandler;
-import com.duoq.medlearn.symptom.service.SymptomCheckerService;
-import com.duoq.medlearn.service.SymptomService;
+import com.duoq.medlearn.knowledge.symptom.dto.request.CreateSymptomRequest;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomResponse;
+import com.duoq.medlearn.knowledge.symptom.dto.request.UpdateSymptomRequest;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.auth.security.OAuth2LoginSuccessHandler;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomCheckerService;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,11 +1,11 @@
-package com.duoq.medlearn.symptom.service.impl;
+package com.duoq.medlearn.knowledge.symptom.service.impl;
 
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisResponse;
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisResponse.SymptomInfo;
-import com.duoq.medlearn.symptom.service.SymptomCheckerServiceV1;
-import com.duoq.medlearn.repository.DiseaseRepository;
-import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
-import com.duoq.medlearn.repository.SymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisResponse;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisResponse.SymptomInfo;
+import com.duoq.medlearn.knowledge.symptom.service.SymptomCheckerServiceV1;
+import com.duoq.medlearn.knowledge.disease.repository.DiseaseRepository;
+import com.duoq.medlearn.knowledge.version.repository.DiseaseVersionSymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.repository.SymptomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -76,8 +76,8 @@ public class SymptomCheckerServiceImplV1 implements SymptomCheckerServiceV1 {
             allSymptomNameMap = symptomRepository.findAllByIdIn(new ArrayList<>(allDiseaseSymptomIds))
                     .stream()
                     .collect(Collectors.toMap(
-                            com.duoq.medlearn.domain.entity.Symptom::getId,
-                            com.duoq.medlearn.domain.entity.Symptom::getName
+                            com.duoq.medlearn.knowledge.symptom.entity.Symptom::getId,
+                            com.duoq.medlearn.knowledge.symptom.entity.Symptom::getName
                     ));
         } else {
             allSymptomNameMap = Collections.emptyMap();

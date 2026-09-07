@@ -1,6 +1,6 @@
-package com.duoq.medlearn.domain.dto.version;
+package com.duoq.medlearn.knowledge.version.dto.response;
 
-import com.duoq.medlearn.domain.enums.VersionStatus;
+import com.duoq.medlearn.knowledge.version.enums.VersionStatus;
 import lombok.Builder;
 import lombok.Data;
 

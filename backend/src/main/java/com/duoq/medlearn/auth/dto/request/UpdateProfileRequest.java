@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.user;
+package com.duoq.medlearn.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

@@ -1,13 +1,13 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.knowledge.disease.controller;
 
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudyDetailResponse;
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudySummaryProjection;
-import com.duoq.medlearn.domain.dto.casestudy.CreateCaseStudyRequest;
-import com.duoq.medlearn.domain.dto.casestudy.DiagnoseRequest;
-import com.duoq.medlearn.domain.dto.casestudy.DiagnoseResponse;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.common.PagedResponse;
-import com.duoq.medlearn.service.CaseStudyService;
+import com.duoq.medlearn.knowledge.disease.dto.response.CaseStudyDetailResponse;
+import com.duoq.medlearn.knowledge.disease.dto.projection.CaseStudySummaryProjection;
+import com.duoq.medlearn.knowledge.disease.dto.request.CreateCaseStudyRequest;
+import com.duoq.medlearn.knowledge.disease.dto.request.DiagnoseRequest;
+import com.duoq.medlearn.knowledge.disease.dto.response.DiagnoseResponse;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.common.dto.PagedResponse;
+import com.duoq.medlearn.knowledge.disease.service.CaseStudyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

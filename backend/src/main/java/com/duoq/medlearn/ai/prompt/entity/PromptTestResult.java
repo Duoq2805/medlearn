@@ -1,6 +1,6 @@
 package com.duoq.medlearn.ai.prompt.entity;
 
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.auth.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.OffsetDateTime;
 
 @Entity
-@Table(name = "prompt_test_results")
+@Table(name = "prompt_test_result")
 @Data
 @Builder
 @NoArgsConstructor

@@ -1,4 +1,4 @@
-package com.duoq.medlearn.document.service;
+package com.duoq.medlearn.document.storage;
 
 import com.duoq.medlearn.document.exception.DocumentProcessingException;
 import jakarta.annotation.PostConstruct;

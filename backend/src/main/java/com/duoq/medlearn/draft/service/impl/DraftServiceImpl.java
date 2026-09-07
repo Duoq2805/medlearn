@@ -1,9 +1,9 @@
 package com.duoq.medlearn.draft.service.impl;
 
 import com.duoq.medlearn.document.entity.Document;
-import com.duoq.medlearn.draft.dto.CreateDraftRequest;
-import com.duoq.medlearn.draft.dto.DiseaseDraftResponse;
-import com.duoq.medlearn.draft.dto.UpdateDraftRequest;
+import com.duoq.medlearn.draft.dto.request.CreateDraftRequest;
+import com.duoq.medlearn.draft.dto.response.DiseaseDraftResponse;
+import com.duoq.medlearn.draft.dto.request.UpdateDraftRequest;
 import com.duoq.medlearn.draft.entity.DiseaseDraft;
 import com.duoq.medlearn.draft.entity.DiseaseDraftSection;
 import com.duoq.medlearn.draft.enums.DraftMethod;
@@ -12,10 +12,10 @@ import com.duoq.medlearn.draft.mapper.DraftMapper;
 import com.duoq.medlearn.draft.repository.DiseaseDraftRepository;
 import com.duoq.medlearn.draft.repository.DiseaseDraftSectionRepository;
 import com.duoq.medlearn.draft.service.DraftService;
-import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.repository.DiseaseRepository;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
+import com.duoq.medlearn.knowledge.disease.entity.Disease;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.knowledge.disease.repository.DiseaseRepository;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

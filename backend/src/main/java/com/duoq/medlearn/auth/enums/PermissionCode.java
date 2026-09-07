@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.enums;
+package com.duoq.medlearn.auth.enums;
 
 /**
  * Enum defining all system permissions.
@@ -49,5 +49,14 @@ public enum PermissionCode {
     DRAFT_VIEW,
     DRAFT_DELETE,
     DRAFT_REVIEW,
-    AI_DRAFT
+    AI_DRAFT,
+
+    // Flashcard domain
+    FLASHCARD_GENERATE,
+    FLASHCARD_VIEW,
+    FLASHCARD_REVIEW,
+    FLASHCARD_EDIT,
+    FLASHCARD_DELETE,
+    FLASHCARD_MANAGE,
+    FLASHCARD_EXPORT
 }

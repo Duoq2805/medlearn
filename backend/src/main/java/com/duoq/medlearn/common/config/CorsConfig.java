@@ -1,4 +1,4 @@
-package com.duoq.medlearn.config;
+package com.duoq.medlearn.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

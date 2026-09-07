@@ -1,7 +1,7 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.audit.repository;
 
-import com.duoq.medlearn.domain.entity.AuditLog;
-import com.duoq.medlearn.domain.enums.AuditAction;
+import com.duoq.medlearn.audit.entity.AuditLog;
+import com.duoq.medlearn.audit.enums.AuditAction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;

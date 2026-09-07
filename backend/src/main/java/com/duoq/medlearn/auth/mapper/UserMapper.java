@@ -1,9 +1,10 @@
-package com.duoq.medlearn.mapper;
+package com.duoq.medlearn.auth.mapper;
+import com.duoq.medlearn.common.mapper.MapStructConfig;
 
-import com.duoq.medlearn.domain.entity.Role;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.dto.auth.AuthResponse;
-import com.duoq.medlearn.domain.dto.user.UserResponse;
+import com.duoq.medlearn.auth.entity.Role;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.dto.response.AuthResponse;
+import com.duoq.medlearn.auth.dto.response.UserResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

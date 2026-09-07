@@ -1,8 +1,9 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.disease.repository;
 
-import com.duoq.medlearn.domain.entity.CaseStudy;
-import com.duoq.medlearn.domain.enums.CaseDifficulty;
-import com.duoq.medlearn.domain.enums.ContentStatus;
+import com.duoq.medlearn.common.repository.BaseRepository;
+import com.duoq.medlearn.knowledge.disease.entity.CaseStudy;
+import com.duoq.medlearn.knowledge.disease.enums.CaseDifficulty;
+import com.duoq.medlearn.knowledge.disease.enums.ContentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

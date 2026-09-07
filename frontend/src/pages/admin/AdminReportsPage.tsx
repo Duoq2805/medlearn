@@ -23,7 +23,7 @@ export default function AdminReportsPage() {
 
   const { data: diseasesData } = useQuery({
     queryKey: ['diseases', 0, 1],
-    queryFn: () => diseaseApi.fetchDiseases(0, 1),
+    queryFn: () => diseaseApi.fetchDiseases(undefined, undefined, undefined, 0, 1),
     staleTime: 60000,
     select: (d: any) => d?.totalElements ?? '—',
   });

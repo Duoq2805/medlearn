@@ -1,7 +1,7 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service.impl;
 
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.security.CustomUserDetails;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.auth.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;

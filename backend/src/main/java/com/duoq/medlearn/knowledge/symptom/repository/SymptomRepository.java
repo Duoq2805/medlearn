@@ -1,6 +1,6 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.symptom.repository;
 
-import com.duoq.medlearn.domain.entity.Symptom;
+import com.duoq.medlearn.knowledge.symptom.entity.Symptom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

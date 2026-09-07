@@ -1,14 +1,16 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service;
 
-import com.duoq.medlearn.domain.entity.*;
-import com.duoq.medlearn.domain.dto.auth.*;
-import com.duoq.medlearn.exception.*;
-import com.duoq.medlearn.mapper.UserMapper;
-import com.duoq.medlearn.repository.*;
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.service.AuditService;
-import com.duoq.medlearn.service.EmailService;
-import com.duoq.medlearn.service.UserSessionService;
+import com.duoq.medlearn.auth.entity.*;
+import com.duoq.medlearn.auth.service.impl.AuthServiceImpl;
+import com.duoq.medlearn.auth.dto.request.*;
+import com.duoq.medlearn.auth.dto.response.*;
+import com.duoq.medlearn.common.exception.*;
+import com.duoq.medlearn.auth.mapper.UserMapper;
+import com.duoq.medlearn.auth.repository.*;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.audit.service.AuditService;
+import com.duoq.medlearn.common.email.EmailService;
+import com.duoq.medlearn.auth.service.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

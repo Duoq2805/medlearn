@@ -1,10 +1,11 @@
 package com.duoq.medlearn.ai.prompt;
+import com.duoq.medlearn.ai.prompt.impl.PromptTemplateServiceImpl;
 
 import com.duoq.medlearn.ai.dto.response.PromptTemplateResponse;
 import com.duoq.medlearn.ai.exception.AiConfigurationException;
 import com.duoq.medlearn.ai.prompt.entity.PromptTemplate;
 import com.duoq.medlearn.ai.repository.PromptTemplateRepository;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

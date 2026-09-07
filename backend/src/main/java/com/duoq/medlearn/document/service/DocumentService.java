@@ -1,7 +1,7 @@
 package com.duoq.medlearn.document.service;
 
-import com.duoq.medlearn.document.dto.DocumentChunkResponse;
-import com.duoq.medlearn.document.dto.DocumentResponse;
+import com.duoq.medlearn.document.dto.response.DocumentChunkResponse;
+import com.duoq.medlearn.document.dto.response.DocumentResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;

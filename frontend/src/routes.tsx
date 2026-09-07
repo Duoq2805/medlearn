@@ -42,6 +42,7 @@ import AdminSymptomsPage from './pages/admin/AdminSymptomsPage';
 import AdminCasesPage from './pages/admin/AdminCasesPage';
 import AdminReportsPage from './pages/admin/AdminReportsPage';
 import AdminAuditLogsPage from './pages/admin/AdminAuditLogsPage';
+import AdminAiPage from './pages/admin/AdminAiPage';
 
 const router = createBrowserRouter([
   {
@@ -88,6 +89,7 @@ const router = createBrowserRouter([
       { path: 'admin/cases', element: <AdminCasesPage /> },
       { path: 'admin/reports', element: <AdminReportsPage /> },
       { path: 'admin/audit-logs', element: <AdminAuditLogsPage /> },
+      { path: 'admin/ai', element: <AdminAiPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

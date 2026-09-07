@@ -1,6 +1,6 @@
-package com.duoq.medlearn.domain.dto.disease;
+package com.duoq.medlearn.knowledge.disease.dto.request;
 
-import com.duoq.medlearn.domain.enums.DiseaseStatus;
+import com.duoq.medlearn.knowledge.disease.enums.DiseaseStatus;
 import lombok.Data;
 
 import java.util.List;

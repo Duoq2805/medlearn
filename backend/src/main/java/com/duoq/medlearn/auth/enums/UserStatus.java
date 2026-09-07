@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.enums;
+package com.duoq.medlearn.auth.enums;
 
 public enum UserStatus {
     PENDING,

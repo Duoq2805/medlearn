@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- =========================================
 -- DOCUMENT MANAGEMENT & DRAFT GENERATION
 -- Tables for document upload, chunking, and AI-powered disease draft generation
@@ -7,7 +9,7 @@
 -- DOCUMENTS
 -- =========================================
 CREATE TABLE document (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     file_name VARCHAR(255) NOT NULL,
     file_size BIGINT NOT NULL DEFAULT 0,
@@ -30,7 +32,7 @@ CREATE INDEX idx_document_deleted_at ON document(deleted_at);
 
 -- Document chunks (extracted text segments)
 CREATE TABLE document_chunk (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     document_id BIGINT NOT NULL REFERENCES document(id) ON DELETE CASCADE,
     chunk_index INT NOT NULL,
     content TEXT NOT NULL,
@@ -49,7 +51,7 @@ CREATE INDEX idx_document_chunk_deleted ON document_chunk(deleted_at);
 -- DISEASE DRAFTS (AI-generated draft proposals)
 -- =========================================
 CREATE TABLE disease_draft (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     disease_id BIGINT REFERENCES disease(id),
     title VARCHAR(255) NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
@@ -75,7 +77,7 @@ CREATE INDEX idx_disease_draft_deleted ON disease_draft(deleted_at);
 
 -- Draft sections (generated content for each disease section)
 CREATE TABLE disease_draft_section (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     draft_id BIGINT NOT NULL REFERENCES disease_draft(id) ON DELETE CASCADE,
     section_type VARCHAR(50) NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -92,7 +94,7 @@ CREATE INDEX idx_draft_section_deleted ON disease_draft_section(deleted_at);
 
 -- Draft sources (tracks which document chunks contributed to which sections)
 CREATE TABLE draft_source (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     draft_section_id BIGINT NOT NULL REFERENCES disease_draft_section(id) ON DELETE CASCADE,
     document_chunk_id BIGINT NOT NULL REFERENCES document_chunk(id) ON DELETE CASCADE,
     relevance_score FLOAT DEFAULT 0,
@@ -104,7 +106,7 @@ CREATE INDEX idx_draft_source_chunk ON draft_source(document_chunk_id);
 
 -- Draft provenance (full prompt/response trace for audit)
 CREATE TABLE draft_provenance (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     draft_id BIGINT NOT NULL REFERENCES disease_draft(id) ON DELETE CASCADE,
     section_type VARCHAR(50) NOT NULL,
     system_prompt TEXT,

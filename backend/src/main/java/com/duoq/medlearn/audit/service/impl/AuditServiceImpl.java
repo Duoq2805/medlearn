@@ -1,10 +1,10 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.audit.service;
 
-import com.duoq.medlearn.domain.entity.AuditLog;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.enums.AuditAction;
-import com.duoq.medlearn.repository.AuditLogRepository;
-import com.duoq.medlearn.service.AuditService;
+import com.duoq.medlearn.audit.entity.AuditLog;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.audit.enums.AuditAction;
+import com.duoq.medlearn.audit.repository.AuditLogRepository;
+import com.duoq.medlearn.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

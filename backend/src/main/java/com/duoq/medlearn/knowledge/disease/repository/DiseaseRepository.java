@@ -1,7 +1,7 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.disease.repository;
 
-import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection;
+import com.duoq.medlearn.knowledge.disease.entity.Disease;
+import com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -42,7 +42,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     Page<Disease> findAllByCategoryIdAndDeletedAtIsNull(Long categoryId, Pageable pageable);
 
     @Query("""
-        SELECT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
+        SELECT new com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection(
             d.id, d.name, d.slug, d.updatedAt
         )
         FROM Disease d
@@ -55,7 +55,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
     );
 
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
+    SELECT DISTINCT new com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d
@@ -76,7 +76,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
         );
 
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
+    SELECT DISTINCT new com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d
@@ -98,7 +98,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
 
     // Query without symptom filter - used when symptomIds is null to avoid Hibernate type inference issue
     @Query("""
-    SELECT DISTINCT new com.duoq.medlearn.domain.dto.disease.DiseaseSummaryProjection(
+    SELECT DISTINCT new com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection(
         d.id, d.name, d.slug, d.updatedAt
     )
     FROM Disease d

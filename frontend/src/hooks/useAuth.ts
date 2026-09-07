@@ -56,13 +56,9 @@ export const useAuth = () => {
   const registerMutation = useMutation({
     mutationFn: (userData: { username: string; email: string; password: string; fullName: string }) =>
       authApi.register(userData),
-    onSuccess: (data: AuthResponse) => {
-      localStorage.setItem('accessToken', data.accessToken);
-      localStorage.setItem('refreshToken', data.refreshToken);
-      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+    onSuccess: () => {
       setRegisterError(null);
-      const userRole = data.roles?.[0] || 'USER';
-      navigate(getDashboardPath(userRole), { replace: true });
+      navigate('/login', { replace: true });
     },
     onError: (error: any) => {
       const msg = error?.response?.data?.message || error?.message || 'Registration failed. Please try again.';

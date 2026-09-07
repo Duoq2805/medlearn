@@ -1,7 +1,7 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.version.repository;
 
-import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.domain.enums.VersionStatus;
+import com.duoq.medlearn.knowledge.version.entity.DiseaseVersion;
+import com.duoq.medlearn.knowledge.version.enums.VersionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -56,9 +56,9 @@ public interface DiseaseVersionRepository extends JpaRepository<DiseaseVersion, 
     @Modifying
     @Query("""
         UPDATE DiseaseVersion dv
-        SET dv.status = com.duoq.medlearn.domain.enums.VersionStatus.ARCHIVED
+        SET dv.status = com.duoq.medlearn.knowledge.version.enums.VersionStatus.ARCHIVED
         WHERE dv.disease.id = :diseaseId
-          AND dv.status = com.duoq.medlearn.domain.enums.VersionStatus.APPROVED
+          AND dv.status = com.duoq.medlearn.knowledge.version.enums.VersionStatus.APPROVED
           AND (:excludeVersionId IS NULL OR dv.id <> :excludeVersionId)
           AND dv.deletedAt IS NULL
         """)

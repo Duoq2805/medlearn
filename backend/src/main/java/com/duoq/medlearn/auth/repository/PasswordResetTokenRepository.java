@@ -1,6 +1,6 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.auth.repository;
 
-import com.duoq.medlearn.domain.entity.PasswordResetToken;
+import com.duoq.medlearn.auth.entity.PasswordResetToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

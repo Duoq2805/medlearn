@@ -1,25 +1,25 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.knowledge.section.service.impl;
 
-import com.duoq.medlearn.domain.entity.DiseaseSection;
-import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.domain.entity.SectionType;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.dto.section.CreateDiseaseSectionRequest;
-import com.duoq.medlearn.domain.dto.section.SectionOrderRequest;
-import com.duoq.medlearn.domain.dto.section.UpdateDiseaseSectionRequest;
-import com.duoq.medlearn.domain.dto.section.DiseaseSectionResponse;
-import com.duoq.medlearn.domain.dto.section.SectionTemplateResponse;
-import com.duoq.medlearn.domain.dto.section.SectionTypeResponse;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.mapper.DiseaseMapper;
-import com.duoq.medlearn.repository.DiseaseSectionRepository;
-import com.duoq.medlearn.repository.DiseaseVersionRepository;
-import com.duoq.medlearn.repository.SectionTypeRepository;
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.domain.enums.PermissionCode;
-import com.duoq.medlearn.service.DiseaseSectionService;
-import com.duoq.medlearn.service.PermissionService;
+import com.duoq.medlearn.knowledge.disease.entity.DiseaseSection;
+import com.duoq.medlearn.knowledge.version.entity.DiseaseVersion;
+import com.duoq.medlearn.knowledge.section.entity.SectionType;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.knowledge.section.dto.request.CreateDiseaseSectionRequest;
+import com.duoq.medlearn.knowledge.section.dto.request.SectionOrderRequest;
+import com.duoq.medlearn.knowledge.section.dto.request.UpdateDiseaseSectionRequest;
+import com.duoq.medlearn.knowledge.section.dto.response.DiseaseSectionResponse;
+import com.duoq.medlearn.knowledge.section.dto.response.SectionTemplateResponse;
+import com.duoq.medlearn.knowledge.section.dto.response.SectionTypeResponse;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.knowledge.disease.mapper.DiseaseMapper;
+import com.duoq.medlearn.knowledge.section.repository.DiseaseSectionRepository;
+import com.duoq.medlearn.knowledge.version.repository.DiseaseVersionRepository;
+import com.duoq.medlearn.knowledge.section.repository.SectionTypeRepository;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.auth.enums.PermissionCode;
+import com.duoq.medlearn.knowledge.section.service.DiseaseSectionService;
+import com.duoq.medlearn.auth.service.PermissionService;
 import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
@@ -241,7 +241,7 @@ public class DiseaseSectionServiceImpl implements DiseaseSectionService {
         if (version == null) {
             throw new IllegalStateException("Disease version not found");
         }
-        if (version.getStatus() != com.duoq.medlearn.domain.enums.VersionStatus.DRAFT) {
+        if (version.getStatus() != com.duoq.medlearn.knowledge.version.enums.VersionStatus.DRAFT) {
             throw new IllegalStateException("Section is not editable because version is not draft");
         }
 

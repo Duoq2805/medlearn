@@ -1,13 +1,13 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.knowledge.category.service.impl;
 
-import com.duoq.medlearn.domain.dto.category.CategoryResponse;
-import com.duoq.medlearn.domain.dto.category.CreateCategoryRequest;
-import com.duoq.medlearn.domain.dto.category.UpdateCategoryRequest;
-import com.duoq.medlearn.domain.entity.Category;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.mapper.CategoryMapper;
-import com.duoq.medlearn.repository.CategoryRepository;
-import com.duoq.medlearn.service.CategoryService;
+import com.duoq.medlearn.knowledge.category.dto.response.CategoryResponse;
+import com.duoq.medlearn.knowledge.category.dto.request.CreateCategoryRequest;
+import com.duoq.medlearn.knowledge.category.dto.request.UpdateCategoryRequest;
+import com.duoq.medlearn.knowledge.category.entity.Category;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.knowledge.category.mapper.CategoryMapper;
+import com.duoq.medlearn.knowledge.category.repository.CategoryRepository;
+import com.duoq.medlearn.knowledge.category.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

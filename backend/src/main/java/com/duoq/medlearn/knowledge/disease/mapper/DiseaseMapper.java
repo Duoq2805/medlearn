@@ -1,11 +1,13 @@
-package com.duoq.medlearn.mapper;
+package com.duoq.medlearn.knowledge.disease.mapper;
 
-import com.duoq.medlearn.domain.entity.Disease;
-import com.duoq.medlearn.domain.entity.DiseaseSection;
-import com.duoq.medlearn.domain.entity.DiseaseVersion;
-import com.duoq.medlearn.domain.dto.disease.DiseaseResponse;
-import com.duoq.medlearn.domain.dto.section.DiseaseSectionResponse;
-import com.duoq.medlearn.domain.dto.version.DiseaseVersionResponse;
+import com.duoq.medlearn.common.mapper.MapStructConfig;
+import com.duoq.medlearn.knowledge.disease.entity.Disease;
+import com.duoq.medlearn.knowledge.disease.entity.DiseaseSection;
+import com.duoq.medlearn.knowledge.version.entity.DiseaseVersion;
+import com.duoq.medlearn.knowledge.disease.dto.response.DiseaseDetailResponse;
+import com.duoq.medlearn.knowledge.disease.dto.response.DiseaseResponse;
+import com.duoq.medlearn.knowledge.section.dto.response.DiseaseSectionResponse;
+import com.duoq.medlearn.knowledge.version.dto.response.DiseaseVersionResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -28,12 +30,26 @@ public interface DiseaseMapper {
     @Mapping(target = "sectionTypeName", expression = "java(section.getSectionType() != null ? section.getSectionType().getName() : null)")
     DiseaseSectionResponse toDiseaseSectionResponse(DiseaseSection section);
 
-    default com.duoq.medlearn.domain.enums.DiseaseStatus mapStatus(String versionStatus) {
+    default DiseaseDetailResponse toDiseaseDetailResponse(Disease disease) {
+        if (disease == null) return null;
+        return DiseaseDetailResponse.builder()
+                .disease(toDiseaseResponse(disease))
+                .currentVersion(disease.getCurrentVersion() != null ? toDiseaseVersionResponse(disease.getCurrentVersion()) : null)
+                .build();
+    }
+
+    @Mapping(target = "id", source = "id")
+    @Mapping(target = "name", source = "name")
+    @Mapping(target = "slug", source = "slug")
+    @Mapping(target = "updatedAt", source = "updatedAt")
+    com.duoq.medlearn.knowledge.disease.dto.projection.DiseaseSummaryProjection toDiseaseSummaryProjection(Disease disease);
+
+    default com.duoq.medlearn.knowledge.disease.enums.DiseaseStatus mapStatus(String versionStatus) {
         return switch (versionStatus) {
-            case "APPROVED" -> com.duoq.medlearn.domain.enums.DiseaseStatus.APPROVED;
-            case "PENDING_REVIEW" -> com.duoq.medlearn.domain.enums.DiseaseStatus.PENDING_REVIEW;
-            case "ARCHIVED" -> com.duoq.medlearn.domain.enums.DiseaseStatus.ARCHIVED;
-            default -> com.duoq.medlearn.domain.enums.DiseaseStatus.DRAFT;
+            case "APPROVED" -> com.duoq.medlearn.knowledge.disease.enums.DiseaseStatus.APPROVED;
+            case "PENDING_REVIEW" -> com.duoq.medlearn.knowledge.disease.enums.DiseaseStatus.PENDING_REVIEW;
+            case "ARCHIVED" -> com.duoq.medlearn.knowledge.disease.enums.DiseaseStatus.ARCHIVED;
+            default -> com.duoq.medlearn.knowledge.disease.enums.DiseaseStatus.DRAFT;
         };
     }
 }

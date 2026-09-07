@@ -21,6 +21,12 @@ spring:
   mail:
     username: "test@example.com"
     password: "test"
+    host: localhost
+    port: 25
+
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.actuate.autoconfigure.mail.MailHealthContributorAutoConfiguration
 
   security:
     oauth2:
@@ -44,6 +50,30 @@ jwt:
 
 app:
   url: http://localhost:6060
+
+ai:
+  gateway:
+    default-provider: nine-router
+    api-key: test-api-key
+    base-url: http://localhost:9999
+    timeout-ms: 5000
+    max-retries: 1
+  prompt:
+    location: prompts
+  cache:
+    enabled: false
+  quota:
+    enabled: false
+    default-monthly-tokens: 1000000
+  rate-limit:
+    enabled: false
+    requests-per-minute: 100
+    tokens-per-minute: 100000
+  security:
+    injection-filter-enabled: true
+    output-filter-enabled: true
+    max-prompt-length: 100000
+    min-prompt-length: 1
 
 logging:
   level:

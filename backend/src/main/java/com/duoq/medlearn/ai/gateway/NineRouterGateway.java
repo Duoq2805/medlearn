@@ -6,7 +6,7 @@ import com.duoq.medlearn.ai.dto.response.AiChatResponse;
 import com.duoq.medlearn.ai.dto.response.AiStreamChunk;
 import com.duoq.medlearn.ai.dto.response.ModelInfo;
 import com.duoq.medlearn.ai.dto.response.AiMessage;
-import com.duoq.medlearn.ai.dto.enums.AiRole;
+import com.duoq.medlearn.ai.enums.AiRole;
 import com.duoq.medlearn.ai.dto.response.AiUsage;
 import com.duoq.medlearn.ai.exception.AiProviderException;
 import com.duoq.medlearn.ai.exception.AiProviderUnavailableException;

@@ -38,11 +38,11 @@ test-output.txt
 **/test-results/**
 
 ### Project documentation (not for commit) ###
-Medvora/
-.codegraph
-.omo
-docs
-thoughts
-uploads
-oglevel=ERROR
+#Medvora/
+#.codegraph
+#.omo
+#docs
+#thoughts
+#uploads
+#oglevel=ERROR
 

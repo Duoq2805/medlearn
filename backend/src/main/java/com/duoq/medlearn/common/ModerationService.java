@@ -1,4 +1,4 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.common;
 
 public interface ModerationService {
 }

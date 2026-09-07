@@ -1,9 +1,10 @@
-package com.duoq.medlearn.mapper;
+package com.duoq.medlearn.knowledge.disease.mapper;
 
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudyDetailResponse;
-import com.duoq.medlearn.domain.dto.casestudy.CaseStudySummaryProjection;
-import com.duoq.medlearn.domain.entity.CaseStudy;
-import com.duoq.medlearn.domain.entity.Symptom;
+import com.duoq.medlearn.common.mapper.MapStructConfig;
+import com.duoq.medlearn.knowledge.disease.dto.response.CaseStudyDetailResponse;
+import com.duoq.medlearn.knowledge.disease.dto.projection.CaseStudySummaryProjection;
+import com.duoq.medlearn.knowledge.disease.entity.CaseStudy;
+import com.duoq.medlearn.knowledge.symptom.entity.Symptom;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

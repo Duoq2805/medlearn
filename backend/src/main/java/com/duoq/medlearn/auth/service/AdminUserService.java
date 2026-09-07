@@ -1,6 +1,6 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.auth.service;
 
-import com.duoq.medlearn.domain.dto.user.UserResponse;
+import com.duoq.medlearn.auth.dto.response.UserResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

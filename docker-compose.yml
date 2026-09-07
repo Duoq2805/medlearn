@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: medlearn_postgres
     environment:
       POSTGRES_DB: medlearn_db
@@ -36,6 +36,9 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/medlearn_db
       SPRING_DATASOURCE_USERNAME: medlearn
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-Medlearn@123}
+      MEDLEARN_DEV_ADMIN_EMAIL: ${MEDLEARN_DEV_ADMIN_EMAIL:-}
+      MEDLEARN_DEV_ADMIN_USERNAME: ${MEDLEARN_DEV_ADMIN_USERNAME:-}
+      MEDLEARN_DEV_ADMIN_PASSWORD: ${MEDLEARN_DEV_ADMIN_PASSWORD:-}
     networks:
       - medlearn_network
 

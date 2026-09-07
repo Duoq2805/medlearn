@@ -1,46 +1,56 @@
 import apiClient from './client';
+import type { AuthResponse, User } from '../types';
+
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+  fullName: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}
 
 export const authApi = {
-  // Register a new user
-  register: async (userData: { username: string; email: string; password: string; fullName: string }) => {
-    const response = await apiClient.post<any>('/auth/register', userData);
+  register: async (userData: RegisterRequest): Promise<void> => {
+    await apiClient.post('/auth/register', userData);
+  },
+
+  login: async (email: string, password: string): Promise<AuthResponse> => {
+    const response = await apiClient.post<{ data: AuthResponse }>('/auth/login', { usernameOrEmail: email, password });
     return response.data.data;
   },
 
-  // Login user
-  login: async (email: string, password: string) => {
-    const response = await apiClient.post<any>('/auth/login', { usernameOrEmail: email, password });
+  forgotPassword: async (email: string): Promise<void> => {
+    await apiClient.post('/auth/forgot-password', { email });
+  },
+
+  resendVerification: async (email: string): Promise<void> => {
+    await apiClient.post('/auth/resend-verification', { email });
+  },
+
+  resetPassword: async (request: ResetPasswordRequest): Promise<void> => {
+    await apiClient.post('/auth/reset-password', request);
+  },
+
+  verifyEmail: async (token: string): Promise<void> => {
+    await apiClient.get(`/auth/verify?token=${encodeURIComponent(token)}`);
+  },
+
+  me: async (): Promise<User> => {
+    const response = await apiClient.get<{ data: User }>('/auth/me');
     return response.data.data;
   },
 
-  // Request password reset
-  forgotPassword: async (email: string) => {
-    const response = await apiClient.post<any>('/auth/forgot-password', { email });
-    return response.data.data;
-  },
-
-  // Verify email
-  verifyEmail: async (token: string) => {
-    const response = await apiClient.get<any>(`/auth/verify?token=${token}`);
-    return response.data.data;
-  },
-
-  // Get current logged in user
-  me: async () => {
-    const response = await apiClient.get<any>('/auth/me');
-    return response.data.data;
-  },
-
-  // Logout user
-  logout: async () => {
+  logout: async (): Promise<void> => {
     const refreshToken = localStorage.getItem('refreshToken');
-    const response = await apiClient.post<any>('/auth/logout', refreshToken ? { refreshToken } : {});
-    return response.data.data;
+    await apiClient.post('/auth/logout', refreshToken ? { refreshToken } : {});
   },
 
-  // Refresh token
-  refresh: async (refreshToken: string) => {
-    const response = await apiClient.post<any>('/auth/refresh', { refreshToken });
+  refresh: async (refreshToken: string): Promise<AuthResponse> => {
+    const response = await apiClient.post<{ data: AuthResponse }>('/auth/refresh', { refreshToken });
     return response.data.data;
   },
 };

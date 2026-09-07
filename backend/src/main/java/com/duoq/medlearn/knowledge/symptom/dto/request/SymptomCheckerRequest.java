@@ -1,4 +1,4 @@
-package com.duoq.medlearn.symptom.dto.request;
+package com.duoq.medlearn.knowledge.symptom.dto.request;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;

@@ -1,10 +1,10 @@
 package com.duoq.medlearn.draft.mapper;
 
-import com.duoq.medlearn.draft.dto.DiseaseDraftResponse;
-import com.duoq.medlearn.draft.dto.DiseaseDraftSectionResponse;
+import com.duoq.medlearn.draft.dto.response.DiseaseDraftResponse;
+import com.duoq.medlearn.draft.dto.response.DiseaseDraftSectionResponse;
 import com.duoq.medlearn.draft.entity.DiseaseDraft;
 import com.duoq.medlearn.draft.entity.DiseaseDraftSection;
-import com.duoq.medlearn.mapper.MapStructConfig;
+import com.duoq.medlearn.common.mapper.MapStructConfig;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

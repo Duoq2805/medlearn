@@ -1,7 +1,7 @@
-package com.duoq.medlearn.config;
+package com.duoq.medlearn.common.config;
 
-import com.duoq.medlearn.security.JwtAuthenticationFilter;
-import com.duoq.medlearn.security.OAuth2LoginSuccessHandler;
+import com.duoq.medlearn.common.security.JwtAuthenticationFilter;
+import com.duoq.medlearn.auth.security.OAuth2LoginSuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

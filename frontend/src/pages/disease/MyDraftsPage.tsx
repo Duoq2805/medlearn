@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, ChevronRight, Plus, Trash2, Eye, Send, Clock, FileText, AlertTriangle, Loader2, X } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
@@ -16,7 +16,7 @@ export default function MyDraftsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [previewingDraftId, setPreviewingDraftId] = useState<string | null>(null);
-  const [previewData, setPreviewData] = useState<unknown>(null);
+  const [previewData, setPreviewData] = useState<any>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
 
@@ -44,7 +44,7 @@ export default function MyDraftsPage() {
         console.log('API response diseases:', draftsResponse?.diseases);
 
         // Handle both direct array response and paginated response
-        let draftsArray = [];
+        let draftsArray: any[] = [];
         if (Array.isArray(draftsResponse)) {
           draftsArray = draftsResponse;
           console.log('Using direct array response');
@@ -139,8 +139,6 @@ export default function MyDraftsPage() {
           id: disease.id,
           name: disease.name,
           categoryName: disease.categoryName,
-          icdCode: disease.icdCode,
-          description: disease.description
         },
         version: {
           versionNumber: versionData.versionNumber,
@@ -294,7 +292,7 @@ export default function MyDraftsPage() {
                   </span>
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] mb-4">
-                  Last edited: {draft.lastEdited} 鈥?v{draft.version}
+                  Last edited: {draft.lastEdited} • v{draft.version}
                 </p>
                 {draft.status === 'REJECTED' && draft.reviewerComments && (
                   <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
@@ -355,8 +353,8 @@ export default function MyDraftsPage() {
                       {previewData?.disease?.name || 'Untitled Draft'}
                     </h2>
                     <p className="text-sm text-[var(--text-secondary)]">
-                      {previewData?.disease?.categoryName || 'Uncategorized'} 鈥?
-                      {previewData?.disease?.icdCode || 'No ICD Code'} 鈥?
+                      {previewData?.disease?.categoryName || 'Uncategorized'} • {' '}
+                      {previewData?.disease?.icdCode || 'No ICD Code'} • {' '}
                       v{previewData?.version?.versionNumber || '1'}
                     </p>
                   </div>
@@ -410,7 +408,7 @@ export default function MyDraftsPage() {
                 </span>
                 <span>
                   <FileText size={14} className="mr-2" /> 
-                  Version {previewData?.version?.versionNumber || '1'} 鈥?
+                  Version {previewData?.version?.versionNumber || '1'} • {' '}
                   {previewData?.version?.status || 'Draft'}
                 </span>
               </div>

@@ -1,7 +1,7 @@
 package com.duoq.medlearn.ai.usage;
 
 import com.duoq.medlearn.ai.usage.entity.AiUsageLog;
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.auth.entity.User;
 
 public interface AiUsageService {
 

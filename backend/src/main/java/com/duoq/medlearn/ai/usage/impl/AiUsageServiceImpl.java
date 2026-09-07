@@ -1,8 +1,9 @@
-package com.duoq.medlearn.ai.usage;
+package com.duoq.medlearn.ai.usage.impl;
 
+import com.duoq.medlearn.ai.usage.AiUsageService;
 import com.duoq.medlearn.ai.repository.AiUsageLogRepository;
 import com.duoq.medlearn.ai.usage.entity.AiUsageLog;
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.auth.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

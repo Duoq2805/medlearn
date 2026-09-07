@@ -1,10 +1,10 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.auth.controller;
 
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.domain.dto.common.PagedResponse;
-import com.duoq.medlearn.domain.dto.user.RoleRequest;
-import com.duoq.medlearn.domain.dto.user.UserResponse;
-import com.duoq.medlearn.service.AdminUserService;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.common.dto.PagedResponse;
+import com.duoq.medlearn.auth.dto.request.RoleRequest;
+import com.duoq.medlearn.auth.dto.response.UserResponse;
+import com.duoq.medlearn.auth.service.AdminUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

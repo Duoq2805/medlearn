@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.dto.common;
+package com.duoq.medlearn.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -136,7 +136,7 @@ export default function CreateDiseasePage() {
       try {
         const response = await diseaseApi.getCategories();
         setCategories(response);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch categories', error);
       } finally {
         setCategoriesLoading(false);
@@ -156,7 +156,7 @@ export default function CreateDiseasePage() {
           sectionTypesMap[st.name] = st.id;
         });
         setSectionTypesMap(sectionTypesMap);
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch section types', error);
       } finally {
         setSectionTypesLoading(false);
@@ -231,9 +231,9 @@ export default function CreateDiseasePage() {
       const savedVersionId = versionResponse.id;
       setVersionId(savedVersionId);
       // Update state with the saved data (to reflect any backend changes like slug)
-      setTitle(versionResponse.disease?.name || title);
-      setCategory(versionResponse.disease?.categoryName || category);
-      setIcd(versionResponse.disease?.icdCode || icd);
+      setTitle(title);
+      setCategory(category);
+      setIcd(icd);
       setStatus(versionResponse.status || 'Draft');
       setVersion(versionResponse.versionNumber || 1);
       setLastEdited(versionResponse.updatedAt ? new Date(versionResponse.updatedAt).toLocaleString() : 'Just now');
@@ -263,7 +263,7 @@ export default function CreateDiseasePage() {
       alert('Draft saved successfully!');
       // Optionally, we could navigate to edit page to show the saved version
       // navigate(`/disease/${savedDiseaseId}/edit`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save draft', error);
       let errorMessage = 'Failed to save draft. Please try again.';
       if (error.response && error.response.data && error.response.data.message) {
@@ -351,7 +351,7 @@ export default function CreateDiseasePage() {
       alert('Draft submitted for review successfully!');
       // Optionally, redirect to disease detail or my drafts
       // navigate(`/disease/${diseaseId}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to submit draft for review', error);
       let errorMessage = 'Failed to submit draft for review. Please try again.';
       if (error.response && error.response.data && error.response.data.message) {
@@ -412,8 +412,6 @@ export default function CreateDiseasePage() {
           name: disease.name,
           slug: disease.slug,
           categoryName: disease.categoryName,
-          icdCode: disease.icdCode,
-          description: disease.description,
         },
         currentVersion: {
           id: version.id,
@@ -474,7 +472,7 @@ export default function CreateDiseasePage() {
                   <span className="text-[var(--text-secondary)]">
                     Draft generated from <strong className="text-[var(--text-primary)]">{draftMetadata.sourceLabel}</strong>
                     {draftMetadata.method === 'upload' && draftMetadata.originalFilename && (
-                      <> â€?file: <strong className="text-[var(--text-primary)]">{draftMetadata.originalFilename}</strong> </>
+                      <> ï¿½?file: <strong className="text-[var(--text-primary)]">{draftMetadata.originalFilename}</strong> </>
                     )}
                   </span>
                 </div>

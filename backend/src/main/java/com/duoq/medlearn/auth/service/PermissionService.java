@@ -1,6 +1,6 @@
-package com.duoq.medlearn.service;
+package com.duoq.medlearn.auth.service;
 
-import com.duoq.medlearn.domain.enums.PermissionCode;
+import com.duoq.medlearn.auth.enums.PermissionCode;
 
 import java.util.Set;
 

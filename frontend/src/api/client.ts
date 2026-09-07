@@ -34,10 +34,11 @@ apiClient.interceptors.response.use(
       
       if (refreshToken) {
         try {
-          const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, { refreshToken });
-          localStorage.setItem('accessToken', data.accessToken);
-          localStorage.setItem('refreshToken', data.refreshToken);
-          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+          const response = await axios.post<{ data: { accessToken: string; refreshToken: string } }>(`${API_BASE_URL}/auth/refresh`, { refreshToken });
+          const tokens = response.data.data;
+          localStorage.setItem('accessToken', tokens.accessToken);
+          localStorage.setItem('refreshToken', tokens.refreshToken);
+          originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
           return apiClient(originalRequest);
         } catch (refreshError) {
           localStorage.removeItem('accessToken');

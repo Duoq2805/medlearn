@@ -1,11 +1,12 @@
-package com.duoq.medlearn.ai.prompt;
+package com.duoq.medlearn.ai.prompt.impl;
 
+import com.duoq.medlearn.ai.prompt.PromptTemplateService;
 import com.duoq.medlearn.ai.dto.response.PromptTemplateResponse;
 import com.duoq.medlearn.ai.exception.AiConfigurationException;
 import com.duoq.medlearn.ai.prompt.entity.PromptTemplate;
 import com.duoq.medlearn.ai.repository.PromptTemplateRepository;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

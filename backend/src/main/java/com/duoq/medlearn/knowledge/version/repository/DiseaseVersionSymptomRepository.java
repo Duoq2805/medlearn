@@ -1,6 +1,6 @@
-package com.duoq.medlearn.repository;
+package com.duoq.medlearn.knowledge.version.repository;
 
-import com.duoq.medlearn.domain.entity.DiseaseVersionSymptom;
+import com.duoq.medlearn.knowledge.version.entity.DiseaseVersionSymptom;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

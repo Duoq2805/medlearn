@@ -42,7 +42,7 @@ export default function ReviewerQueuePage() {
               return {
                 ...version,
                 diseaseName: disease.name,
-                diseaseCategory: disease.categoryName,
+                diseaseCategory: disease.categoryName || 'Uncategorized',
                 // We'll also get the disease slug for linking if needed
                 diseaseSlug: disease.slug,
               };

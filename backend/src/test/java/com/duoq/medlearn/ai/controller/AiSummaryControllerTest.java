@@ -2,11 +2,11 @@ package com.duoq.medlearn.ai.controller;
 
 import com.duoq.medlearn.ai.dto.response.SummaryResponse;
 import com.duoq.medlearn.ai.dto.request.SummaryRequest;
-import com.duoq.medlearn.ai.dto.enums.SummaryType;
+import com.duoq.medlearn.ai.enums.SummaryType;
 import com.duoq.medlearn.ai.summary.AiSummaryService;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.security.JwtService;
-import com.duoq.medlearn.security.OAuth2LoginSuccessHandler;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.common.security.JwtService;
+import com.duoq.medlearn.auth.security.OAuth2LoginSuccessHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

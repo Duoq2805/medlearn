@@ -1,8 +1,9 @@
 package com.duoq.medlearn.ai.usage;
+import com.duoq.medlearn.ai.usage.impl.AiUsageServiceImpl;
 
 import com.duoq.medlearn.ai.repository.AiUsageLogRepository;
 import com.duoq.medlearn.ai.usage.entity.AiUsageLog;
-import com.duoq.medlearn.domain.entity.User;
+import com.duoq.medlearn.auth.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { documentApi } from '../../api/document';
 import { Link, ArrowLeft, AlertCircle, Loader2, Globe } from 'lucide-react';
 
 interface ImportUrlViewProps {
   onBack: () => void;
-  onContentImported: (content: string, source: string) => void;
+  onDocumentImported: (document: import("../../api/document").Document) => void;
 }
 
 const TRUSTED_SOURCES = [
@@ -14,7 +15,7 @@ const TRUSTED_SOURCES = [
   { label: 'Medscape', domain: 'medscape.com' },
 ];
 
-export default function ImportUrlView({ onBack, onContentImported }: ImportUrlViewProps) {
+export default function ImportUrlView({ onBack, onDocumentImported }: ImportUrlViewProps) {
   const [url, setUrl] = useState('');
   const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +35,8 @@ export default function ImportUrlView({ onBack, onContentImported }: ImportUrlVi
         'TODO: POST /api/documents/import-url not implemented on backend. ' +
         'Backend should fetch URL, extract article content, and return UrlImportResponse.'
       );
-    } catch (err: any) {
-      setError(err.message || 'Import failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Import failed');
     } finally {
       setImporting(false);
     }
@@ -125,3 +126,4 @@ export default function ImportUrlView({ onBack, onContentImported }: ImportUrlVi
     </div>
   );
 }
+

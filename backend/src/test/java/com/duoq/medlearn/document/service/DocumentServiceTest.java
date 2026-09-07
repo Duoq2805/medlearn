@@ -1,16 +1,17 @@
 package com.duoq.medlearn.document.service;
 
-import com.duoq.medlearn.document.dto.DocumentChunkResponse;
-import com.duoq.medlearn.document.dto.DocumentResponse;
+import com.duoq.medlearn.document.dto.response.DocumentChunkResponse;
+import com.duoq.medlearn.document.dto.response.DocumentResponse;
 import com.duoq.medlearn.document.entity.Document;
 import com.duoq.medlearn.document.entity.DocumentChunk;
 import com.duoq.medlearn.document.exception.DocumentProcessingException;
 import com.duoq.medlearn.document.mapper.DocumentMapper;
 import com.duoq.medlearn.document.repository.DocumentChunkRepository;
 import com.duoq.medlearn.document.repository.DocumentRepository;
+import com.duoq.medlearn.document.storage.LocalFileStorageService;
 import com.duoq.medlearn.document.service.impl.DocumentServiceImpl;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

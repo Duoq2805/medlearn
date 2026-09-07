@@ -1,11 +1,11 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service.impl;
 
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.exception.ResourceNotFoundException;
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.security.CurrentUserResolver;
-import com.duoq.medlearn.domain.enums.PermissionCode;
-import com.duoq.medlearn.service.PermissionService;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.common.security.CurrentUserResolver;
+import com.duoq.medlearn.auth.enums.PermissionCode;
+import com.duoq.medlearn.auth.service.PermissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

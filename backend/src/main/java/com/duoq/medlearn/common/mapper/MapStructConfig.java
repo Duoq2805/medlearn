@@ -1,4 +1,4 @@
-package com.duoq.medlearn.mapper;
+package com.duoq.medlearn.common.mapper;
 
 import org.mapstruct.MapperConfig;
 import org.mapstruct.ReportingPolicy;

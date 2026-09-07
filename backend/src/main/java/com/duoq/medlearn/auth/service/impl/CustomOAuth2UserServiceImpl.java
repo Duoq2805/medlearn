@@ -1,11 +1,11 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.auth.service.impl;
 
-import com.duoq.medlearn.domain.entity.Role;
-import com.duoq.medlearn.domain.entity.User;
-import com.duoq.medlearn.domain.enums.UserStatus;
-import com.duoq.medlearn.repository.RoleRepository;
-import com.duoq.medlearn.repository.UserRepository;
-import com.duoq.medlearn.security.CustomOAuth2User;
+import com.duoq.medlearn.auth.entity.Role;
+import com.duoq.medlearn.auth.entity.User;
+import com.duoq.medlearn.auth.enums.UserStatus;
+import com.duoq.medlearn.auth.repository.RoleRepository;
+import com.duoq.medlearn.auth.repository.UserRepository;
+import com.duoq.medlearn.auth.security.CustomOAuth2User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

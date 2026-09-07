@@ -1,0 +1,1 @@
+export interface Category { id: number; name: string; description?: string | null; diseaseCount?: number; createdAt?: string; updatedAt?: string; }export type CategoryResponse = Category;export interface CreateCategoryRequest { name: string; description?: string | null; }export interface UpdateCategoryRequest { name?: string; description?: string | null; }

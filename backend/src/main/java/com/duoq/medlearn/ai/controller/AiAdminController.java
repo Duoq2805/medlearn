@@ -10,7 +10,7 @@ import com.duoq.medlearn.ai.prompt.PromptTemplateService;
 import com.duoq.medlearn.ai.prompt.PromptTester;
 import com.duoq.medlearn.ai.prompt.PromptValidator;
 import com.duoq.medlearn.ai.prompt.VariablesExtractor;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
+import com.duoq.medlearn.common.dto.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

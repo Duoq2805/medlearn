@@ -18,7 +18,7 @@ logging:
     org.hibernate.SQL: ERROR
 
 jwt:
-  secret: ${JWT_SECRET:prod_jwt_secret}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:300000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 

@@ -1,4 +1,4 @@
-package com.duoq.medlearn.exception;
+package com.duoq.medlearn.common.exception;
 
 public class InvalidCredentialsException extends AuthenticationException {
     public InvalidCredentialsException() {

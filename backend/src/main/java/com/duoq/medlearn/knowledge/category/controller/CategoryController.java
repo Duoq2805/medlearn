@@ -1,10 +1,10 @@
-package com.duoq.medlearn.controller;
+package com.duoq.medlearn.knowledge.category.controller;
 
-import com.duoq.medlearn.domain.dto.category.CategoryResponse;
-import com.duoq.medlearn.domain.dto.category.CreateCategoryRequest;
-import com.duoq.medlearn.domain.dto.category.UpdateCategoryRequest;
-import com.duoq.medlearn.domain.dto.common.ApiResponse;
-import com.duoq.medlearn.service.CategoryService;
+import com.duoq.medlearn.knowledge.category.dto.response.CategoryResponse;
+import com.duoq.medlearn.knowledge.category.dto.request.CreateCategoryRequest;
+import com.duoq.medlearn.knowledge.category.dto.request.UpdateCategoryRequest;
+import com.duoq.medlearn.common.dto.ApiResponse;
+import com.duoq.medlearn.knowledge.category.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

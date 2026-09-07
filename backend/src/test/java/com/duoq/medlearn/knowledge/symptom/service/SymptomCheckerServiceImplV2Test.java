@@ -1,8 +1,8 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.knowledge.symptom.service;
 
-import com.duoq.medlearn.symptom.dto.response.SymptomAnalysisV2Response;
-import com.duoq.medlearn.symptom.service.impl.SymptomCheckerServiceImplV2;
-import com.duoq.medlearn.repository.DiseaseVersionSymptomRepository;
+import com.duoq.medlearn.knowledge.symptom.dto.response.SymptomAnalysisV2Response;
+import com.duoq.medlearn.knowledge.symptom.service.impl.SymptomCheckerServiceImplV2;
+import com.duoq.medlearn.knowledge.version.repository.DiseaseVersionSymptomRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

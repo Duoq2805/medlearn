@@ -1,6 +1,6 @@
-package com.duoq.medlearn.service.impl;
+package com.duoq.medlearn.common.email.impl;
 
-import com.duoq.medlearn.service.EmailService;
+import com.duoq.medlearn.common.email.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

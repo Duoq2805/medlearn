@@ -1,4 +1,4 @@
-package com.duoq.medlearn.domain.entity;
+package com.duoq.medlearn.auth.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

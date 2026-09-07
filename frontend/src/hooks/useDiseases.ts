@@ -1,15 +1,15 @@
-﻿import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { diseaseApi } from '../api/disease';
-import { Disease } from '../types';
+import type { CreateDiseaseRequest } from '../types/disease';
 
-export const useDiseases = (page: number = 1, pageSize: number = 10) => {
+export const useDiseases = (page: number = 0, pageSize: number = 20) => {
   return useQuery({
     queryKey: ['diseases', page, pageSize],
-    queryFn: () => diseaseApi.fetchDiseases(page, pageSize),
+    queryFn: () => diseaseApi.fetchDiseases(undefined, undefined, undefined, page, pageSize),
   });
 };
 
-export const useDisease = (id: string) => {
+export const useDisease = (id: string | number) => {
   return useQuery({
     queryKey: ['disease', id],
     queryFn: () => diseaseApi.fetchDisease(id),
@@ -34,7 +34,7 @@ export const useDiseaseCategories = () => {
 
 export const useCreateDisease = () => {
   return useMutation({
-    mutationFn: (disease: Omit<Disease, 'id' | 'createdAt' | 'updatedAt'>) =>
+    mutationFn: (disease: CreateDiseaseRequest) =>
       diseaseApi.createDisease(disease),
   });
 };
