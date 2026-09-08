@@ -5,23 +5,18 @@ import com.duoq.medlearn.ai.gateway.AiGatewayRouter;
 import com.duoq.medlearn.ai.model.AiModel;
 import com.duoq.medlearn.ai.dto.request.AiChatRequest;
 import com.duoq.medlearn.ai.dto.response.AiChatResponse;
-import com.duoq.medlearn.ai.dto.response.AiMessage;
-import com.duoq.medlearn.ai.enums.AiRole;
 import com.duoq.medlearn.ai.dto.response.AiUsage;
 import com.duoq.medlearn.ai.generation.entity.AiGeneration;
 import com.duoq.medlearn.ai.generation.repository.AiGenerationRepository;
 import com.duoq.medlearn.ai.prompt.PromptBuilder;
-import com.duoq.medlearn.ai.prompt.PromptTemplateService;
-import com.duoq.medlearn.ai.prompt.entity.PromptTemplate;
+import com.duoq.medlearn.ai.prompt.definition.FlashcardGenerationPrompt;
 import com.duoq.medlearn.ai.security.AiOutputValidator;
 import com.duoq.medlearn.ai.security.AiQuotaService;
 import com.duoq.medlearn.ai.security.AiRateLimiter;
 import com.duoq.medlearn.ai.usage.AiUsageService;
-import com.duoq.medlearn.document.repository.DocumentChunkRepository;
 import com.duoq.medlearn.auth.entity.User;
-import com.duoq.medlearn.knowledge.disease.entity.Disease;
-import com.duoq.medlearn.knowledge.section.repository.DiseaseSectionRepository;
 import com.duoq.medlearn.common.exception.ResourceNotFoundException;
+import com.duoq.medlearn.document.repository.DocumentChunkRepository;
 import com.duoq.medlearn.flashcard.dto.request.FlashcardGenerateRequest;
 import com.duoq.medlearn.flashcard.dto.response.FlashcardGenerateResponse;
 import com.duoq.medlearn.flashcard.dto.response.FlashcardResponse;
@@ -37,12 +32,14 @@ import com.duoq.medlearn.flashcard.repository.FlashcardSourceRepository;
 import com.duoq.medlearn.flashcard.service.FlashcardGenerator;
 import com.duoq.medlearn.flashcard.util.JsonFlashcardParser;
 import com.duoq.medlearn.knowledge.disease.repository.DiseaseRepository;
+import com.duoq.medlearn.knowledge.section.repository.DiseaseSectionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,7 +48,6 @@ import java.util.stream.Collectors;
 public class FlashcardGeneratorImpl implements FlashcardGenerator {
 
     private static final String REQUEST_TYPE = "FLASHCARD";
-    private static final String PROMPT_CODE = "flashcard-gen";
 
     private final DiseaseRepository diseaseRepository;
     private final DiseaseSectionRepository diseaseSectionRepository;
@@ -62,7 +58,7 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
     private final AiGenerationRepository aiGenerationRepository;
     private final AiGatewayRouter gatewayRouter;
     private final PromptBuilder promptBuilder;
-    private final PromptTemplateService promptTemplateService;
+    private final FlashcardGenerationPrompt flashcardPrompt;   // in-code prompt definition
     private final AiOutputValidator aiOutputValidator;
     private final AiQuotaService aiQuotaService;
     private final AiRateLimiter aiRateLimiter;
@@ -73,7 +69,6 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
     @Override
     @Transactional
     public FlashcardGenerateResponse generate(FlashcardGenerateRequest request, Long userId) {
-        // Validate XOR: diseaseId or documentId, not both, not neither
         if (request.getDiseaseId() != null && request.getDocumentId() != null) {
             throw new IllegalArgumentException("Provide either diseaseId or documentId, not both");
         }
@@ -84,7 +79,7 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
         aiQuotaService.checkQuota(userId, request.getCount() * 200L);
         aiRateLimiter.checkRequestLimit(String.valueOf(userId));
 
-        // Resolve source and build context
+        // Resolve source
         String contextText;
         SourceType sourceType;
         Long sourceId;
@@ -95,14 +90,12 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
                     .orElseThrow(() -> new ResourceNotFoundException("Disease not found: " + request.getDiseaseId()));
             if (disease.getCurrentVersion() == null) {
                 throw new IllegalStateException(
-                        "Disease '" + disease.getName() + "' has no approved version. "
-                                + "Approve a version before generating flashcards.");
+                        "Disease '" + disease.getName() + "' has no approved version.");
             }
             var sections = diseaseSectionRepository.findAllByVersionIdWithType(disease.getCurrentVersion().getId());
             if (sections.isEmpty()) {
                 throw new IllegalStateException(
-                        "Disease '" + disease.getName() + "' current version has no sections. "
-                                + "Add content to the disease version before generating flashcards.");
+                        "Disease '" + disease.getName() + "' current version has no sections.");
             }
             sourceType = SourceType.DISEASE;
             sourceId = disease.getId();
@@ -110,28 +103,25 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
             contextText = sections.stream()
                     .map(s -> "[" + s.getSectionType().getName() + "]: " + s.getContent())
                     .collect(Collectors.joining("\n\n"));
-            if (contextText.length() > 50000) {
-                contextText = contextText.substring(0, 50000) + "\n\n[...truncated]";
-            }
         } else {
-            var document = documentChunkRepository
+            var chunks = documentChunkRepository
                     .findAllByDocumentIdAndDeletedAtIsNullOrderByChunkIndex(request.getDocumentId());
-            if (document.isEmpty()) {
+            if (chunks.isEmpty()) {
                 throw new ResourceNotFoundException("No chunks found for document: " + request.getDocumentId());
             }
             sourceType = SourceType.DOCUMENT;
             sourceId = request.getDocumentId();
             diseaseName = request.getTitle();
-            contextText = document.stream()
+            contextText = chunks.stream()
                     .map(c -> "[Chunk " + c.getChunkIndex() + "]: " + c.getContent())
                     .collect(Collectors.joining("\n\n"));
-            // Truncate context to avoid exceeding token limits
-            if (contextText.length() > 50000) {
-                contextText = contextText.substring(0, 50000) + "\n\n[...truncated]";
-            }
         }
 
-        // Build prompt variables
+        if (contextText.length() > 50000) {
+            contextText = contextText.substring(0, 50000) + "\n\n[...truncated]";
+        }
+
+        // Build prompt variables — injection filter applied inside buildFromDefinition
         var variables = new HashMap<String, String>();
         variables.put("disease", diseaseName);
         variables.put("count", String.valueOf(request.getCount()));
@@ -139,23 +129,20 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
                 ? request.getDifficulty().name().toLowerCase() : "medium");
         variables.put("context", contextText);
 
-        // Use PromptBuilder: loads PromptTemplate, renders via PromptRenderer, filters via PromptInjectionFilter
-        var template = promptTemplateService.getActiveEntity(PROMPT_CODE);
-        var messages = promptBuilder.buildFromTemplate(template, variables);
+        var messages = promptBuilder.buildFromDefinition(flashcardPrompt, variables);
 
         var model = request.getModel() != null
                 ? AiModel.fromModelId(request.getModel())
-                : AiModel.fromModelId(template.getModel() != null ? template.getModel() : AiModel.GPT_5_MINI.getModelId());
-        var temperature = request.getTemperature() != null ? request.getTemperature()
-                : (template.getTemperature() != null ? template.getTemperature() : 0.3);
-        var maxTokens = template.getMaxTokens() != null ? template.getMaxTokens() : 4000;
+                : AiModel.fromModelId(flashcardPrompt.getModel());
+        var temperature = request.getTemperature() != null
+                ? request.getTemperature() : flashcardPrompt.getTemperature();
 
         var chatRequest = AiChatRequest.builder()
                 .messages(messages)
                 .model(model.getModelId())
                 .temperature(temperature)
-                .maxTokens(maxTokens)
-                .promptTemplateCode(PROMPT_CODE)
+                .maxTokens(flashcardPrompt.getMaxTokens())
+                .promptTemplateCode(flashcardPrompt.getCode())
                 .userId(String.valueOf(userId))
                 .build();
 
@@ -164,25 +151,21 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
         try {
             response = gatewayRouter.chat(chatRequest, model);
         } catch (Exception e) {
-            log.error("AI generation failed for userId={}: {}", userId, e.getMessage());
+            log.error("Flashcard AI generation failed for userId={}: {}", userId, e.getMessage());
             throw e;
         }
         var latencyMs = System.currentTimeMillis() - startTime;
 
         var rawContent = response.getChoices() != null && !response.getChoices().isEmpty()
-                ? response.getChoices().getFirst().getContent()
-                : "";
-
-        // Validate AI output
+                ? response.getChoices().getFirst().getContent() : "";
         rawContent = aiOutputValidator.validate(rawContent);
 
-        // Parse JSON
         var parsedCards = jsonParser.parse(rawContent);
         if (parsedCards.isEmpty()) {
             log.warn("AI returned no valid flashcards for userId={}", userId);
         }
 
-        // Create deck
+        // Persist deck
         var deck = FlashcardDeck.builder()
                 .title(request.getTitle())
                 .sourceType(sourceType)
@@ -192,7 +175,7 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
                 .build();
         var savedDeck = deckRepository.save(deck);
 
-        // Batch persist flashcards
+        // Persist cards
         var usage = response.getUsage();
         var cards = new ArrayList<Flashcard>();
         for (var parsed : parsedCards) {
@@ -214,7 +197,7 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
             flashcardResponses.add(flashcardMapper.toResponse(card));
         }
 
-        // Batch save source entries for document chunks
+        // Source entries for document chunks
         if (request.getDocumentId() != null && !savedCards.isEmpty()) {
             var sources = new ArrayList<FlashcardSource>();
             for (var card : savedCards) {
@@ -227,40 +210,33 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
             sourceRepository.saveAll(sources);
         }
 
-        // Save AiGeneration record (full provenance for reproducibility)
+        // AiGeneration audit record
         var generation = AiGeneration.builder()
                 .featureType(FeatureType.FLASHCARD)
                 .featureId(savedDeck.getId())
-                .promptTemplateCode(PROMPT_CODE)
-                .promptTemplateVersion(template.getVersion())
+                .promptTemplateCode(flashcardPrompt.getCode())
+                .promptTemplateVersion("code")   // indicates prompt is in source code, not DB
                 .model(response.getModel())
                 .provider(response.getProvider())
                 .promptTokens(usage != null ? usage.getPromptTokens() : 0)
                 .completionTokens(usage != null ? usage.getCompletionTokens() : 0)
                 .totalTokens(usage != null ? usage.getTotalTokens() : 0)
                 .latencyMs((int) latencyMs)
-                .systemPrompt(template.getSystemPrompt())
-                .userPrompt(template.getUserPromptTemplate())
+                .systemPrompt(flashcardPrompt.getSystemPrompt())
+                .userPrompt(flashcardPrompt.getUserPromptTemplate())
                 .rawResponse(rawContent)
                 .status("SUCCESS")
                 .createdBy(User.builder().id(userId).build())
                 .build();
         aiGenerationRepository.save(generation);
 
-        // Async usage logging
         aiUsageService.log(
-                User.builder().id(userId).build(),
-                REQUEST_TYPE,
-                response.getModel(),
-                response.getProvider(),
+                User.builder().id(userId).build(), REQUEST_TYPE,
+                response.getModel(), response.getProvider(),
                 usage != null ? usage.getPromptTokens() : 0,
                 usage != null ? usage.getCompletionTokens() : 0,
                 usage != null ? usage.getTotalTokens() : 0,
-                latencyMs,
-                true,
-                null,
-                response.isCached()
-        );
+                latencyMs, true, null, response.isCached());
 
         log.info("Flashcards generated: deckId={}, count={}, tokens={}",
                 savedDeck.getId(), parsedCards.size(),
@@ -272,34 +248,5 @@ public class FlashcardGeneratorImpl implements FlashcardGenerator {
                 .flashcards(flashcardResponses)
                 .usage(usage != null ? usage : new AiUsage(0, 0, 0))
                 .build();
-    }
-
-    private String buildSystemPrompt(String tag) {
-        var sb = new StringBuilder();
-        sb.append("You are a medical education expert creating flashcards for medical students.\n");
-        sb.append("Generate flashcards in Vietnamese. Use clear, precise medical language.\n");
-        sb.append("Each flashcard must have a question and answer that tests understanding, not just recall.\n");
-        sb.append("Return ONLY a JSON object with a 'flashcards' array.\n");
-        sb.append("Each element in the array must have: 'question', 'answer', 'explanation', 'source'.\n");
-        sb.append("Do NOT include markdown code fences, markdown formatting, or any text outside the JSON.\n");
-        sb.append("Example format:\n");
-        sb.append("{\"flashcards\":[{\"question\":\"...\",\"answer\":\"...\",\"explanation\":\"...\",\"source\":\"...\"}]}\n");
-        return sb.toString();
-    }
-
-    private String buildUserPrompt(Map<String, String> vars) {
-        var sb = new StringBuilder();
-        sb.append("Generate ").append(vars.get("count")).append(" flashcards about \"")
-                .append(vars.get("disease")).append("\".\n\n");
-
-        var context = vars.get("context");
-        if (context != null && !context.isBlank()) {
-            sb.append("Use the following source material:\n").append(context).append("\n\n");
-        }
-
-        sb.append("Difficulty level: ").append(vars.get("difficulty")).append("\n");
-        sb.append("Language: Vietnamese\n");
-        sb.append("Return ONLY valid JSON as specified in the system prompt.\n");
-        return sb.toString();
     }
 }

@@ -9,8 +9,7 @@ import com.duoq.medlearn.ai.gateway.AiGatewayRouter;
 import com.duoq.medlearn.ai.generation.repository.AiGenerationRepository;
 import com.duoq.medlearn.ai.model.AiModel;
 import com.duoq.medlearn.ai.prompt.PromptBuilder;
-import com.duoq.medlearn.ai.prompt.PromptTemplateService;
-import com.duoq.medlearn.ai.prompt.entity.PromptTemplate;
+import com.duoq.medlearn.ai.prompt.definition.FlashcardGenerationPrompt;
 import com.duoq.medlearn.ai.security.AiOutputValidator;
 import com.duoq.medlearn.ai.security.AiQuotaService;
 import com.duoq.medlearn.ai.security.AiRateLimiter;
@@ -60,7 +59,7 @@ class FlashcardGeneratorImplTest {
     @Mock private AiGenerationRepository aiGenerationRepository;
     @Mock private AiGatewayRouter gatewayRouter;
     @Mock private PromptBuilder promptBuilder;
-    @Mock private PromptTemplateService promptTemplateService;
+    @Mock private FlashcardGenerationPrompt flashcardGenerationPrompt;
     @Mock private AiOutputValidator aiOutputValidator;
     @Mock private AiQuotaService aiQuotaService;
     @Mock private AiRateLimiter aiRateLimiter;
@@ -78,7 +77,7 @@ class FlashcardGeneratorImplTest {
         generator = new FlashcardGeneratorImpl(
                 diseaseRepository, diseaseSectionRepository, documentChunkRepository, deckRepository,
                 flashcardRepository, sourceRepository, aiGenerationRepository,
-                gatewayRouter, promptBuilder, promptTemplateService,
+                gatewayRouter, promptBuilder, flashcardGenerationPrompt,
                 aiOutputValidator, aiQuotaService, aiRateLimiter,
                 aiUsageService, parser, flashcardMapper);
 
@@ -89,14 +88,8 @@ class FlashcardGeneratorImplTest {
     }
 
     private void stubPromptBuilder() {
-        var template = PromptTemplate.builder()
-                .code("flashcard-gen").version("1.0").model("gpt-5-mini")
-                .systemPrompt("You are a medical educator.")
-                .userPromptTemplate("Generate {{count}} cards about {{disease}}.")
-                .temperature(0.3).maxTokens(4000).build();
-        when(promptTemplateService.getActiveEntity("flashcard-gen")).thenReturn(template);
-        when(promptBuilder.buildFromTemplate(any(), any())).thenReturn(List.of(
-                AiMessage.builder().role(AiRole.SYSTEM).content(template.getSystemPrompt()).build(),
+        when(promptBuilder.buildFromDefinition(any(), any())).thenReturn(List.of(
+                AiMessage.builder().role(AiRole.SYSTEM).content("You are a medical educator.").build(),
                 AiMessage.builder().role(AiRole.USER).content("Generate cards.").build()
         ));
     }
@@ -156,7 +149,7 @@ class FlashcardGeneratorImplTest {
         // Verify context was built from currentVersion sections (not empty)
         verify(diseaseSectionRepository).findAllByVersionIdWithType(10L);
         // Verify promptBuilder received non-empty context variable
-        verify(promptBuilder).buildFromTemplate(any(), argThat(vars -> {
+        verify(promptBuilder).buildFromDefinition(any(), argThat(vars -> {
             var ctx = vars.get("context");
             return ctx != null && ctx.contains("definition") && ctx.contains("Tăng huyết áp là tình trạng");
         }));

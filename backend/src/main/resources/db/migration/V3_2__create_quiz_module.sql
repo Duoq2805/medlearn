@@ -148,28 +148,6 @@ WHERE r.name = 'ADMIN'
     SELECT 1 FROM role_permission rp WHERE rp.role_id = r.id AND rp.permission_id = p.id
   );
 
--- =========================================
--- SEED QUIZ PROMPT TEMPLATE
--- (quiz-gen prompt — customise system/user prompts as needed)
--- =========================================
-INSERT INTO prompt_template (code, version, name, description, model, temperature, max_tokens,
-                              system_prompt, user_prompt_template, status, created_at, updated_at)
-SELECT 'quiz-gen', '1.0', 'Quiz Generator',
-       'Generates MCQ quiz questions from medical disease or document content',
-       'gpt-4o-mini', 0.3, 6000,
-       'You are a medical education expert creating multiple-choice quiz questions for medical students.
-Generate questions in Vietnamese. Use clear, precise medical language.
-Each question must have exactly 4 options (A, B, C, D) and one correct answer.
-Return ONLY a JSON object with a ''questions'' array.
-Each element must have: ''content'', ''optionA'', ''optionB'', ''optionC'', ''optionD'', ''correctAnswer'' (A/B/C/D), ''explanation''.
-Do NOT include markdown code fences or any text outside the JSON.
-Example: {"questions":[{"content":"...","optionA":"...","optionB":"...","optionC":"...","optionD":"...","correctAnswer":"A","explanation":"..."}]}',
-       'Generate {{count}} multiple-choice questions about "{{topic}}".
-
-Use the following source material:
-{{context}}
-
-Language: Vietnamese
-Return ONLY valid JSON as specified in the system prompt.',
-       'ACTIVE', NOW(), NOW()
-WHERE NOT EXISTS (SELECT 1 FROM prompt_template WHERE code = 'quiz-gen');
+-- NOTE: quiz-gen prompt is defined in source code (QuizGenerationPrompt.java)
+-- and is NOT seeded to DB. Prompts for AI generation features are application
+-- code, version-controlled in Git, not business data.

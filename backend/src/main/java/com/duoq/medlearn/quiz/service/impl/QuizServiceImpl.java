@@ -8,7 +8,7 @@ import com.duoq.medlearn.ai.dto.response.AiChatResponse;
 import com.duoq.medlearn.ai.generation.entity.AiGeneration;
 import com.duoq.medlearn.ai.generation.repository.AiGenerationRepository;
 import com.duoq.medlearn.ai.prompt.PromptBuilder;
-import com.duoq.medlearn.ai.prompt.PromptTemplateService;
+import com.duoq.medlearn.ai.prompt.definition.QuizGenerationPrompt;
 import com.duoq.medlearn.ai.security.AiOutputValidator;
 import com.duoq.medlearn.ai.security.AiQuotaService;
 import com.duoq.medlearn.ai.security.AiRateLimiter;
@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,7 +46,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class QuizServiceImpl implements QuizService {
 
-    private static final String PROMPT_CODE = "quiz-gen";
     private static final String REQUEST_TYPE = "QUIZ";
 
     private final QuizRepository quizRepository;
@@ -60,7 +58,7 @@ public class QuizServiceImpl implements QuizService {
     private final AiGenerationRepository aiGenerationRepository;
     private final AiGatewayRouter gatewayRouter;
     private final PromptBuilder promptBuilder;
-    private final PromptTemplateService promptTemplateService;
+    private final QuizGenerationPrompt quizPrompt;   // in-code prompt definition
     private final AiOutputValidator aiOutputValidator;
     private final AiQuotaService aiQuotaService;
     private final AiRateLimiter aiRateLimiter;
@@ -121,27 +119,26 @@ public class QuizServiceImpl implements QuizService {
             contextText = contextText.substring(0, 50000) + "\n\n[...truncated]";
         }
 
+        // Build prompt variables — injection filter applied inside buildFromDefinition
         var variables = new HashMap<String, String>();
         variables.put("topic", topicName);
         variables.put("count", String.valueOf(request.getCount()));
         variables.put("context", contextText);
 
-        var template = promptTemplateService.getActiveEntity(PROMPT_CODE);
-        var messages = promptBuilder.buildFromTemplate(template, variables);
+        var messages = promptBuilder.buildFromDefinition(quizPrompt, variables);
 
         var model = request.getModel() != null
                 ? AiModel.fromModelId(request.getModel())
-                : AiModel.fromModelId(template.getModel() != null ? template.getModel() : AiModel.GPT_5_MINI.getModelId());
-        var temperature = request.getTemperature() != null ? request.getTemperature()
-                : (template.getTemperature() != null ? template.getTemperature() : 0.3);
-        var maxTokens = template.getMaxTokens() != null ? template.getMaxTokens() : 6000;
+                : AiModel.fromModelId(quizPrompt.getModel());
+        var temperature = request.getTemperature() != null
+                ? request.getTemperature() : quizPrompt.getTemperature();
 
         var chatRequest = AiChatRequest.builder()
                 .messages(messages)
                 .model(model.getModelId())
                 .temperature(temperature)
-                .maxTokens(maxTokens)
-                .promptTemplateCode(PROMPT_CODE)
+                .maxTokens(quizPrompt.getMaxTokens())
+                .promptTemplateCode(quizPrompt.getCode())
                 .userId(String.valueOf(userId))
                 .build();
 
@@ -150,7 +147,7 @@ public class QuizServiceImpl implements QuizService {
         try {
             response = gatewayRouter.chat(chatRequest, model);
         } catch (Exception e) {
-            log.error("AI quiz generation failed for userId={}: {}", userId, e.getMessage());
+            log.error("Quiz AI generation failed for userId={}: {}", userId, e.getMessage());
             throw e;
         }
         var latencyMs = System.currentTimeMillis() - startTime;
@@ -192,21 +189,21 @@ public class QuizServiceImpl implements QuizService {
         }
         var savedQuestions = questionRepository.saveAll(questions);
 
-        // Save AI generation record
+        // AiGeneration audit record
         var usage = response.getUsage();
         var generation = AiGeneration.builder()
                 .featureType(FeatureType.QUIZ)
                 .featureId(savedQuiz.getId())
-                .promptTemplateCode(PROMPT_CODE)
-                .promptTemplateVersion(template.getVersion())
+                .promptTemplateCode(quizPrompt.getCode())
+                .promptTemplateVersion("code")   // prompt is in source code, not DB
                 .model(response.getModel())
                 .provider(response.getProvider())
                 .promptTokens(usage != null ? usage.getPromptTokens() : 0)
                 .completionTokens(usage != null ? usage.getCompletionTokens() : 0)
                 .totalTokens(usage != null ? usage.getTotalTokens() : 0)
                 .latencyMs((int) latencyMs)
-                .systemPrompt(template.getSystemPrompt())
-                .userPrompt(template.getUserPromptTemplate())
+                .systemPrompt(quizPrompt.getSystemPrompt())
+                .userPrompt(quizPrompt.getUserPromptTemplate())
                 .rawResponse(rawContent)
                 .status("SUCCESS")
                 .createdBy(User.builder().id(userId).build())
@@ -264,7 +261,7 @@ public class QuizServiceImpl implements QuizService {
         var questions = questionRepository.findByQuizIdOrderByDisplayOrderAsc(quizId);
         var questionMap = questions.stream().collect(Collectors.toMap(Question::getId, q -> q));
 
-        // Grade answers
+        // Grade answers server-side
         var results = new ArrayList<QuizSubmitResponse.QuestionResult>();
         int correct = 0;
         for (var answer : request.getAnswers()) {
@@ -295,18 +292,17 @@ public class QuizServiceImpl implements QuizService {
                 .build();
         var savedAttempt = attemptRepository.save(attempt);
 
-        // Persist answers
+        // Persist per-question answers
         var attemptAnswers = new ArrayList<QuizAttemptAnswer>();
         for (var answer : request.getAnswers()) {
             var q = questionMap.get(answer.getQuestionId());
             if (q == null) continue;
-            boolean isCorrect = q.getCorrectAnswer().equals(answer.getSelectedAnswer());
             attemptAnswers.add(QuizAttemptAnswer.builder()
                     .attempt(savedAttempt)
                     .question(q)
                     .selectedAnswer(answer.getSelectedAnswer())
                     .correctAnswer(q.getCorrectAnswer())
-                    .isCorrect(isCorrect)
+                    .isCorrect(q.getCorrectAnswer().equals(answer.getSelectedAnswer()))
                     .build());
         }
         answerRepository.saveAll(attemptAnswers);
