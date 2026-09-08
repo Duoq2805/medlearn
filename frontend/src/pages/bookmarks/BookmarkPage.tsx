@@ -2,46 +2,36 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Bookmark, BookOpen, Target, Sparkles, ClipboardCheck,
-  Search, Filter, ChevronRight, AlertCircle, Trash2
+  Search, ChevronRight, Trash2
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useBookmarks } from '../../hooks/useBookmarks';
 import { AnimatedSection } from '../../components/motion/MotionWrappers';
 
 export default function BookmarkPage() {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState('diseases');
+  const { bookmarks, removeBookmark } = useBookmarks();
+  const [activeTab, setActiveTab] = useState<'diseases' | 'cases' | 'flashcards' | 'quizzes'>('diseases');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const mockBookmarks = {
-    diseases: [
-      { id: '1', title: 'Pneumonia', category: 'Respiratory', saved: '2 days ago', progress: 70 },
-      { id: '2', title: 'Hypertension', category: 'Cardiovascular', saved: '1 week ago', progress: 30 },
-      { id: '3', title: 'Diabetes Mellitus', category: 'Endocrine', saved: '3 days ago', progress: 60 },
-    ],
-    cases: [
-      { id: '1', title: 'Respiratory Infection', specialty: 'Pulmonology', saved: '5 days ago', status: 'In Progress' },
-      { id: '2', title: 'Acute Coronary Syndrome', specialty: 'Cardiology', saved: '1 week ago', status: 'Completed' },
-    ],
-    flashcards: [
-      { id: '1', title: 'Pneumonia Deck', count: 24, saved: '2 days ago', progress: 70 },
-      { id: '2', title: 'Hypertension Essentials', count: 15, saved: '4 days ago', progress: 40 },
-    ],
-    quizzes: [
-      { id: '1', title: 'Respiratory Quiz', questions: 10, saved: '6 days ago', accuracy: 80 },
-    ],
+  const currentItems = bookmarks.filter(b => b.type === activeTab);
+  const filteredItems = currentItems.filter(item =>
+    item.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const counts = {
+    diseases: bookmarks.filter(b => b.type === 'diseases').length,
+    cases: bookmarks.filter(b => b.type === 'cases').length,
+    flashcards: bookmarks.filter(b => b.type === 'flashcards').length,
+    quizzes: bookmarks.filter(b => b.type === 'quizzes').length,
   };
 
   const tabs = [
-    { id: 'diseases', label: 'Diseases', icon: BookOpen, count: mockBookmarks.diseases.length },
-    { id: 'cases', label: 'Cases', icon: Target, count: mockBookmarks.cases.length },
-    { id: 'flashcards', label: 'Flashcards', icon: Sparkles, count: mockBookmarks.flashcards.length },
-    { id: 'quizzes', label: 'Quizzes', icon: ClipboardCheck, count: mockBookmarks.quizzes.length },
+    { id: 'diseases' as const, label: 'Diseases', icon: BookOpen, count: counts.diseases },
+    { id: 'cases' as const, label: 'Cases', icon: Target, count: counts.cases },
+    { id: 'flashcards' as const, label: 'Flashcards', icon: Sparkles, count: counts.flashcards },
+    { id: 'quizzes' as const, label: 'Quizzes', icon: ClipboardCheck, count: counts.quizzes },
   ];
-
-  const currentItems = mockBookmarks[activeTab as keyof typeof mockBookmarks];
-  const filteredItems = currentItems.filter(item => 
-    item.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
@@ -88,9 +78,9 @@ export default function BookmarkPage() {
                 placeholder={`Search ${activeTab}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-neumorphic w-full pl-10 py-3"
+                className="input-neumorphic w-full !pl-11 py-3 text-sm"
               />
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
             </div>
           </div>
 
@@ -100,7 +90,7 @@ export default function BookmarkPage() {
               <Bookmark size={40} className="mx-auto mb-4 text-[var(--text-tertiary)]" />
               <p className="text-lg font-semibold text-[var(--text-primary)] mb-2">No bookmarks yet</p>
               <p className="text-sm text-[var(--text-secondary)] mb-6">Start bookmarking {activeTab} to build your collection.</p>
-              <Link to={activeTab === 'diseases' ? '/explorer' : activeTab === 'cases' ? '/cases' : '/dashboard'} className="btn-neumorphic-primary py-3 px-8 inline-flex items-center gap-2">
+              <Link to={activeTab === 'diseases' ? '/explorer' : activeTab === 'cases' ? '/cases' : '/dashboard'} className="btn-neumorphic-primary py-3 px-8 inline-flex items-center gap-2 text-sm">
                 Browse {activeTab} <ChevronRight size={16} />
               </Link>
             </div>
@@ -110,24 +100,23 @@ export default function BookmarkPage() {
                 <div key={item.id} className="card-neumorphic p-6 hover:shadow-lg transition-all flex flex-col">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="font-display text-lg font-bold text-[var(--text-primary)] flex-1">{item.title}</h3>
-                    <button className="p-1 rounded hover:bg-[var(--surface-hover)] text-[var(--text-tertiary)] hover:text-red-500 transition-colors">
+                    <button
+                      onClick={() => removeBookmark(item.id, activeTab)}
+                      className="p-1 rounded hover:bg-[var(--surface-hover)] text-[var(--text-tertiary)] hover:text-red-500 transition-colors"
+                      title="Remove bookmark"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
                   <p className="text-xs text-[var(--text-secondary)] mb-3">
-                    {('category' in item) ? item.category : ('specialty' in item) ? item.specialty : ('count' in item) ? `${item.count} items` : `${item.questions} questions`}
+                    {item.category || item.specialty || 'Saved Item'}
                   </p>
-                  <p className="text-[10px] text-[var(--text-tertiary)] mb-4">Saved {item.saved}</p>
+                  <p className="text-[10px] text-[var(--text-tertiary)] mb-4">Saved {item.savedAt}</p>
                   <div className="mt-auto pt-3 border-t border-[var(--shadow-dark)]">
-                    {'progress' in item && (
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="flex-1 h-2 rounded-full bg-[var(--surface-primary)] shadow-[inset_2px_2px_4px_var(--shadow-dark)] overflow-hidden">
-                          <div className="h-full bg-[var(--accent-primary)]" style={{ width: `${item.progress}%` }} />
-                        </div>
-                        <span className="text-xs font-semibold">{item.progress}%</span>
-                      </div>
-                    )}
-                    <Link to={activeTab === 'diseases' ? `/disease/${item.id}` : activeTab === 'cases' ? `/case/${item.id}` : '#'} className="btn-neumorphic-primary py-2 px-4 text-sm w-full text-center flex items-center justify-center gap-1">
+                    <Link
+                      to={item.link || (activeTab === 'diseases' ? `/disease/${item.id}` : activeTab === 'cases' ? `/case/${item.id}` : '#')}
+                      className="btn-neumorphic-primary py-2 px-4 text-sm w-full text-center flex items-center justify-center gap-1"
+                    >
                       Open <ChevronRight size={14} />
                     </Link>
                   </div>

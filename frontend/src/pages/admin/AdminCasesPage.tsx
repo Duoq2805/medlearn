@@ -46,9 +46,9 @@ export default function AdminCasesPage() {
 
           <div className="card-neumorphic p-4 mb-6">
             <div className="relative max-w-md">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
               <input type="text" placeholder="Search case studies..." value={search} onChange={(e) => setSearch(e.target.value)}
-                className="input-neumorphic pl-9 w-full text-sm" />
+                className="input-neumorphic !pl-11 w-full text-sm" />
             </div>
           </div>
 

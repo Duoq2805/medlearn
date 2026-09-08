@@ -70,9 +70,9 @@ export default function HistoryPage() {
                 placeholder="Search history..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input-neumorphic w-full pl-10 py-3"
+                className="input-neumorphic w-full !pl-11 py-3"
               />
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
             </div>
             <div className="flex flex-wrap gap-2">
               {types.map((type) => (

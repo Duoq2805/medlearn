@@ -148,9 +148,9 @@ export default function FlashcardsPage() {
                     placeholder="Search decks..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="input-neumorphic w-full pl-9 py-2 text-sm"
+                    className="input-neumorphic w-full !pl-11 py-2 text-sm"
                   />
-                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+                  <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
                 </div>
               </div>
 

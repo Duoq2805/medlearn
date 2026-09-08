@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Plus, ChevronRight, FileText, Save, Eye, Send, Clock, TrendingUp, UploadCloud, Sparkles, BookOpen, Trash2, AlertCircle, GraduationCap, Search, Filter, SortAsc, SortDesc, CheckCircle2, Bookmark, LayoutDashboard, ChevronDown, X, Command, MessageSquare, Calendar, Users, Shield, Activity, Pill } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronRight, FileText, Save, Eye, Send, Clock, TrendingUp, UploadCloud, Sparkles, BookOpen, Trash2, AlertCircle, GraduationCap, Search, Filter, SortAsc, SortDesc, CheckCircle2, Bookmark, LayoutDashboard, ChevronDown, X, Command, MessageSquare, Calendar, Users, Shield, Activity, Pill } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { getPermissions } from '../../hooks/usePermissions';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../../components/motion/MotionWrappers';
@@ -22,37 +22,29 @@ const NeumorphicInput = ({ label, value, onChange, placeholder, type = 'text', r
   className?: string;
   disabled?: boolean;
 }) => {
-  const [focused, setFocused] = useState(false);
-  const active = focused || value.length > 0;
   return (
     <div className={`relative ${className}`}>
-      <label
-        className={`absolute left-3 top-2 text-xs font-semibold uppercase tracking-wider transition-all duration-300 pointer-events-none ${active ? '-top-2 left-2 bg-[var(--bg-primary)] px-1 text-[var(--accent-primary)]' : 'text-[var(--text-tertiary)]'}`}
-      >
-        {label}{required && <span className="text-red-500">*</span>}
+      <label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-[var(--text-secondary)]">
+        {label}{required && <span className="text-red-500"> *</span>}
       </label>
       {type === 'textarea' ? (
-        <textarea 
-          value={value} 
-          onChange={onChange} 
-          placeholder={focused ? placeholder : ''}
-          onFocus={() => setFocused(true)} 
-          onBlur={() => setFocused(value !== '' ? true : false)}
-          className="input-neumorphic w-full min-h-[100px] resize-none pt-5 text-sm" 
+        <textarea
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
           disabled={disabled}
-          {...props} 
+          className="input-neumorphic w-full min-h-[100px] resize-none rounded-xl px-4 py-3 text-sm"
+          {...props}
         />
       ) : (
-        <input 
-          type={type} 
-          value={value} 
-          onChange={onChange} 
-          placeholder={focused ? placeholder : ''}
-          onFocus={() => setFocused(true)} 
-          onBlur={() => setFocused(value !== '' ? true : false)}
-          className="input-neumorphic w-full pt-5 text-sm" 
+        <input
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
           disabled={disabled}
-          {...props} 
+          className="input-neumorphic w-full rounded-xl px-4 py-3 text-sm"
+          {...props}
         />
       )}
     </div>
@@ -88,7 +80,6 @@ export default function CreateDiseasePage() {
   const [previewData, setPreviewData] = useState<any>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
-  const completionPct = 50;
 
   // Track unsaved changes
   useEffect(() => {
@@ -188,8 +179,8 @@ export default function CreateDiseasePage() {
         slug = 'draft-' + Math.random().toString(36).substr(2, 9);
       }
 
-      // Find categoryId by category name
-      const categoryObj = categories.find(cat => cat.name === category);
+      // Find categoryId by category name (case-insensitive)
+      const categoryObj = categories.find(cat => cat.name === category || cat.name.toLowerCase() === category.toLowerCase());
       const categoryId = categoryObj ? categoryObj.id : null;
 
       // Prepare section requests
@@ -220,12 +211,21 @@ export default function CreateDiseasePage() {
       const response = await createDiseaseDraft({
         name: title,
         slug: slug,
-        categoryId: categoryId,
+        categoryId: categoryId || undefined,
         sections: sectionRequests,
       });
       // Response is DiseaseResponse, which includes disease id
       const savedDiseaseId = response.id;
       setDiseaseId(savedDiseaseId);
+
+      if (categoryId && savedDiseaseId) {
+        try {
+          await diseaseApi.assignCategory(savedDiseaseId, categoryId);
+        } catch (cErr) {
+          console.warn('Failed to assign category', cErr);
+        }
+      }
+
       // After saving, fetch the latest draft version to get versionId and updated data
       const versionResponse = await diseaseApi.getLatestDraftVersion(savedDiseaseId);
       const savedVersionId = versionResponse.id;
@@ -242,18 +242,17 @@ export default function CreateDiseasePage() {
       const sectionsData = sectionsResponse;
       const newSectionContents: Record<string, string> = {};
       sectionsData.forEach((section: any) => {
-        // Map section type name to our section key
-        const labelMap: Record<string, string> = {
-          'Definition': 'definition',
-          'Etiology': 'causes',
-          'Symptoms': 'symptoms',
-          'Diagnosis': 'diagnosis',
-          'Treatment': 'treatment',
-          'Complications': 'complications',
-          'Prevention': 'prevention',
-          'References': 'reference',
-        };
-        const key = labelMap[section.type] || '';
+        let key = '';
+        const text = [section.type, section.sectionTypeName, section.title].filter(Boolean).join(' ').toLowerCase();
+        if (text.includes('definit')) key = 'definition';
+        else if (text.includes('etiolog') || text.includes('cause')) key = 'causes';
+        else if (text.includes('symptom')) key = 'symptoms';
+        else if (text.includes('diagnos')) key = 'diagnosis';
+        else if (text.includes('treat')) key = 'treatment';
+        else if (text.includes('complicat')) key = 'complications';
+        else if (text.includes('prevent')) key = 'prevention';
+        else if (text.includes('referenc')) key = 'reference';
+
         if (key) {
           newSectionContents[key] = section.content || '';
         }
@@ -438,15 +437,18 @@ export default function CreateDiseasePage() {
     }
   };
 
+  const defaultCategoryList = ['Infectious Diseases', 'Cardiovascular', 'Respiratory', 'Neurology', 'Endocrine', 'Gastroenterology', 'Nephrology', 'Dermatology', 'Oncology', 'Pediatrics', 'Psychiatry', 'Orthopedics', 'Other'];
+  const categoryOptions = categories.length > 0 ? categories.map(c => c.name) : defaultCategoryList;
+
   const sections = [
-    { label: 'Definition', key: 'definition' },
-    { label: 'Etiology', key: 'causes' },
-    { label: 'Symptoms', key: 'symptoms' },
-    { label: 'Diagnosis', key: 'diagnosis' },
-    { label: 'Treatment', key: 'treatment' },
-    { label: 'Complications', key: 'complications' },
-    { label: 'Prevention', key: 'prevention' },
-    { label: 'References', key: 'reference' },
+    { label: 'Definition', key: 'definition', hint: 'Giải thích bệnh là gì, cơ chế chính và phạm vi ảnh hưởng.', placeholder: 'Mô tả định nghĩa, bản chất và đặc điểm cốt lõi của bệnh...' },
+    { label: 'Etiology', key: 'causes', hint: 'Nêu nguyên nhân, yếu tố nguy cơ và tác nhân liên quan.', placeholder: 'Liệt kê nguyên nhân, tác nhân và yếu tố nguy cơ...' },
+    { label: 'Symptoms', key: 'symptoms', hint: 'Mô tả triệu chứng điển hình, thời điểm khởi phát và mức độ.', placeholder: 'Mô tả triệu chứng thường gặp, dấu hiệu cảnh báo...' },
+    { label: 'Diagnosis', key: 'diagnosis', hint: 'Trình bày tiêu chuẩn, xét nghiệm và chẩn đoán phân biệt.', placeholder: 'Nêu quy trình chẩn đoán, xét nghiệm và chẩn đoán phân biệt...' },
+    { label: 'Treatment', key: 'treatment', hint: 'Ghi hướng điều trị, thuốc, liều dùng và theo dõi.', placeholder: 'Trình bày mục tiêu điều trị, phương pháp và theo dõi...' },
+    { label: 'Complications', key: 'complications', hint: 'Nêu biến chứng có thể xảy ra và dấu hiệu cần xử trí.', placeholder: 'Mô tả biến chứng, mức độ nguy hiểm và xử trí...' },
+    { label: 'Prevention', key: 'prevention', hint: 'Hướng dẫn phòng bệnh, giảm nguy cơ và tái phát.', placeholder: 'Nêu biện pháp phòng ngừa, sàng lọc và thay đổi lối sống...' },
+    { label: 'References', key: 'reference', hint: 'Ghi nguồn tài liệu y khoa dùng để xây dựng nội dung.', placeholder: 'Nhập tài liệu tham khảo, DOI hoặc URL nguồn...' },
   ];
 
   const getSectionContent = (key: string): string => {
@@ -459,6 +461,9 @@ export default function CreateDiseasePage() {
     return (draftResponse as any)[key] as GeneratedSection | undefined;
   };
 
+  const completedSections = sections.filter(({ key }) => (getSectionContent(key) ?? '').trim().length > 0).length;
+  const completionPct = Math.round((completedSections / sections.length) * 100);
+
   return (
     <div className="min-h-screen pt-28 pb-24 relative z-10">
       <div className="max-w-7xl mx-auto px-6">
@@ -466,20 +471,26 @@ export default function CreateDiseasePage() {
           {/* EDITOR (70%) */}
           <main className="flex-1 max-w-[70ch] min-w-0 space-y-8">
             <AnimatedSection>
+              <div className="mb-4">
+                <Link to="/explorer" className="inline-flex items-center gap-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+                  <ArrowLeft size={16} /> Back to Diseases
+                </Link>
+              </div>
+
               {draftMetadata && (
-                <div className="card-neumorphic p-4 flex items-center gap-3 text-sm">
+                <div className="card-neumorphic p-4 mb-6 flex items-center gap-3 text-sm">
                   <Sparkles size={16} className="text-[var(--accent-primary)] shrink-0" />
                   <span className="text-[var(--text-secondary)]">
                     Draft generated from <strong className="text-[var(--text-primary)]">{draftMetadata.sourceLabel}</strong>
                     {draftMetadata.method === 'upload' && draftMetadata.originalFilename && (
-                      <> �?file: <strong className="text-[var(--text-primary)]">{draftMetadata.originalFilename}</strong> </>
+                      <> • file: <strong className="text-[var(--text-primary)]">{draftMetadata.originalFilename}</strong> </>
                     )}
                   </span>
                 </div>
               )}
 
               {/* Header Meta */}
-              <div className="card-neumorphic p-8">
+              <div className="card-neumorphic p-8 mb-8">
                 <NeumorphicInput 
                   label="Disease Title" 
                   value={title} 
@@ -492,16 +503,25 @@ export default function CreateDiseasePage() {
                   disabled={isPreviewing}
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  <NeumorphicInput 
-                    label="Category" 
-                    value={category} 
-                    onChange={(e) => {
-                      setCategory(e.target.value);
-                      setHasUnsavedChanges(true);
-                    }}
-                    placeholder="e.g. Infectious Diseases"
-                    disabled={isPreviewing}
-                  />
+                  <div>
+                    <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Category</label>
+                    <select
+                      value={category}
+                      onChange={(e) => {
+                        setCategory(e.target.value);
+                        setHasUnsavedChanges(true);
+                      }}
+                      disabled={isPreviewing}
+                      className="input-neumorphic w-full text-sm py-3 px-4 rounded-xl"
+                    >
+                      <option value="">Select Category...</option>
+                      {categoryOptions.map((catName) => (
+                        <option key={catName} value={catName}>
+                          {catName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <NeumorphicInput 
                     label="ICD Code" 
                     value={icd} 
@@ -513,53 +533,61 @@ export default function CreateDiseasePage() {
                     disabled={isPreviewing}
                   />
                 </div>
-                <div className="mt-6">
-                  <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Tags</label>
-                  <input 
-                    type="text" 
-                    placeholder="Add tags (e.g., Respiratory, Bacterial...)" 
-                    className="input-neumorphic w-full" 
-                    onChange={(e) => {
-                      setHasUnsavedChanges(true);
-                    }} 
-                    disabled={isPreviewing}
-                  />
-                </div>
               </div>
 
               {/* Sections */}
-              {sections.map((s) => {
-                const sectionData = getSectionSources(s.key);
-                return (
-                  <div 
-                    key={s.key} 
-                    className={`card-neumorphic p-6 ${s.key === 'definition' || s.key === 'treatment' ? 'col-span-full' : ''}`}
-                  >
-                    <div className="flex items-center justify-between mb-3">
-                      <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">{s.label}</h2>
-                      <button className="text-xs text-[var(--text-tertiary)] hover:text-[var(--accent-primary)]">Collapse</button>
-                    </div>
-                    <textarea
-                      placeholder={`Enter ${s.label.toLowerCase()}...`}
-                      value={getSectionContent(s.key)}
-                      onChange={(e) => {
-                        if (!isPreviewing) {
-                          setSectionContents(prev => ({
-                            ...prev,
-                            [s.key]: e.target.value
-                          }));
-                          setHasUnsavedChanges(true);
-                        }
-                      }}
-                      className="input-neumorphic w-full min-h-[120px] resize-none text-sm leading-relaxed"
-                      disabled={isPreviewing}
-                    />
-                    {sectionData?.sources && sectionData.sources.length > 0 && (
-                      <SourceViewer sources={sectionData.sources} />
-                    )}
-                  </div>
-                );
-              })}
+              <div className="space-y-5">
+                {sections.map((s, index) => {
+                  const content = getSectionContent(s.key);
+                  const state = content.trim() ? 'Complete' : 'Not started';
+                  const sectionData = getSectionSources(s.key);
+                  return (
+                    <section key={s.key} className="card-neumorphic p-6 border border-[var(--shadow-dark)]/40">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--accent-primary)] text-sm font-bold text-white">
+                          {index + 1}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">{s.label}</h2>
+                            <span className={
+                              content.trim()
+                                ? 'rounded-full px-3 py-1 text-xs font-semibold bg-emerald-500/10 text-emerald-600'
+                                : 'rounded-full px-3 py-1 text-xs font-semibold bg-slate-500/10 text-[var(--text-tertiary)]'
+                            }>
+                              {state}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm leading-relaxed text-[var(--text-secondary)]">{s.hint}</p>
+                        </div>
+                      </div>
+                      <textarea
+                        aria-label={`${s.label} content`}
+                        placeholder={s.placeholder}
+                        value={content}
+                        onChange={(e) => {
+                          if (!isPreviewing) {
+                            setSectionContents(prev => ({
+                              ...prev,
+                              [s.key]: e.target.value
+                            }));
+                            setHasUnsavedChanges(true);
+                          }
+                        }}
+                        className="input-neumorphic min-h-[150px] w-full resize-y rounded-xl px-4 py-3 text-sm leading-relaxed"
+                        disabled={isPreviewing}
+                      />
+                      {sectionData?.sources && sectionData.sources.length > 0 && (
+                        <SourceViewer sources={sectionData.sources} />
+                      )}
+                      <div className="mt-2 flex justify-between text-xs text-[var(--text-tertiary)]">
+                        <span>{content.trim() ? 'Nội dung đã được ghi nhận' : 'Bắt đầu nhập nội dung section'}</span>
+                        <span>{content.length} ký tự</span>
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
             </AnimatedSection>
           </main>
 
@@ -569,10 +597,25 @@ export default function CreateDiseasePage() {
               {/* Draft Status */}
               <div className="card-neumorphic p-6">
                 <h3 className="font-display text-base font-bold text-[var(--text-primary)] mb-4">Draft Details</h3>
+                <div className="mb-5 rounded-xl bg-[var(--accent-primary)]/5 p-4">
+                  <div className="mb-2 flex items-center justify-between text-xs font-semibold">
+                    <span className="text-[var(--text-secondary)]">Writing progress</span>
+                    <span className="text-[var(--accent-primary)]">{completedSections}/{sections.length} sections • {completionPct}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-[var(--shadow-dark)]/30">
+                    <div className="h-full rounded-full bg-[var(--accent-primary)] transition-all" style={{ width: `${completionPct}%` }} />
+                  </div>
+                </div>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-[var(--text-primary)]">Status</p>
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${status === 'Draft' ? 'bg-blue-500/10 text-blue-600' : status === 'Pending Review' ? 'bg-amber-500/10 text-amber-600' : 'bg-red-500/10 text-red-600'}`}>{status}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                      status === 'DRAFT' || status === 'Draft' ? 'bg-blue-500/10 text-blue-600' : 
+                      status === 'PENDING_REVIEW' ? 'bg-amber-500/10 text-amber-600' : 
+                      status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-600' : 
+                      status === 'REJECTED' ? 'bg-red-500/10 text-red-600' : 
+                      'bg-gray-500/10 text-gray-600'
+                    }`}>{status}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <p className="text-sm font-semibold text-[var(--text-primary)]">Completion</p>
@@ -586,50 +629,6 @@ export default function CreateDiseasePage() {
                     <p className="text-sm font-semibold text-[var(--text-primary)]">Last Edited</p>
                     <span className="text-sm text-[var(--text-secondary)]">{lastEdited}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-[var(--text-primary)]">Reviewer Status</p>
-                    <span className="text-sm text-[var(--text-secondary)]">None</span>
-                  </div>
-                </div>
-                <button 
-                  disabled={isPreviewing || isSaving}
-                  className="btn-neumorphic-secondary py-2 px-4 w-full text-sm flex items-center justify-center gap-2 opacity-50 cursor-not-allowed mb-2"
-                >
-                  <FileText size={14} /> Attachments
-                </button>
-                <button 
-                  disabled={isPreviewing || isSaving}
-                  className="btn-neumorphic-secondary py-2 px-4 w-full text-sm flex items-center justify-center gap-2 opacity-50 cursor-not-allowed"
-                >
-                  <Sparkles size={14} /> AI Assistant
-                </button>
-              </div>
-
-              {/* AI Card Placeholder */}
-              <div className="card-neumorphic p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Sparkles size={16} className="text-[var(--accent-primary)]" />
-                  <h3 className="font-display text-base font-bold">AI Assistant</h3>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <button 
-                    disabled={isPreviewing || isSaving}
-                    className="btn-neumorphic-secondary py-2 w-full text-sm opacity-50 cursor-not-allowed"
-                  >
-                    Generate Definition
-                  </button>
-                  <button 
-                    disabled={isPreviewing || isSaving}
-                    className="btn-neumorphic-secondary py-2 w-full text-sm opacity-50 cursor-not-allowed"
-                  >
-                    Improve Etiology
-                  </button>
-                  <button 
-                    disabled={isPreviewing || isSaving}
-                    className="btn-neumorphic-secondary py-2 w-full text-sm opacity-50 cursor-not-allowed"
-                  >
-                    Simplify Symptoms
-                  </button>
                 </div>
               </div>
             </AnimatedSection>

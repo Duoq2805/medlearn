@@ -37,6 +37,7 @@ const NAV: Record<string, NavItem[]> = {
     { to: '/admin/users', icon: Users, label: 'Users' },
     { to: '/admin/diseases', icon: BookOpen, label: 'Content', children: [
       { to: '/admin/diseases', icon: BookOpen, label: 'Diseases' },
+      { to: '/reviewer/queue', icon: FolderKanban, label: 'Review Queue' },
       { to: '/admin/categories', icon: Tags, label: 'Categories' },
       { to: '/admin/symptoms', icon: Pill, label: 'Symptoms' },
       { to: '/admin/cases', icon: Activity, label: 'Cases' },
@@ -71,6 +72,7 @@ const AVATAR_MENU: Record<string, NavItem[]> = {
   ],
   ADMIN: [
     { to: '/admin/dashboard', icon: Shield, label: 'Admin Dashboard' },
+    { to: '/reviewer/queue', icon: FolderKanban, label: 'Review Queue' },
     { to: '/admin/users', icon: Users, label: 'User Management' },
     { to: '/admin/reports', icon: BarChart3, label: 'Reports' },
     { to: '/admin/audit-logs', icon: FileText, label: 'Audit Logs' },
@@ -209,6 +211,61 @@ export const Navigation: React.FC = () => {
             {user ? (
               <>
                 <NotificationBell />
+                <div ref={avatarRef} className="relative">
+                  <button
+                    onClick={() => setIsAvatarOpen(!isAvatarOpen)}
+                    className="flex items-center gap-2 p-1 rounded-full border border-[var(--border)] bg-[var(--surface-primary)] hover:bg-[var(--surface-hover)] transition-all"
+                    aria-label="User profile menu"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--accent-primary)] text-xs font-bold text-white shadow-sm">
+                      {userInitial}
+                    </div>
+                    <span className="text-xs font-semibold text-[var(--text-primary)] hidden sm:inline max-w-[100px] truncate">
+                      {user.fullName || user.username}
+                    </span>
+                    <ChevronDown size={14} className={`text-[var(--text-secondary)] transition-transform mr-1 ${isAvatarOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {isAvatarOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-[var(--border)] bg-[var(--surface-primary)] backdrop-blur-xl shadow-xl z-50 overflow-hidden depth-layer-1 p-2">
+                      <div className="px-3 py-2 border-b border-[var(--border)] mb-1">
+                        <p className="text-sm font-bold text-[var(--text-primary)] truncate">{user.fullName || user.username}</p>
+                        {user.email && <p className="text-xs text-[var(--text-tertiary)] truncate">{user.email}</p>}
+                        <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[var(--accent-primary)]/10 text-[var(--accent-primary)]">
+                          {role}
+                        </span>
+                      </div>
+
+                      <div className="space-y-0.5">
+                        {avatarItems.map((item) => (
+                          <Link
+                            key={item.to + item.label}
+                            to={item.to}
+                            onClick={() => setIsAvatarOpen(false)}
+                            className={`flex items-center gap-2 px-3 py-2 text-sm rounded-xl transition-colors ${
+                              isActive(item.to)
+                                ? 'bg-[var(--accent-primary)]/10 text-[var(--accent-primary)] font-semibold'
+                                : 'text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-primary)]'
+                            }`}
+                          >
+                            <item.icon size={16} />
+                            <span>{item.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+
+                      <div className="pt-1 mt-1 border-t border-[var(--border)]">
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-500/10 rounded-xl transition-colors font-medium"
+                        >
+                          <LogOut size={16} />
+                          <span>Log out</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </>
             ) : (
               <>

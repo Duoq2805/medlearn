@@ -5,6 +5,7 @@ import {
   ChevronRight, Sparkles, Target, Brain, FileText, MessageSquare, AlertCircle
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
+import { useBookmarks } from '../../hooks/useBookmarks';
 import { AnimatedSection, StaggerContainer, StaggerItem } from '../../components/motion/MotionWrappers';
 import { diseaseApi } from '../../api/disease';
 import { diseaseSectionApi } from '../../api/diseaseSection';
@@ -15,7 +16,7 @@ export default function DiseaseDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isBookmarked, setIsBookmarked] = useState(true);
+  const { isBookmarked, toggleBookmark } = useBookmarks();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [diseaseData, setDiseaseData] = useState<any>(null);
@@ -111,8 +112,21 @@ export default function DiseaseDetailPage() {
               <ArrowLeft size={18} /> Back to Diseases
             </button>
             <div className="flex items-center gap-3">
-              <button onClick={() => setIsBookmarked(!isBookmarked)} className="p-2 rounded-lg hover:bg-[var(--surface-hover)]">
-                {isBookmarked ? <Bookmark fill="var(--accent-primary)" size={20} className="text-[var(--accent-primary)]" /> : <Bookmark size={20} />}
+              <button
+                onClick={() => {
+                  if (!id) return;
+                  toggleBookmark({
+                    id,
+                    type: 'diseases',
+                    title: disease.name,
+                    category: disease.categoryName,
+                    link: `/disease/${id}`
+                  });
+                }}
+                className="p-2 rounded-lg hover:bg-[var(--surface-hover)]"
+                title="Bookmark disease"
+              >
+                {id && isBookmarked(id, 'diseases') ? <Bookmark fill="var(--accent-primary)" size={20} className="text-[var(--accent-primary)]" /> : <Bookmark size={20} />}
               </button>
               <button className="p-2 rounded-lg hover:bg-[var(--surface-hover)]">
                 <Share2 size={20} />

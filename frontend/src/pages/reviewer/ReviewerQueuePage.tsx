@@ -11,7 +11,7 @@ import { diseaseApi } from '../../api/disease';
 
 import type { DiseaseVersionResponse } from '../../types/diseaseVersion';
 
-type QueueItem = DiseaseVersionResponse & { diseaseName: string; diseaseCategory: string; diseaseSlug: string };
+type QueueItem = DiseaseVersionResponse & { diseaseName: string; diseaseCategory: string; diseaseSlug: string; authorName: string };
 
 export default function ReviewerQueuePage() {
   const { user } = useAuth();
@@ -36,25 +36,25 @@ export default function ReviewerQueuePage() {
         const versions = response.content || [];
         const queueWithDetails = await Promise.all(
           versions.map(async (version: DiseaseVersionResponse): Promise<QueueItem> => {
+            let diseaseName = 'Unknown Disease';
+            let diseaseCategory = 'Unknown';
+            let diseaseSlug = '';
             try {
               const diseaseResponse = await diseaseApi.fetchDisease(version.diseaseId.toString());
-              const disease = diseaseResponse;
-              return {
-                ...version,
-                diseaseName: disease.name,
-                diseaseCategory: disease.categoryName || 'Uncategorized',
-                // We'll also get the disease slug for linking if needed
-                diseaseSlug: disease.slug,
-              };
+              diseaseName = diseaseResponse.name;
+              diseaseCategory = diseaseResponse.categoryName || 'Uncategorized';
+              diseaseSlug = diseaseResponse.slug;
             } catch (err) {
               console.warn(`Failed to fetch disease for version ${version.id}`, err);
-              return {
-                ...version,
-                diseaseName: 'Unknown Disease',
-                diseaseCategory: 'Unknown',
-                diseaseSlug: '',
-              };
             }
+
+            return {
+              ...version,
+              diseaseName,
+              diseaseCategory,
+              diseaseSlug,
+              authorName: version.createdById ? `User #${version.createdById}` : 'Unknown Author',
+            };
           })
         );
         setQueue(queueWithDetails);
@@ -173,8 +173,8 @@ export default function ReviewerQueuePage() {
 
           <div className="card-neumorphic p-4 mb-6 flex flex-wrap items-center gap-4">
             <div className="relative flex-1 min-w-[200px]">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
-              <input type="text" placeholder="Search disease title or ID..." value={search} onChange={(e) => setSearch(e.target.value)} className="input-neumorphic pl-9 w-full text-sm" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
+              <input type="text" placeholder="Search disease title or ID..." value={search} onChange={(e) => setSearch(e.target.value)} className="input-neumorphic !pl-11 w-full text-sm" />
             </div>
             <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="input-neumorphic py-2 px-3 text-sm">
               <option value="All">All Categories</option>
@@ -201,6 +201,7 @@ export default function ReviewerQueuePage() {
               <thead>
                 <tr className="border-b border-[var(--shadow-dark)]">
                   <th className="text-left p-4 text-[var(--text-tertiary)] font-semibold text-xs uppercase">Disease</th>
+                  <th className="text-left p-4 text-[var(--text-tertiary)] font-semibold text-xs uppercase">Author / Submitter</th>
                   <th className="text-left p-4 text-[var(--text-tertiary)] font-semibold text-xs uppercase">Category</th>
                   <th className="text-left p-4 text-[var(--text-tertiary)] font-semibold text-xs uppercase">Version</th>
                   <th className="text-center p-4 text-[var(--text-tertiary)] font-semibold text-xs uppercase">Status</th>
@@ -213,6 +214,7 @@ export default function ReviewerQueuePage() {
                 {filtered.map((item: any) => (
                   <tr key={item.id} className="border-b border-[var(--shadow-dark)] last:border-0 hover:bg-[var(--surface-hover)] transition-colors">
                     <td className="p-4 font-medium text-[var(--text-primary)]">{item.diseaseName}</td>
+                    <td className="p-4 font-medium text-[var(--accent-primary)]">{item.authorName}</td>
                     <td className="p-4 text-[var(--text-secondary)]">{item.diseaseCategory}</td>
                     <td className="p-4 text-center text-[var(--text-secondary)]">v{item.versionNumber}</td>
                     <td className="p-4"><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${statusColor(item.status)}`}>{item.status}</span></td>

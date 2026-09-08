@@ -46,6 +46,49 @@ const NeumorphicInput = ({ label, value, onChange, placeholder, type = 'text', r
   );
 };
 
+const mapSectionToKey = (section: any): string | null => {
+  if (!section) return null;
+
+  const candidates = [
+    section.sectionTypeName,
+    section.sectionType,
+    section.type,
+    section.title,
+  ].filter(Boolean).map((s: string) => String(s).trim().toLowerCase());
+
+  for (const str of candidates) {
+    if (str.includes('definit') || str === 'definition' || str === 'overview' || str === 'định nghĩa') return 'definition';
+    if (str.includes('etiolog') || str.includes('cause') || str === 'etiology' || str === 'causes' || str === 'nguyên nhân') return 'etiology';
+    if (str.includes('symptom') || str === 'symptoms' || str === 'clinical_features' || str === 'triệu chứng') return 'symptoms';
+    if (str.includes('diagnos') || str === 'diagnosis' || str === 'investigations' || str === 'chẩn đoán') return 'diagnosis';
+    if (str.includes('treat') || str.includes('manag') || str === 'treatment' || str === 'management' || str === 'điều trị') return 'treatment';
+    if (str.includes('complicat') || str === 'complications' || str === 'prognosis' || str === 'biến chứng') return 'complications';
+    if (str.includes('prevent') || str === 'prevention' || str === 'phòng bệnh') return 'prevention';
+    if (str.includes('referenc') || str.includes('source') || str === 'references' || str === 'reference' || str === 'tài liệu') return 'references';
+  }
+
+  const idMap: Record<number, string> = {
+    1: 'definition',
+    2: 'etiology',
+    3: 'symptoms',
+    4: 'diagnosis',
+    5: 'treatment',
+    6: 'complications',
+    7: 'prevention',
+    8: 'references',
+  };
+  if (section.sectionTypeId && idMap[section.sectionTypeId]) {
+    return idMap[section.sectionTypeId];
+  }
+
+  const orderKeys = ['definition', 'etiology', 'symptoms', 'diagnosis', 'treatment', 'complications', 'prevention', 'references'];
+  if (typeof section.orderIndex === 'number' && section.orderIndex >= 0 && section.orderIndex < orderKeys.length) {
+    return orderKeys[section.orderIndex];
+  }
+
+  return null;
+};
+
 export default function EditDiseasePage() {
   const { user } = useAuth();
   const { id: diseaseIdStr } = useParams<{ id: string }>();
@@ -110,9 +153,26 @@ export default function EditDiseasePage() {
           sectionTypesMap[st.name] = st.id;
         });
         setSectionTypesMap(sectionTypesMap);
-        // Fetch latest draft version for this disease
-        const versionResponse = await diseaseApi.getLatestDraftVersion(diseaseId);
-        const versionData = versionResponse;
+
+        // Fetch latest draft version for this disease with fallback
+        let versionData: any = null;
+        try {
+          versionData = await diseaseApi.getLatestDraftVersion(diseaseId);
+        } catch (vErr) {
+          try {
+            versionData = await diseaseApi.getCurrentVersion(diseaseId);
+          } catch (vErr2) {
+            const allVersions = await diseaseApi.getVersionsByDisease(diseaseId);
+            if (allVersions && allVersions.length > 0) {
+              versionData = allVersions[0];
+            }
+          }
+        }
+
+        if (!versionData) {
+          throw new Error('No version found for this disease.');
+        }
+
         setDiseaseVersionId(versionData.id);
         // Fetch sections for this version
         const sectionsResponse = await diseaseSectionApi.getSectionsByVersion(versionData.id);
@@ -120,18 +180,7 @@ export default function EditDiseasePage() {
         // Initialize section contents
         const initialContents: Record<string, string> = {};
         sections.forEach((section: any) => {
-          const labelMap: Record<string, string> = {
-            'Definition': 'definition',
-            'Etiology': 'etiology',
-            'Symptoms': 'symptoms',
-            'Diagnosis': 'diagnosis',
-            'Treatment': 'treatment',
-            'Complications': 'complications',
-            'Prevention': 'prevention',
-            'References': 'references',
-          };
-          const label = section.sectionTypeName || section.type;
-          const key = labelMap[label];
+          const key = mapSectionToKey(section);
           if (key) {
             initialContents[key] = section.content || '';
           }
@@ -184,8 +233,8 @@ export default function EditDiseasePage() {
         slug = 'draft-' + Math.random().toString(36).substr(2, 9);
       }
 
-      // Find categoryId by category name
-      const categoryObj = categories.find(cat => cat.name === category);
+      // Find categoryId by category name (case-insensitive)
+      const categoryObj = categories.find(cat => cat.name === category || cat.name.toLowerCase() === category.toLowerCase());
       const categoryId = categoryObj ? categoryObj.id : null;
 
       // Prepare section requests for creation (we will delete and recreate)
@@ -234,6 +283,14 @@ export default function EditDiseasePage() {
         categoryId: categoryId || undefined,
       });
 
+      if (categoryId) {
+        try {
+          await diseaseApi.assignCategory(diseaseId.toString(), categoryId);
+        } catch (cErr) {
+          console.warn('Failed to assign category explicitly', cErr);
+        }
+      }
+
       // 2. Delete all existing sections for this version
       const existingSectionsResponse = await diseaseSectionApi.getSectionsByVersion(diseaseVersionId);
       const existingSections = existingSectionsResponse;
@@ -255,18 +312,7 @@ export default function EditDiseasePage() {
       const sections = sectionsResponse;
       const reloadedContents: Record<string, string> = {};
       sections.forEach((section: any) => {
-        const labelMap: Record<string, string> = {
-          'Definition': 'definition',
-          'Etiology': 'etiology',
-          'Symptoms': 'symptoms',
-          'Diagnosis': 'diagnosis',
-          'Treatment': 'treatment',
-          'Complications': 'complications',
-          'Prevention': 'prevention',
-          'References': 'references',
-        };
-        const label = section.sectionTypeName || section.type;
-        const key = labelMap[label];
+        const key = mapSectionToKey(section);
         if (key) {
           reloadedContents[key] = section.content || '';
         }
@@ -455,16 +501,31 @@ export default function EditDiseasePage() {
                   disabled={isPreviewing}
                 />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                  <NeumorphicInput 
-                    label="Category" 
-                    value={category} 
-                    onChange={(e) => {
-                      setCategory(e.target.value);
-                      setHasUnsavedChanges(true);
-                    }} 
-                    placeholder="e.g. Infectious Diseases" 
-                    disabled={isPreviewing}
-                  />
+                  {(() => {
+                    const defaultCategoryList = ['Infectious Diseases', 'Cardiovascular', 'Respiratory', 'Neurology', 'Endocrine', 'Gastroenterology', 'Nephrology', 'Dermatology', 'Oncology', 'Pediatrics', 'Psychiatry', 'Orthopedics', 'Other'];
+                    const categoryOptions = categories.length > 0 ? categories.map(c => c.name) : defaultCategoryList;
+                    return (
+                      <div>
+                        <label className="block text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider mb-2">Category</label>
+                        <select
+                          value={category}
+                          onChange={(e) => {
+                            setCategory(e.target.value);
+                            setHasUnsavedChanges(true);
+                          }}
+                          disabled={isPreviewing}
+                          className="input-neumorphic w-full text-sm py-3 px-4 rounded-xl"
+                        >
+                          <option value="">Select Category...</option>
+                          {categoryOptions.map((catName) => (
+                            <option key={catName} value={catName}>
+                              {catName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    );
+                  })()}
                   <NeumorphicInput 
                     label="ICD Code" 
                     value={icd} 

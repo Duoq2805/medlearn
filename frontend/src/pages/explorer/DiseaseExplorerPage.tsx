@@ -1,191 +1,236 @@
-import React, { useState, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   Search, SortAsc, SortDesc, BookOpen, ChevronRight,
-  FileText, Plus, UploadCloud, Sparkles, Clock, Bookmark,
-  AlertCircle, GraduationCap
+  Bookmark, AlertCircle, GraduationCap, Loader2, Plus, FileText
 } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { getPermissions } from '../../hooks/usePermissions';
+import { useBookmarks } from '../../hooks/useBookmarks';
 import { AnimatedSection } from '../../components/motion/MotionWrappers';
-import Skeleton from '../../components/ui/Skeleton';
+import { diseaseApi } from '../../api/disease';
+import DraftCreationFlow from '../../components/disease/DraftCreationFlow';
 
-const MOCK_DISEASES = [
-  { id: '1', name: 'Pneumonia', description: 'An infection that inflames air sacs in one or both lungs.', category: 'Infectious Diseases', difficulty: 'Medium', progress: 70, bookmarked: true },
-  { id: '2', name: 'Hypertension', description: 'A condition where blood pressure is high.', category: 'Cardiovascular', difficulty: 'Easy', progress: 30, bookmarked: false },
-  { id: '3', name: 'Diabetes Mellitus Type 2', description: 'A chronic condition affecting blood sugar levels.', category: 'Endocrine', difficulty: 'Medium', progress: 90, bookmarked: true },
-  { id: '4', name: 'Asthma', description: 'A chronic respiratory disease.', category: 'Respiratory', difficulty: 'Easy', progress: 50, bookmarked: false },
-  { id: '5', name: 'Migraine', description: 'A neurological condition causing headaches.', category: 'Neurology', difficulty: 'Medium', progress: 80, bookmarked: false },
-] as const;
+export interface DisplayDisease {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  difficulty: string;
+  updatedAt?: string;
+}
+
+const DEFAULT_MOCK: DisplayDisease[] = [
+  { id: '1', name: 'Pneumonia', description: 'An infection that inflames air sacs in one or both lungs.', category: 'Infectious Diseases', difficulty: 'Medium' },
+  { id: '2', name: 'Hypertension', description: 'A condition where blood pressure is high.', category: 'Cardiovascular', difficulty: 'Easy' },
+  { id: '3', name: 'Diabetes Mellitus Type 2', description: 'A chronic condition affecting blood sugar levels.', category: 'Endocrine', difficulty: 'Medium' },
+  { id: '4', name: 'Asthma', description: 'A chronic respiratory disease.', category: 'Respiratory', difficulty: 'Easy' },
+  { id: '5', name: 'Migraine', description: 'A neurological condition causing headaches.', category: 'Neurology', difficulty: 'Medium' },
+];
 
 export default function DiseaseExplorerPage() {
   const { user } = useAuth();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
+  const [flowOpen, setFlowOpen] = useState(false);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
   const [sortOrder, setSortOrder] = useState('asc');
   const [sortBy, setSortBy] = useState('name');
-  const [isLoading] = useState(false);
+
+  const [realDiseases, setRealDiseases] = useState<DisplayDisease[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDiseases = async () => {
+      setIsLoading(true);
+      try {
+        const response = await diseaseApi.fetchDiseases(undefined, undefined, undefined, 0, 100);
+        const content = response?.content || [];
+
+        const loaded: DisplayDisease[] = content.map((d: any) => ({
+          id: d.id.toString(),
+          name: d.name,
+          description: d.description || `Medical knowledge resource for ${d.name}.`,
+          category: d.categoryName || d.category || 'General',
+          difficulty: 'Medium',
+          updatedAt: d.updatedAt ? new Date(d.updatedAt).toLocaleDateString() : undefined,
+        }));
+
+        setRealDiseases(loaded);
+
+        // Fetch categories list
+        try {
+          const cats = await diseaseApi.getCategories();
+          if (Array.isArray(cats) && cats.length > 0) {
+            setCategories(cats.map((c: any) => c.name));
+          }
+        } catch (e) {
+          console.warn('Failed to fetch categories list', e);
+        }
+      } catch (err) {
+        console.error('Failed to load diseases from backend API', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDiseases();
+  }, []);
+
+  // Merge real diseases with mock items if list is small
+  const allDiseases = useMemo(() => {
+    const realIds = new Set(realDiseases.map(d => d.id));
+    const mocks = DEFAULT_MOCK.filter(m => !realIds.has(m.id));
+    return [...realDiseases, ...mocks];
+  }, [realDiseases]);
 
   const filteredDiseases = useMemo(() => {
-    return MOCK_DISEASES.filter(disease => {
-      const matchesCategory = filterCategory === 'All' || disease.category === filterCategory;
+    return allDiseases.filter(disease => {
+      const matchesCategory = filterCategory === 'All' || disease.category.toLowerCase() === filterCategory.toLowerCase();
       const matchesSearch = disease.name.toLowerCase().includes(searchQuery.toLowerCase()) || disease.description.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [searchQuery, filterCategory]);
+  }, [allDiseases, searchQuery, filterCategory]);
 
   const sortedDiseases = useMemo(() => {
-    return filteredDiseases.sort((a, b) => {
+    return [...filteredDiseases].sort((a, b) => {
       if (sortBy === 'name') {
         return sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-      } else if (sortBy === 'difficulty') {
-        const difficultyOrder = { Easy: 1, Medium: 2, Hard: 3 };
-        return sortOrder === 'asc' ? difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty] : difficultyOrder[b.difficulty] - difficultyOrder[a.difficulty];
-      } else if (sortBy === 'progress') {
-        return sortOrder === 'asc' ? a.progress - b.progress : b.progress - a.progress;
       }
       return 0;
     });
   }, [filteredDiseases, sortBy, sortOrder]);
 
-  const handleBookmark = (id: string) => {
+  const handleBookmark = (disease: DisplayDisease) => {
     if (!user) { alert('Please log in to manage bookmarks.'); return; }
-    console.log(`Bookmarked disease ${id}`);
+    toggleBookmark({
+      id: disease.id,
+      type: 'diseases',
+      title: disease.name,
+      category: disease.category,
+      link: `/disease/${disease.id}`
+    });
   };
+
+  const categoryOptions = categories.length > 0
+    ? categories
+    : ['Infectious Diseases', 'Cardiovascular', 'Respiratory', 'Neurology', 'Endocrine', 'Gastroenterology', 'Nephrology', 'Dermatology', 'Oncology', 'Pediatrics', 'Psychiatry', 'Orthopedics'];
 
   return (
     <div className="min-h-screen pt-32 pb-24 px-6">
       <div className="max-w-7xl mx-auto">
         <AnimatedSection>
-          {/* Toolbar */}
-          <div className="mb-8 sticky top-28 z-40">
-            <div className="card-neumorphic-lg p-6 flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="icon-well"><BookOpen size={22} /></div>
-                <h1 className="font-display text-2xl font-bold text-[var(--text-primary)]">Diseases</h1>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="icon-well"><BookOpen size={22} /></div>
+              <div>
+                <h1 className="font-display text-3xl font-bold text-[var(--text-primary)]">Diseases</h1>
+                <p className="text-sm text-[var(--text-secondary)]">Explore medical diseases and clinical knowledge</p>
               </div>
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search diseases..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="input-neumorphic pl-10 w-64"
-                  />
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" size={16} />
-                </div>
-                <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="input-neumorphic py-2 px-3">
-                  <option value="All">All Categories</option>
-                  <option value="Infectious Diseases">Infectious Diseases</option>
-                  <option value="Cardiovascular">Cardiovascular</option>
-                  <option value="Endocrine">Endocrine</option>
-                  <option value="Respiratory">Respiratory</option>
-                  <option value="Neurology">Neurology</option>
-                </select>
-                <button onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')} className="btn-neumorphic-secondary py-2 px-3 flex items-center gap-1">
-                  {sortOrder === 'asc' ? <SortAsc size={16} /> : <SortDesc size={16} />} {sortBy === 'name' && 'Name'}{sortBy === 'difficulty' && 'Difficulty'}{sortBy === 'progress' && 'Progress'}
+            </div>
+            {user && (
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/drafts"
+                  className="btn-neumorphic py-2 px-4 text-sm flex items-center gap-2 text-[var(--text-primary)]"
+                >
+                  <FileText size={16} />
+                  <span>My Drafts</span>
+                </Link>
+                <button
+                  onClick={() => setFlowOpen(true)}
+                  className="btn-neumorphic-primary py-2 px-4 text-sm flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  <span>New Draft</span>
                 </button>
               </div>
-            </div>
-          </div>
-
-          {/* Main Workspace: Conditional Layout for Guest vs User */}
-          <div className={`grid gap-6 ${user ? 'grid-cols-1 lg:grid-cols-4' : 'grid-cols-1'}`}>
-            {/* Sidebar: Only show for logged-in users */}
-            {user && (
-              <div className="lg:col-span-1 space-y-6">
-                <div className="card-neumorphic p-6 space-y-4">
-                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">Actions</h2>
-                  <div className="space-y-2">
-                    <Link to="/diseases/new" className="btn-neumorphic-primary py-2 px-4 w-full flex items-center justify-center gap-2">
-                      <Plus size={16} /> New Draft
-                    </Link>
-                    <Link to="/drafts" className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2">
-                      <FileText size={16} /> My Drafts
-                    </Link>
-                    <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 text-sm opacity-50 cursor-not-allowed">
-                      <UploadCloud size={16} /> Import
-                    </button>
-                    <button disabled className="btn-neumorphic-secondary py-2 px-4 w-full flex items-center justify-center gap-2 text-sm opacity-50 cursor-not-allowed">
-                      <Sparkles size={16} /> AI Generate
-                    </button>
-                  </div>
-                </div>
-
-                <div className="card-neumorphic p-6 space-y-4">
-                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">Filters</h2>
-                  <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="input-neumorphic py-2 px-3 w-full">
-                    <option value="All">All Categories</option>
-                    <option value="Infectious Diseases">Infectious Diseases</option>
-                    <option value="Cardiovascular">Cardiovascular</option>
-                    <option value="Endocrine">Endocrine</option>
-                    <option value="Respiratory">Respiratory</option>
-                    <option value="Neurology">Neurology</option>
-                  </select>
-                </div>
-
-                <div className="card-neumorphic p-6 space-y-4">
-                  <h2 className="font-display text-lg font-bold text-[var(--text-primary)]">History</h2>
-                  <div className="space-y-2">
-                    {[...Array(3)].map((_, i) => (
-                      <Link key={i} to="/explorer" className="depth-layer-1 rounded-xl p-3 flex items-center justify-between text-sm hover:-translate-y-0.5 transition-all">
-                        <span className="text-[var(--text-primary)]">Pneumonia</span>
-                        <span className="text-xs text-[var(--text-tertiary)]">2h ago</span>
-                      </Link>
-                    ))}
-                    <Link to="/history" className="text-xs text-[var(--accent-primary)] hover:underline mt-2 inline-block">View Full</Link>
-                  </div>
-                </div>
-              </div>
             )}
+          </div>
 
-            {/* Disease Cards: Full width for guests, 3 columns for users */}
-            <div className={user ? 'lg:col-span-3 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'}>
-              {isLoading ? (
-                [...Array(6)].map((_, i) => (
-                  <div key={i} className="card-neumorphic p-6">
-                    <Skeleton className="h-5 w-3/4 mb-4" />
-                    <Skeleton className="h-4 w-1/2 mb-2" />
-                    <Skeleton className="h-4 w-full mb-4" />
-                  </div>
-                ))
-              ) : sortedDiseases.length === 0 ? (
-                <div className="card-neumorphic p-12 text-center col-span-full">
-                  <AlertCircle size={40} className="mx-auto mb-4 text-[var(--text-tertiary)]" />
-                  <p className="text-lg font-semibold text-[var(--text-primary)] mb-2">No diseases found</p>
-                  <button onClick={() => { setSearchQuery(''); setFilterCategory('All'); }} className="btn-neumorphic-primary py-3 px-8">Clear Filters</button>
-                </div>
-              ) : (
-                sortedDiseases.map(disease => (
-                  <AnimatedSection key={disease.id} className="card-neumorphic p-6 flex flex-col hover:shadow-lg transition-all">
-                    <div className="flex justify-between items-start mb-4">
-                      <Link to={`/disease/${disease.id}`} className="flex-1">
-                        <h2 className="font-display text-lg font-bold text-[var(--text-primary)] mb-1 hover:underline">{disease.name}</h2>
-                      </Link>
-                      {user && (
-                        <button onClick={() => handleBookmark(disease.id)} className="p-1 rounded-md hover:bg-[var(--surface-hover)]">
-                          {disease.bookmarked ? <Bookmark fill="var(--accent-primary)" size={18} className="text-[var(--accent-primary)]" /> : <Bookmark size={18} className="text-[var(--text-tertiary)]" />}
-                        </button>
-                      )}
-                    </div>
-                    <p className="text-xs text-[var(--text-secondary)] mb-3 flex-grow">{disease.description.substring(0, 80)}...</p>
-                    <div className="mt-auto flex items-center justify-between pt-4 border-t border-[var(--shadow-dark)]">
-                      <span className="text-xs text-[var(--text-tertiary)]"><GraduationCap size={14} className="inline text-[var(--accent-primary)] mr-1" />{disease.difficulty}</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-2 rounded-full bg-[var(--surface-primary)] shadow-[inset_2px_2px_4px_var(--shadow-dark)] overflow-hidden">
-                          <div className="h-full bg-[var(--accent-primary)] rounded-full" style={{ width: `${disease.progress}%` }}></div>
-                        </div>
-                        <span className="text-xs font-semibold text-[var(--text-primary)]">{disease.progress}%</span>
-                      </div>
-                    </div>
-                  </AnimatedSection>
-                ))
-              )}
+          {/* Compact Search & Filter Toolbar */}
+          <div className="card-neumorphic p-4 mb-6 flex flex-wrap items-center justify-between gap-3">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <input
+                type="text"
+                placeholder="Search diseases..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="input-neumorphic !pl-11 pr-4 py-2 w-full text-sm"
+              />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" size={16} />
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <select
+                value={filterCategory}
+                onChange={(e) => setFilterCategory(e.target.value)}
+                className="input-neumorphic py-2 px-3 text-sm"
+              >
+                <option value="All">All Categories</option>
+                {categoryOptions.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [b, o] = e.target.value.split('-');
+                  setSortBy(b);
+                  setSortOrder(o);
+                }}
+                className="input-neumorphic py-2 px-3 text-sm"
+              >
+                <option value="name-asc">Name (A-Z)</option>
+                <option value="name-desc">Name (Z-A)</option>
+              </select>
             </div>
           </div>
+
+          {/* Content */}
+          {isLoading ? (
+            <div className="card-neumorphic p-12 text-center text-[var(--text-secondary)]">
+              <Loader2 size={32} className="animate-spin mx-auto mb-4 text-[var(--accent-primary)]" />
+              <p>Loading diseases...</p>
+            </div>
+          ) : sortedDiseases.length === 0 ? (
+            <div className="card-neumorphic p-12 text-center">
+              <AlertCircle size={40} className="mx-auto mb-4 text-[var(--text-tertiary)]" />
+              <p className="text-lg font-semibold text-[var(--text-primary)] mb-2">No diseases found</p>
+              <button onClick={() => { setSearchQuery(''); setFilterCategory('All'); }} className="btn-neumorphic-primary py-3 px-8 text-sm">Clear Filters</button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {sortedDiseases.map(disease => (
+                <div key={disease.id} className="card-neumorphic p-6 flex flex-col hover:shadow-lg transition-all">
+                  <div className="flex justify-between items-start mb-3">
+                    <Link to={`/disease/${disease.id}`} className="flex-1">
+                      <h2 className="font-display text-lg font-bold text-[var(--text-primary)] hover:underline">{disease.name}</h2>
+                    </Link>
+                    {user && (
+                      <button onClick={() => handleBookmark(disease)} className="p-1 rounded-md hover:bg-[var(--surface-hover)]" title="Bookmark">
+                        {isBookmarked(disease.id, 'diseases') ? <Bookmark fill="var(--accent-primary)" size={18} className="text-[var(--accent-primary)]" /> : <Bookmark size={18} className="text-[var(--text-tertiary)]" />}
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-xs text-[var(--text-secondary)] mb-4 flex-grow">{disease.description}</p>
+                  <div className="mt-auto flex items-center justify-between pt-4 border-t border-[var(--shadow-dark)] text-xs text-[var(--text-tertiary)]">
+                    <span><GraduationCap size={14} className="inline text-[var(--accent-primary)] mr-1" />{disease.category}</span>
+                    <Link to={`/disease/${disease.id}`} className="btn-neumorphic-primary py-1.5 px-3 text-xs flex items-center gap-1">
+                      View <ChevronRight size={12} />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </AnimatedSection>
       </div>
+
+      <DraftCreationFlow open={flowOpen} onClose={() => setFlowOpen(false)} />
     </div>
   );
 }

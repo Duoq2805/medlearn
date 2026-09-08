@@ -58,8 +58,8 @@ export default function ReviewerHistoryPage() {
 
           <div className="card-neumorphic p-4 mb-6 flex flex-wrap items-center gap-4">
             <div className="relative flex-1 min-w-[200px]">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
-              <input type="text" placeholder="Search title or author..." value={search} onChange={(e) => setSearch(e.target.value)} className="input-neumorphic pl-9 w-full text-sm" />
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
+              <input type="text" placeholder="Search title or author..." value={search} onChange={(e) => setSearch(e.target.value)} className="input-neumorphic !pl-11 w-full text-sm" />
             </div>
             <select value={decisionFilter} onChange={(e) => setDecisionFilter(e.target.value)} className="input-neumorphic py-2 px-3 text-sm">
               <option value="All">All Decisions</option>

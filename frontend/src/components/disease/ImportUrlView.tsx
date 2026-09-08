@@ -83,11 +83,11 @@ export default function ImportUrlView({ onBack, onDocumentImported }: ImportUrlV
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://www.who.int/news-room/..."
-              className="input-neumorphic w-full text-sm pl-9"
+              className="input-neumorphic w-full text-sm !pl-11"
               disabled={importing}
               onKeyDown={(e) => e.key === 'Enter' && handleImport()}
             />
-            <Link size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)]" />
+            <Link size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--text-tertiary)] pointer-events-none" />
           </div>
         </div>
 

@@ -11,6 +11,7 @@ export default function MyDraftsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [flowOpen, setFlowOpen] = useState(false);
+  const [statusTab, setStatusTab] = useState<'ALL' | 'DRAFT' | 'PENDING_REVIEW' | 'APPROVED' | 'REJECTED'>('ALL');
   type Draft = { id: string; title: string; status: string; lastEdited: string; version: number; reviewerComments: string | null; diseaseId: number; _raw: unknown };
   const [drafts, setDrafts] = useState<Draft[]>([]);
   const [loading, setLoading] = useState(true);
@@ -73,18 +74,49 @@ export default function MyDraftsPage() {
         console.log('Final drafts array:', draftsArray);
         console.log('Drafts array length:', draftsArray.length);
 
-        const draftsResults = draftsArray.map((draft: { id: number; diseaseName?: string; title?: string; status: string; updatedAt?: string; versionNumber?: number; reviewNote?: string; diseaseId: number }) => ({
-          id: draft.id.toString(),
-          title: draft.diseaseName || draft.title || 'Untitled draft',
-          status: draft.status,
-          lastEdited: draft.updatedAt ? new Date(draft.updatedAt).toLocaleString() : 'Just now',
-          version: draft.versionNumber || 1,
-          reviewerComments: draft.reviewNote || null,
-          diseaseId: draft.diseaseId,
-          // Preserve the full draft object for potential use
-          _raw: draft
-        }));
-        console.log('Processed drafts results:', draftsResults);
+        const draftsResults = await Promise.all(
+          draftsArray.map(async (draft: any) => {
+            let status = draft.status || 'DRAFT';
+            let version = draft.versionNumber || 1;
+            let reviewerComments = draft.reviewNote || draft.moderationNote || null;
+            const diseaseId = draft.diseaseId || draft.disease?.id || draft.id;
+
+            if (diseaseId) {
+              try {
+                const versionRes = await diseaseApi.getLatestDraftVersion(diseaseId);
+                if (versionRes) {
+                  status = versionRes.status || status;
+                  version = versionRes.versionNumber || version;
+                  reviewerComments = versionRes.moderationNote || reviewerComments;
+                }
+              } catch (vErr) {
+                try {
+                  const versions = await diseaseApi.getVersionsByDisease(diseaseId);
+                  if (versions && versions.length > 0) {
+                    const latest = versions[0];
+                    status = latest.status || status;
+                    version = latest.versionNumber || version;
+                    reviewerComments = latest.moderationNote || reviewerComments;
+                  }
+                } catch (vErr2) {
+                  // fallback to draft.status
+                }
+              }
+            }
+
+            return {
+              id: draft.id.toString(),
+              title: draft.diseaseName || draft.title || draft.name || 'Untitled draft',
+              status,
+              lastEdited: draft.updatedAt ? new Date(draft.updatedAt).toLocaleString() : 'Just now',
+              version,
+              reviewerComments,
+              diseaseId,
+              _raw: draft
+            };
+          })
+        );
+        console.log('Processed drafts results with version statuses:', draftsResults);
         setDrafts(draftsResults);
       } catch (err: any) {
         console.error('Failed to load user drafts', err);
@@ -276,61 +308,130 @@ export default function MyDraftsPage() {
 
           <DraftCreationFlow open={flowOpen} onClose={handleCloseFlow} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {drafts.map((draft) => (
-              <div key={draft.id} className="card-neumorphic p-6 hover:shadow-lg transition-all flex flex-col">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">{draft.title}</h3>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium $
-                    draft.status === 'DRAFT' ? 'bg-blue-500/10 text-blue-600' :
-                    draft.status === 'PENDING_REVIEW' ? 'bg-amber-500/10 text-amber-600' :
-                    draft.status === 'REJECTED' ? 'bg-red-500/10 text-red-600' :
-                    draft.status === 'NEEDS_CHANGES' ? 'bg-yellow-500/10 text-yellow-600' :
-                    'bg-gray-500/10 text-gray-600'
-                  `}>
-                    {draft.status}
-                  </span>
+          {/* Status Tabs */}
+          {(() => {
+            const statusCounts = {
+              ALL: drafts.length,
+              DRAFT: drafts.filter(d => d.status === 'DRAFT').length,
+              PENDING_REVIEW: drafts.filter(d => d.status === 'PENDING_REVIEW').length,
+              APPROVED: drafts.filter(d => d.status === 'APPROVED' || d.status === 'PUBLISHED').length,
+              REJECTED: drafts.filter(d => d.status === 'REJECTED' || d.status === 'NEEDS_CHANGES').length,
+            };
+
+            const tabs = [
+              { id: 'ALL' as const, label: 'All', count: statusCounts.ALL },
+              { id: 'DRAFT' as const, label: 'Draft', count: statusCounts.DRAFT },
+              { id: 'PENDING_REVIEW' as const, label: 'Pending Review', count: statusCounts.PENDING_REVIEW },
+              { id: 'APPROVED' as const, label: 'Approved', count: statusCounts.APPROVED },
+              { id: 'REJECTED' as const, label: 'Rejected', count: statusCounts.REJECTED },
+            ];
+
+            const filteredDrafts = drafts.filter(d => {
+              if (statusTab === 'ALL') return true;
+              if (statusTab === 'APPROVED') return d.status === 'APPROVED' || d.status === 'PUBLISHED';
+              if (statusTab === 'REJECTED') return d.status === 'REJECTED' || d.status === 'NEEDS_CHANGES';
+              return d.status === statusTab;
+            });
+
+            return (
+              <>
+                <div className="mb-8 overflow-x-auto">
+                  <div className="card-neumorphic p-2 flex gap-1 min-w-min">
+                    {tabs.map((tab) => (
+                      <button
+                        key={tab.id}
+                        onClick={() => setStatusTab(tab.id)}
+                        className={`py-2 px-4 rounded-lg flex items-center gap-2 text-sm font-medium transition-all whitespace-nowrap ${
+                          statusTab === tab.id
+                            ? 'bg-[var(--accent-primary)] text-white'
+                            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                        }`}
+                      >
+                        {tab.label}
+                        <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold ${statusTab === tab.id ? 'bg-white/20' : 'bg-[var(--surface-hover)]'}`}>
+                          {tab.count}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <p className="text-xs text-[var(--text-secondary)] mb-4">
-                  Last edited: {draft.lastEdited} • v{draft.version}
-                </p>
-                {draft.status === 'REJECTED' && draft.reviewerComments && (
-                  <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                    <div className="flex items-center gap-2 mb-1">
-                      <AlertTriangle size={14} className="text-red-600" />
-                      <p className="text-sm font-semibold text-red-600">Reviewer Comments</p>
-                    </div>
-                    <p className="text-xs text-[var(--text-error)]">{draft.reviewerComments}</p>
+
+                {filteredDrafts.length === 0 ? (
+                  <div className="card-neumorphic p-12 text-center text-[var(--text-tertiary)]">
+                    No items found for filter <strong>{statusTab}</strong>.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredDrafts.map((draft) => (
+                      <div key={draft.id} className="card-neumorphic p-6 hover:shadow-lg transition-all flex flex-col">
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">{draft.title}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                            draft.status === 'DRAFT' ? 'bg-blue-500/10 text-blue-600' :
+                            draft.status === 'PENDING_REVIEW' ? 'bg-amber-500/10 text-amber-600' :
+                            draft.status === 'APPROVED' || draft.status === 'PUBLISHED' ? 'bg-emerald-500/10 text-emerald-600' :
+                            draft.status === 'REJECTED' ? 'bg-red-500/10 text-red-600' :
+                            'bg-gray-500/10 text-gray-600'
+                          }`}>
+                            {draft.status}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)] mb-4">
+                          Last edited: {draft.lastEdited} • v{draft.version}
+                        </p>
+
+                        {(draft.status === 'REJECTED' || draft.reviewerComments) && draft.reviewerComments && (
+                          <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+                            <div className="flex items-center gap-2 mb-1">
+                              <AlertTriangle size={14} className="text-red-600" />
+                              <p className="text-xs font-bold text-red-600">Reviewer Feedback</p>
+                            </div>
+                            <p className="text-xs text-[var(--text-error)] leading-relaxed">{draft.reviewerComments}</p>
+                          </div>
+                        )}
+
+                        <div className="mt-auto pt-3 border-t border-[var(--shadow-dark)] flex gap-2">
+                          <Link to={`/disease/${draft.diseaseId}/edit`} className="btn-neumorphic-secondary py-2 px-3 text-xs flex-1 flex items-center justify-center gap-1">
+                            Edit <ChevronRight size={14} />
+                          </Link>
+                          <button 
+                            className="btn-neumorphic-secondary py-2 px-3 text-xs"
+                            onClick={() => handlePreviewDraft(draft.id)}
+                            title="Preview Draft"
+                          >
+                            <Eye size={14} />
+                          </button>
+                          {draft.status === 'DRAFT' && (
+                            <button 
+                              className="btn-neumorphic-primary py-2 px-3 text-xs flex items-center gap-1"
+                              onClick={() => handleSubmitDraft(draft.id)}
+                            >
+                              <Send size={14} /> Submit
+                            </button>
+                          )}
+                          {(draft.status === 'APPROVED' || draft.status === 'PUBLISHED') && (
+                            <Link 
+                              to={`/disease/${draft.diseaseId}`}
+                              className="btn-neumorphic-primary py-2 px-3 text-xs flex items-center gap-1 text-emerald-600"
+                            >
+                              Live
+                            </Link>
+                          )}
+                          <button 
+                            className="btn-neumorphic-secondary py-2 px-3 text-xs text-red-600 hover:bg-red-500/10"
+                            onClick={() => handleDeleteDraft(draft.id)}
+                            title="Delete Draft"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
-                <div className="mt-auto pt-3 border-t border-[var(--shadow-dark)] flex gap-2">
-                  <Link to={`/disease/${draft.diseaseId}/edit`} className="btn-neumorphic-secondary py-2 px-3 text-sm flex-1 flex items-center justify-center gap-1">
-                    Edit <ChevronRight size={14} />
-                  </Link>
-                  <button 
-                    className="btn-neumorphic-secondary py-2 px-3 text-sm"
-                    onClick={() => handlePreviewDraft(draft.id)}
-                  >
-                    <Eye size={14} />
-                  </button>
-                  {draft.status === 'DRAFT' && (
-                    <button 
-                      className="btn-neumorphic-primary py-2 px-3 text-sm flex items-center gap-1"
-                      onClick={() => handleSubmitDraft(draft.id)}
-                    >
-                      <Send size={14} /> Submit
-                    </button>
-                  )}
-                  <button 
-                    className="btn-neumorphic-secondary py-2 px-3 text-sm text-red-600 hover:bg-red-500/10"
-                    onClick={() => handleDeleteDraft(draft.id)}
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+              </>
+            );
+          })()}
         </AnimatedSection>
       </div>
 
